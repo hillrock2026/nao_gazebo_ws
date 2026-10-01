@@ -1,0 +1,73 @@
+<?xml version="1.0" ?>
+<!--
+  Minimal world for the Task 1 Gazebo Sim startup loop.
+
+  Scope: ground plane + light + physics + simulation clock only.
+  No controller, no ros2_control, no bridge, no sensor, no robot plugin.
+-->
+<sdf version="1.11">
+  <world name="nao_world">
+    <gravity>0 0 -9.8</gravity>
+
+    <physics name="1ms" type="dartsim">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+    </physics>
+
+    <plugin filename="gz-sim-physics-system" name="gz::sim::systems::Physics"/>
+    <plugin filename="gz-sim-user-commands-system" name="gz::sim::systems::UserCommands"/>
+    <plugin filename="gz-sim-scene-broadcaster-system" name="gz::sim::systems::SceneBroadcaster"/>
+    <!-- Task 3D: process the single native IMU sensor declared on base_link. -->
+    <plugin filename="gz-sim-imu-system" name="gz::sim::systems::Imu"/>
+    <!-- Task 3E: process the native contact sensors declared on l_ankle/r_ankle. -->
+    <plugin filename="gz-sim-contact-system" name="gz::sim::systems::Contact"/>
+
+    <light name="sun" type="directional">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>0.8 0.8 0.8 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+    <model name="ground_plane">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
+              </ode>
+            </friction>
+            <contact>
+              <ode>
+                <kp>1e8</kp>
+                <kd>1.0</kd>
+              </ode>
+            </contact>
+          </surface>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+          <material>
+            <ambient>0.7 0.7 0.7 1</ambient>
+            <diffuse>0.7 0.7 0.7 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+  </world>
+</sdf>

@@ -1,0 +1,31 @@
+{
+  "algorithm": "SHA-256",
+  "artifact": "Stage 7' asset manifest",
+  "asset_dirs": [
+    {
+      "aggregate_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "entries": [],
+      "exists": true,
+      "n_files": 0,
+      "path": "src/nao_gz_sim/urdf"
+    },
+    {
+      "aggregate_sha256": null,
+      "exists": false,
+      "path": "src/nao_description/urdf"
+    },
+    {
+      "aggregate_sha256": "4e6798a5dfbef960ad5f283b8dac850eec2fe0f1b42256b1289824b2aae82e40",
+      "entries": [
+        {
+          "path": "install/nao_gz_sim/share/nao_gz_sim/worlds/nao_world.sdf",
+          "sha256": "383341d11d831d0376cae074b1205e5ad7784841a6670bcf0db33813065709cc"
+        }
+      ],
+      "exists": true,
+      "n_files": 1,
+      "path": "install/nao_gz_sim/share/nao_gz_sim/worlds"
+    }
+  ],
+  "created_at_local": "2026-09-29T16:52:42+0800"
+}

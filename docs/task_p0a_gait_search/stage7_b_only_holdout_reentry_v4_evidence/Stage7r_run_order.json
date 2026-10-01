@@ -1,0 +1,41 @@
+{
+  "artifact": "Stage 7' B-only holdout run order",
+  "execution": "strict_serial",
+  "no_interleave": true,
+  "no_parallel": true,
+  "order": [
+    {
+      "episode": "B",
+      "gait_phase_mode": "explicit_support_swing",
+      "run_order": 1,
+      "seed": 909401
+    },
+    {
+      "episode": "B",
+      "gait_phase_mode": "explicit_support_swing",
+      "run_order": 2,
+      "seed": 909402
+    },
+    {
+      "episode": "B",
+      "gait_phase_mode": "explicit_support_swing",
+      "run_order": 3,
+      "seed": 909403
+    },
+    {
+      "episode": "B",
+      "gait_phase_mode": "explicit_support_swing",
+      "run_order": 4,
+      "seed": 909404
+    },
+    {
+      "episode": "B",
+      "gait_phase_mode": "explicit_support_swing",
+      "run_order": 5,
+      "seed": 909405
+    }
+  ],
+  "published_at": "2026-09-29T16:51:11+0800",
+  "seed_order_frozen": true,
+  "stage": "7-v4"
+}

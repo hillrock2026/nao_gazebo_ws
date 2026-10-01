@@ -1,0 +1,926 @@
+# Phase A：NAO Gazebo 数据采集最小闭环
+
+## Qoder Implementation Task
+
+你现在负责在现有 `nao_gazebo_ws` 工程上实施：
+
+> **Phase A：冻结“数据采集最小闭环”**
+
+本阶段的唯一目标是建立一个可靠、可重复、可审计的最小 Episode 数据生产闭环：
+
+```text
+Frozen gait parameters + seed
+        ↓
+Gazebo / ROS
+        ↓
+NAO gait execution
+        ↓
+raw trajectory collection
+        ↓
+atomic episode publication
+        ↓
+manifest + provenance
+        ↓
+Episode Integrity validation
+```
+
+本阶段不是 gait optimization。
+
+本阶段不是 Stage 7 contract validation。
+
+本阶段不是修改 P1-R v3。
+
+本阶段不是设计新的 gait algorithm。
+
+---
+
+# 1. 当前工程背景
+
+当前工程已经包含：
+
+* `src/nao_gz_sim`
+* `phase4b_producer.py`
+* `phase4d_collector.py`
+* `nao_trajectory_schema.py`
+* `run_p0a_gait_candidate.py`
+* `nao_sim.launch.py`
+* `/clock`
+* `/joint_states`
+* `/joint_command`
+* `/imu/data`
+* left/right foot contacts
+* `/body_pose`
+* provenance / manifest / trajectory collection infrastructure
+
+现有 Phase 4D collector 已经具有较成熟的：
+
+* staging
+* atomic publish
+* sample accounting
+* reject reason
+* timestamp handling
+* contact freshness
+* IMU freshness
+* command age
+* schema validation
+
+因此：
+
+> **优先复用现有代码，不允许因为本任务而重新设计 collector。**
+
+---
+
+# 2. 第一原则：先审计，后修改
+
+在修改任何代码之前：
+
+1. 阅读当前 runner。
+2. 阅读当前 `nao_sim.launch.py`。
+3. 阅读 `phase4b_producer.py`。
+4. 阅读 `phase4d_collector.py`。
+5. 阅读 `nao_trajectory_schema.py`。
+6. 阅读当前 episode / manifest / provenance 生成逻辑。
+7. 阅读已有相关测试。
+8. 阅读已有 Phase 4 / Stage 7 数据采集相关文档。
+
+先建立：
+
+```text
+CURRENT IMPLEMENTATION
+        ↓
+GAP
+        ↓
+MINIMAL FIX
+```
+
+禁止先入为主地重写。
+
+---
+
+# 3. Phase A 的明确边界
+
+## 本阶段必须完成
+
+### A1. 一个固定 gait 可以启动
+
+给定：
+
+```text
+gait parameters θ
+seed
+episode_id
+duration
+```
+
+能够启动 Gazebo + NAO gait producer。
+
+---
+
+### A2. 一个 Episode 可以完整采集
+
+至少确保：
+
+```text
+simulation clock
+joint states
+joint commands
+IMU
+left contact
+right contact
+body pose
+```
+
+能够进入 episode 数据。
+
+---
+
+### A3. Episode 必须原子发布
+
+不得出现：
+
+```text
+半写入 episode 被误认为完整 episode
+```
+
+应该采用类似：
+
+```text
+episode.tmp/
+    ↓
+validation
+    ↓
+atomic rename
+    ↓
+episode/
+```
+
+如果现有 Phase 4D 已经正确实现，则直接复用。
+
+---
+
+### A4. 生成 provenance
+
+每个 episode 至少能够回答：
+
+```text
+这个数据是谁产生的？
+什么时候产生的？
+使用什么 seed？
+使用什么 gait parameters？
+使用什么 Gazebo/world/physics？
+使用什么代码版本？
+实际运行了多久？
+数据是否完整？
+```
+
+---
+
+### A5. 自动 Episode Integrity 判定
+
+本阶段只建立：
+
+```text
+episode_integrity
+```
+
+不要把它和：
+
+```text
+contract_status
+```
+
+混在一起。
+
+例如：
+
+```json
+{
+  "episode_integrity": "PASS"
+}
+```
+
+或者：
+
+```json
+{
+  "episode_integrity": "FAIL"
+}
+```
+
+---
+
+# 4. 三种状态必须严格分离
+
+后续系统会有：
+
+```text
+episode_integrity
+measurement_quality
+contract_status
+```
+
+Phase A 只负责第一项：
+
+```text
+episode_integrity
+```
+
+可以为未来字段预留位置，但：
+
+> 不要在本阶段实现新的 P1-R contract logic。
+
+特别禁止把：
+
+```text
+lateral_ratio > 0.50
+yaw_change > 30°
+```
+
+之类 Stage 7 contract gate 塞进 Episode Integrity。
+
+一个 gait 完整运行但 gait quality 不好：
+
+```text
+episode_integrity = PASS
+contract_status = FAIL
+```
+
+这是允许的，而且是后续 gait dataset 必须支持的。
+
+---
+
+# 5. Episode 最小目录结构
+
+请尽量形成类似：
+
+```text
+episode_<id>/
+    manifest.json
+    provenance.json
+    samples.jsonl
+```
+
+如果现有 schema 已经定义了其他文件名，不要为了形式统一而破坏已有兼容性。
+
+可以保留现有 schema。
+
+核心要求是：
+
+```text
+raw trajectory
++
+manifest
++
+provenance
+```
+
+三者能够互相追溯。
+
+---
+
+# 6. Manifest 最低信息要求
+
+检查现有 manifest。
+
+至少应能够表达：
+
+```text
+episode_id
+
+schema_version
+
+start_time
+end_time
+
+sample_count
+
+duration
+
+joint_order
+
+topics / signals
+
+simulation_time information
+
+collection status
+
+episode_integrity
+```
+
+如果现有 manifest 已经有这些字段：
+
+> 不重复创建第二套 manifest schema。
+
+只补缺失字段。
+
+---
+
+# 7. Provenance 最低信息要求
+
+至少保存：
+
+```text
+episode_id
+
+seed
+
+gait parameters
+
+Gazebo command
+
+world
+
+physics engine
+
+robot model
+
+launch configuration
+
+code revision / git revision（如果可获得）
+
+collector configuration
+
+start timestamp
+
+end timestamp
+
+requested duration
+
+actual duration
+
+termination reason
+```
+
+尤其注意：
+
+> **实际执行的 command 必须来自真实执行路径，而不是仅仅保存“理论 command”。**
+
+历史 Stage 7 曾经出现过：
+
+```text
+launch_cmd = null
+```
+
+导致一个看起来通过很多 gate 的 attempt 最终无法作为有效实验。
+
+Phase A 必须避免这个问题。
+
+---
+
+# 8. Runner 的职责
+
+Runner 只负责：
+
+```text
+prepare
+↓
+launch
+↓
+monitor
+↓
+stop
+↓
+cleanup
+↓
+publish provenance
+```
+
+Runner 不负责判断：
+
+```text
+这个 gait 好不好
+```
+
+也不负责决定：
+
+```text
+Stage 7 PASS / FAIL
+```
+
+---
+
+# 9. 检查一个重要历史问题
+
+检查：
+
+`run_p0a_gait_candidate.py`
+
+特别检查 configuration merge 顺序。
+
+当前历史审计已经发现类似：
+
+```python
+cfg.update(overrides)
+cfg.update(EXPERIMENT_DEFAULTS)
+```
+
+可能导致：
+
+```text
+user override
+        ↓
+被 EXPERIMENT_DEFAULTS 覆盖
+```
+
+如果这个问题在当前代码中仍然存在：
+
+> 修复。
+
+要求：
+
+```text
+defaults
+    ↓
+user overrides
+```
+
+最终用户指定值必须具有优先级。
+
+尤其检查：
+
+```text
+duration_sec
+stop_ramp_sec
+hold_final_sec
+seed
+gait parameters
+output directory
+```
+
+---
+
+# 10. Seed 必须真正进入 Gazebo
+
+检查：
+
+```text
+user seed
+ ↓
+runner
+ ↓
+launch
+ ↓
+gz sim --seed
+```
+
+必须形成完整 provenance chain。
+
+不要只把：
+
+```text
+seed=1234
+```
+
+写进 JSON，而 Gazebo 实际使用了另一个 seed。
+
+最终 provenance 必须能够证明：
+
+```text
+requested_seed
+actual Gazebo invocation
+```
+
+一致。
+
+---
+
+# 11. 不要修改 gait algorithm
+
+本任务中：
+
+禁止改变：
+
+```text
+phase4b gait mathematical model
+leg_foot_target()
+sway_profile()
+IK
+step length semantics
+frequency semantics
+support ratio semantics
+```
+
+除非发现会导致数据采集无法工作的明确 bug。
+
+如果发现潜在 gait algorithm 问题：
+
+1. 记录问题。
+2. 不要顺手修。
+3. 在最终报告中列出。
+
+原因：
+
+> Phase A 的目标是冻结 acquisition pipeline，而不是改变 gait。
+
+---
+
+# 12. Collector 要检查的最低条件
+
+Episode Integrity 至少检查：
+
+### 时间
+
+```text
+simulation time monotonic
+```
+
+### 样本
+
+```text
+sample count > 0
+```
+
+### joint
+
+```text
+24 joints present
+joint order correct
+finite values
+```
+
+### command
+
+```text
+command exists
+command finite
+joint order correct
+```
+
+### IMU
+
+```text
+IMU samples exist
+finite values
+```
+
+### contacts
+
+```text
+left/right contact data exists
+```
+
+### body pose
+
+```text
+body pose exists
+finite values
+```
+
+### completeness
+
+```text
+requested episode
+        ↓
+actual episode
+```
+
+必须能够判断：
+
+```text
+正常完成
+提前终止
+collector failure
+Gazebo failure
+```
+
+---
+
+# 13. 不要把“机器人摔倒”自动判为 Episode Integrity FAIL
+
+这是非常重要的设计原则。
+
+例如：
+
+```text
+NAO 正常运行 8 秒
+然后摔倒
+```
+
+如果所有原始数据完整：
+
+```text
+episode_integrity = PASS
+```
+
+同时以后可以有：
+
+```text
+fall_detected = true
+```
+
+或者：
+
+```text
+measurement_quality = VALID
+```
+
+原因：
+
+> 对 gait optimization 来说，“摔倒的 gait”是非常有价值的数据。
+
+它不是坏数据。
+
+真正应该判 FAIL 的是：
+
+```text
+数据损坏
+数据缺失
+时间轴损坏
+collector failure
+Gazebo crash
+schema corruption
+```
+
+---
+
+# 14. 必须区分三类失败
+
+最终至少区分：
+
+## Infrastructure failure
+
+例如：
+
+```text
+Gazebo failed to start
+ROS failed
+collector crashed
+process failed
+```
+
+## Data integrity failure
+
+例如：
+
+```text
+timestamps corrupted
+samples incomplete
+schema invalid
+missing signals
+```
+
+## Gait outcome
+
+例如：
+
+```text
+fall
+large yaw
+large lateral drift
+poor clearance
+```
+
+第三类不是 Episode Integrity failure。
+
+---
+
+# 15. 必须实现一个最小 smoke test
+
+最终必须能够运行类似：
+
+```bash
+run one episode
+```
+
+然后自动得到：
+
+```text
+episode/
+    manifest.json
+    provenance.json
+    samples.jsonl
+```
+
+并打印：
+
+```text
+EPISODE_ID
+SEED
+REQUESTED_DURATION
+ACTUAL_DURATION
+SAMPLE_COUNT
+
+JOINT_STATE: PASS
+COMMAND: PASS
+IMU: PASS
+CONTACT: PASS
+BODY_POSE: PASS
+CLOCK: PASS
+
+EPISODE_INTEGRITY: PASS
+```
+
+具体 CLI 名称可以根据当前项目决定。
+
+不要为了满足这个示例而强行新增复杂 CLI。
+
+---
+
+# 16. 必须测试失败路径
+
+至少测试：
+
+1. Gazebo 启动失败。
+2. collector 启动失败。
+3. episode 提前终止。
+4. samples 不完整。
+5. invalid timestamp。
+6. missing command。
+7. missing joint state。
+8. malformed sample。
+
+要求：
+
+> 失败 episode 不得被伪装成正常 episode。
+
+---
+
+# 17. 不允许做的事情
+
+本阶段明确禁止：
+
+* 不修改 Stage 7 contract。
+* 不修改 P1-R v3 gate threshold。
+* 不重新定义 gait metrics。
+* 不进行 gait optimization。
+* 不做大规模 parameter sweep。
+* 不引入 RL。
+* 不引入 Bayesian optimization。
+* 不重写整个 collector。
+* 不重构整个 workspace。
+* 不删除历史 evidence。
+* 不删除失败 episode。
+* 不为了让测试 PASS 而放宽数据质量标准。
+* 不改变 gait 数学模型。
+
+---
+
+# 18. 测试要求
+
+完成修改后必须运行：
+
+```text
+现有相关 unit tests
+现有 schema tests
+collector tests
+runner tests（如果存在）
+```
+
+然后至少执行：
+
+```text
+ONE REAL GAZEBO EPISODE
+```
+
+要求：
+
+```text
+Gazebo started
+gait executed
+collector active
+episode published
+manifest generated
+provenance generated
+integrity evaluated
+processes cleaned
+```
+
+---
+
+# 19. 最终必须输出 Phase A Implementation Report
+
+报告必须包含：
+
+## 1. 当前实现审计
+
+列出：
+
+```text
+component
+current status
+reuse / modify / add
+reason
+```
+
+## 2. 修改文件
+
+逐文件列出：
+
+```text
+file
+change
+reason
+```
+
+## 3. 数据闭环
+
+明确展示：
+
+```text
+parameter
+ ↓
+runner
+ ↓
+Gazebo
+ ↓
+gait producer
+ ↓
+collector
+ ↓
+atomic publish
+ ↓
+manifest/provenance
+ ↓
+integrity
+```
+
+## 4. 实际执行命令
+
+必须给出真实执行 command。
+
+## 5. Episode 实际结果
+
+包括：
+
+```text
+episode id
+seed
+duration
+sample count
+signals
+integrity
+termination reason
+```
+
+## 6. 测试结果
+
+明确：
+
+```text
+PASS
+FAIL
+NOT RUN
+```
+
+不要使用模糊语言。
+
+## 7. Remaining Issues
+
+明确列出：
+
+```text
+P0
+P1
+P2
+```
+
+## 8. Phase A 建议结论
+
+只能使用：
+
+```text
+PHASE_A_READY
+```
+
+或者：
+
+```text
+PHASE_A_NOT_READY
+```
+
+不得因为“代码看起来不错”就宣布 READY。
+
+只有：
+
+> **真实 Gazebo Episode 成功产生 + 数据完整 + provenance 完整 + integrity validator 成功判定 + 清理完成**
+
+才能宣布：
+
+```text
+PHASE_A_READY
+```
+
+---
+
+# 20. 最重要的原则
+
+请始终记住：
+
+> Phase A 不是证明 NAO gait 是好的。
+
+它只证明：
+
+> **我们已经拥有一条可靠的数据生产管线，可以把一次 NAO Gazebo gait execution 转换成一个可追溯、可验证的 Episode。**
+
+如果现有工程已经满足某项要求：
+
+> 不要为了“留下代码修改痕迹”而修改它。
+
+优先：
+
+```text
+reuse > minimal fix > new implementation
+```
+
+完成后停止，不要自行进入 Phase B。
+

@@ -1,0 +1,11 @@
+# Task 3C: Gazebo /clock -> ROS /clock bridge with the frozen CLOCK QoS profile.
+#
+# Task 3A contract §9 freezes /clock = BEST_EFFORT + VOLATILE + KEEP_LAST depth 1
+# (the ros_gz_bridge named "CLOCK" profile). The command-line form of
+# parameter_bridge cannot express qos_profile, so the config-file form is used.
+- ros_topic_name: "/clock"
+  gz_topic_name: "/clock"
+  ros_type_name: "rosgraph_msgs/msg/Clock"
+  gz_type_name: "gz.msgs.Clock"
+  direction: "GZ_TO_ROS"
+  qos_profile: "CLOCK"

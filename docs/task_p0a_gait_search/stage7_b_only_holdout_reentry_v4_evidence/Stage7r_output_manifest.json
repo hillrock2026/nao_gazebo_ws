@@ -1,0 +1,132 @@
+{
+  "algorithm": "SHA-256",
+  "artifact": "Stage 7' output manifest",
+  "created_at_local": "2026-09-29T16:53:09+0800",
+  "n_outputs": 30,
+  "outputs": [
+    {
+      "path": "Stage7_v4_preregistration_report.md",
+      "sha256": "9b76f58b06d8024ce927a69b896503630b1055328f884fdf4421aa48770ba75c"
+    },
+    {
+      "path": "Stage7r_B_config_snapshot.json",
+      "sha256": "70df1803be99aaba1c9084591eec5bae813b25a793ef293efac60c8ef48c43d3"
+    },
+    {
+      "path": "Stage7r_asset_manifest.json",
+      "sha256": "68ee2404b37409eb0ae9780d5ac435a80de56707c0aff552f42c29b4e8def93d"
+    },
+    {
+      "path": "Stage7r_attempt_policy.json",
+      "sha256": "7dab22699454328c1a02e3a515a0f21c801211a9d9631c68abc350194f5d2c46"
+    },
+    {
+      "path": "Stage7r_authorization_ledger.json",
+      "sha256": "53fc8fcef6f67b379cba957e0dd3ee302a04970f4fd78b9dfb58ddd73857e37d"
+    },
+    {
+      "path": "Stage7r_charter.md",
+      "sha256": "2342824f19677664bd35b027abee88ac065b6907a8c8aad3e0fb12e495d731c3"
+    },
+    {
+      "path": "Stage7r_charter_amendment_F1_F3.md",
+      "sha256": "0d09199dbbbef5537f3260ff38b989d59db83694cc747919995e79ba6c231245"
+    },
+    {
+      "path": "Stage7r_config_diff.json",
+      "sha256": "bb0862c6c3eb7546a309e2cb16d9da09dc7ffa9e9c6c4bcf5d9399495221a270"
+    },
+    {
+      "path": "Stage7r_environment_manifest.json",
+      "sha256": "6a18b5f54f754647bae94264c8e2cb801f717851532ef5a49218b878b6828103"
+    },
+    {
+      "path": "Stage7r_gate_policy.json",
+      "sha256": "6ea032c2656eb7af2a7524081d91316e1b345366a90991438241f52e254c0a11"
+    },
+    {
+      "path": "Stage7r_path_provenance_repair.json",
+      "sha256": "e8333b0da3a32bdd0d7695a01e6f2f22fa0e6fd101d6528bd4488d5945cfe42f"
+    },
+    {
+      "path": "Stage7r_precheck.json",
+      "sha256": "d27654a11c58c4387c8db848a4feb3eb005d8fc7a96c3da355d44d8dabc47449"
+    },
+    {
+      "path": "Stage7r_preregistration.json",
+      "sha256": "b43cc2d0d47f8f4f7a7325390962f5c41c1806bd63f52eff51bfb370127d8b28"
+    },
+    {
+      "path": "Stage7r_run_order.json",
+      "sha256": "bfb792d3957ebcdad9f9de04451b6c621fb1134105eb20239db84106ae55e801"
+    },
+    {
+      "path": "Stage7r_seed_allocation.json",
+      "sha256": "b1e8ba1e838643226e933417ee9adb50b6ef71ea819452d30f26e9c111c8e1e3"
+    },
+    {
+      "path": "Stage7r_source_manifest.json",
+      "sha256": "9f5633ce0a623bcc720982d774dfe97a574cd1748ce0e2144bb14605803ec3a4"
+    },
+    {
+      "path": "legacy/stage7_exec_runner_attempt2_old.py",
+      "sha256": "797b4bfd1e25bf75ebddc81b2f71f798a5a478a152e915dc9236138791fcf53a"
+    },
+    {
+      "path": "scripts/stage7r_attempt_policy.py",
+      "sha256": "fabca8e84d40438f4fa15a4ecc4fd798d69836fdb0b0a526227f302f5e00aa45"
+    },
+    {
+      "path": "scripts/stage7r_authorization.py",
+      "sha256": "7db038d5f1b99e73d7bd2547d1629d09bf7001fa7a6fcd0a308e10ffab5effb4"
+    },
+    {
+      "path": "scripts/stage7r_env.py",
+      "sha256": "a42c8edec11e9a0ecf69ce182cc413221563aa7f33bcd923d0f8010b7fc99956"
+    },
+    {
+      "path": "scripts/stage7r_episode_runner.py",
+      "sha256": "c5d6e6755b3549002509b34625873e6e7671333346394a91e5d2be9c8fb7e9d0"
+    },
+    {
+      "path": "scripts/stage7r_execd.py",
+      "sha256": "cbde76f7a84fcc1c22aa95a4039878fa6ca3102821b3004436d31d41192ada1e"
+    },
+    {
+      "path": "scripts/stage7r_failure_handling.py",
+      "sha256": "8087a5dac580834a1dc61242fd94d8a371411c0bd89f69eab0e251661c72b97f"
+    },
+    {
+      "path": "scripts/stage7r_finalize.py",
+      "sha256": "2828a33b4127810dbed0d10af6c2b406f092fce3ac92aa77024b43bf4823282a"
+    },
+    {
+      "path": "scripts/stage7r_orchestrator.py",
+      "sha256": "7d8990d1e5507e85819adb4c1b205ac102d610ed299eb84f9f28106e9fcc4f40"
+    },
+    {
+      "path": "scripts/stage7r_path_provenance.py",
+      "sha256": "8d8bb2fd20871322be282f2bc875a9e5c142477bd1993b22a40971aedc39bac5"
+    },
+    {
+      "path": "scripts/stage7r_precheck.py",
+      "sha256": "9cfea6bea549c612e54512d85e515e8b8c11d19c7a5ca6db8cb4c6bf173fc0f6"
+    },
+    {
+      "path": "scripts/stage7r_preregister.py",
+      "sha256": "47f3cdd7c086fdeab7c7336f641504e88801153267a1eadb843c0a89ac75f76d"
+    },
+    {
+      "path": "scripts/stage7r_seed_allocate.py",
+      "sha256": "b7a32da7e26ce81ea68ec19f1860efad1cd5886f26c05f518843ad28c68a6889"
+    },
+    {
+      "path": "scripts/stage7r_setup.py",
+      "sha256": "12a3f3680793ea475f7593f0aaed63915f2203f30584575d6d005cfdb3dbb932"
+    }
+  ],
+  "self_excluded": [
+    "SHA256SUMS",
+    "Stage7r_output_manifest.json"
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "B_vs_canonical": {
+    "allowed_fields": [
+      "gait_phase_mode"
+    ],
+    "diff": [
+      {
+        "B": "explicit_support_swing",
+        "canonical": "legacy",
+        "field": "gait_phase_mode"
+      }
+    ],
+    "pass": true
+  },
+  "artifact": "Stage 7' B-only config diff audit",
+  "canonical_source": "docs/task_p0a_gait_search/p1bd_evidence/P1BD_config_snapshot.json",
+  "created_at_local": "2026-09-29T16:51:11+0800",
+  "fail_closed_self_test": {
+    "built_gait_phase_mode": "explicit_support_swing",
+    "built_step_frequency_hz": 0.8,
+    "built_sway_sign": -1,
+    "launch_consistency": true,
+    "missing_sway_sign_raises": true
+  },
+  "launch_consistency": {
+    "B": {
+      "gait_phase_mode": "explicit_support_swing",
+      "pass": true,
+      "step_frequency_hz": "0.8",
+      "sway_sign": "-1"
+    }
+  }
+}

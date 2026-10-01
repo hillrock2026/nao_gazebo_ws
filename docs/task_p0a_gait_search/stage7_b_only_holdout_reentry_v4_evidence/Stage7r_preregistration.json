@@ -1,0 +1,241 @@
+{
+  "artifact": "Stage 7r-next preregistration (new independent B-only holdout batch)",
+  "attempt_policy_artifact": "Stage7r_attempt_policy.json",
+  "attempt_taxonomy": [
+    "initial_episode",
+    "environment_failure",
+    "integrity_failure",
+    "recovery_after_environment_failure",
+    "recovery_after_integrity_failure",
+    "repeat_same_seed",
+    "valid_protocol_episode",
+    "hard_gate_failure",
+    "protocol_violation"
+  ],
+  "authorization_ledger_artifact": "Stage7r_authorization_ledger.json",
+  "automatic_retry": false,
+  "batch_id": "stage7r_batch_v3",
+  "cannot_claim": [
+    "deterministic_paired_evidence",
+    "statistical_equivalence",
+    "statistical_significance",
+    "population_probability_guarantee",
+    "P0-a completion",
+    "final tolerance",
+    "P1 final closure",
+    "P2 authorization",
+    "strict v3 compliance"
+  ],
+  "claim_level": "initial_holdout_confirmation",
+  "created_at": "2026-09-29T16:52:44.409032+0800",
+  "created_at_epoch": 1790671964.409032,
+  "created_at_local": "2026-09-29T16:52:44.409032+0800",
+  "diagnostic_failure_policy": {
+    "affects_episode_pass": false,
+    "affects_stage_pass": false,
+    "allowed": true,
+    "escalation_rule": "Diagnostics are reported, not hard verdicts. Hard exceptions: contact trace missing/empty/non-monotonic/schema-invalid => measurable=false; onset n_missing>0 => hard FAIL."
+  },
+  "environment_fingerprint": {
+    "AMENT_PREFIX_PATH": "/home/liu/workspace/Nao_Program/nao_gazebo_ws/install/nao_description:/home/liu/workspace/Nao_Program/nao_gazebo_ws/install/nao_gz_sim:/home/liu/workspace/Nao_Program/nao_gazebo_ws/install/nao_meshes:/home/liu/workspace/Nao_Program/nao_gazebo_ws/install/nao_state_publisher:/opt/ros/jazzy",
+    "COLCON_PREFIX_PATH": "/home/liu/workspace/Nao_Program/nao_gazebo_ws/install",
+    "GZ_SIM_RESOURCE_PATH": "",
+    "GZ_SIM_SYSTEM_PLUGIN_PATH": "/opt/ros/jazzy/lib",
+    "PATH": "/opt/ros/jazzy/bin:/opt/ros/jazzy/opt/gz_tools_vendor/bin:/usr/bin",
+    "PYTHONPATH": "/opt/ros/jazzy/lib/python3.12/site-packages:/opt/ros/jazzy/opt/gz_msgs_vendor/lib/python:/opt/ros/jazzy/opt/gz_sim_vendor/lib/python:/opt/ros/jazzy/opt/gz_transport_vendor/lib/python:/opt/ros/jazzy/opt/sdformat_vendor/lib/python",
+    "ROS_DISTRO": "jazzy",
+    "STAGE7_BOOTSTRAP_ROS_SETUP": "/opt/ros/jazzy/setup.bash",
+    "STAGE7_BOOTSTRAP_WORKSPACE_SETUP": "/home/liu/workspace/Nao_Program/nao_gazebo_ws/install/setup.bash",
+    "nao_gz_sim_prefix": "/home/liu/workspace/Nao_Program/nao_gazebo_ws/install/nao_gz_sim",
+    "python_executable": "/usr/bin/python3",
+    "python_version": "Python 3.12.3"
+  },
+  "environment_fingerprint_hash": "1c45b6400b057c5420a3e3418b654ad3a040fb7b5dfcf642d1a43eca1cc06fff",
+  "environment_fingerprint_keys": [
+    "AMENT_PREFIX_PATH",
+    "COLCON_PREFIX_PATH",
+    "GZ_SIM_RESOURCE_PATH",
+    "GZ_SIM_SYSTEM_PLUGIN_PATH",
+    "PATH",
+    "PYTHONPATH",
+    "ROS_DISTRO",
+    "STAGE7_BOOTSTRAP_ROS_SETUP",
+    "STAGE7_BOOTSTRAP_WORKSPACE_SETUP",
+    "nao_gz_sim_prefix",
+    "python_executable",
+    "python_version"
+  ],
+  "environment_fingerprint_version": "stage7r_env/2",
+  "episode_count": 5,
+  "evaluator_source_hash": "35fc021c2c6e2a5f887ecc4ea08e8ca3b89ca3297c6b9f8c816dd222118703bf",
+  "executable_gate_file": "docs/task_p0a_gait_search/p1r_support_swing/frozen_gates_v2.json",
+  "executable_gate_file_sha256": "bf6e75e7d5f479b2aaba6143a2b3370a602bf643f4f5df401ab47e81f94d38c5",
+  "executed_seeds": [],
+  "execution_authorization": "NOT_GRANTED",
+  "execution_status": "NOT_STARTED",
+  "failed_batch_not_continuation": "909201 already failed (hard-gate) and 909202-909205 are not resumed; this is a new preregistered batch",
+  "failed_batch_seeds_excluded": [
+    909001,
+    909002,
+    909003,
+    909004,
+    909005,
+    909101,
+    909102,
+    909103,
+    909104,
+    909105,
+    909201,
+    909202,
+    909203,
+    909204,
+    909205
+  ],
+  "fk_landing_valid": "UNVERIFIED",
+  "frozen_config": {
+    "gait_phase_mode": "explicit_support_swing",
+    "source": "docs/task_p0a_gait_search/p1bd_evidence/P1BD_config_snapshot.json",
+    "source_sha256": "64f4e88e5f5ac98f36a8ce9dc58977ad73e73e8d439319cbee20a0880ae3fb04",
+    "step_frequency_hz": 0.8,
+    "sway_sign": -1
+  },
+  "gait_phase_mode": "explicit_support_swing",
+  "gate_policy_artifact": "Stage7r_gate_policy.json",
+  "gate_schema_hash": "5d853c828a2bf682ddff02b18a70e23eb454b6d896014844aaf0a67fd1bd44e4",
+  "historical_evidence_modified": false,
+  "historical_holdout_confirmation": "NOT_ESTABLISHED",
+  "historical_stage7_authoritative_valid_episode_count": 1,
+  "historical_stage7_claim_level": "single_seed_observation",
+  "historical_stage7_status": "STAGE_7_FAIL_STOPPED",
+  "initial_episode_requires_authorization": true,
+  "mode": "B_ONLY",
+  "new_batch_independent": true,
+  "per_attempt_authorization_required": true,
+  "preregistered_seeds": [
+    909401,
+    909402,
+    909403,
+    909404,
+    909405
+  ],
+  "previous_failed_batches": {
+    "stage7_confirmation": {
+      "executed": [
+        909001
+      ],
+      "seeds_not_run": [
+        909002,
+        909003,
+        909004,
+        909005
+      ],
+      "status": "STAGE_7_FAIL_STOPPED"
+    },
+    "stage7p_reentry": {
+      "attempt_type": "environment_failure",
+      "executed": [
+        909101
+      ],
+      "seeds_not_run": [
+        909102,
+        909103,
+        909104,
+        909105
+      ],
+      "status": "STAGE_7R_FAIL_STOPPED"
+    },
+    "stage7r_v2": {
+      "executed": [
+        909201
+      ],
+      "failed_gate": "path_over_net",
+      "seeds_not_run": [
+        909202,
+        909203,
+        909204,
+        909205
+      ],
+      "status": "STAGE_7R_FAIL_STOPPED"
+    }
+  },
+  "protocol_violation": {
+    "automatic_retry": false,
+    "counts_as_episode": false,
+    "recovery_allowed": false,
+    "seed_replacement": false,
+    "stop_stage": true
+  },
+  "reason_match_strict": true,
+  "recovery_policy": {
+    "environment_failure": {
+      "automatic": false,
+      "max_recovery_per_seed": 1,
+      "recovery": "explicit_preexisting_per_attempt_authorization_only",
+      "stop_stage": true
+    },
+    "fatal_integrity_failure": {
+      "automatic": false,
+      "max_recovery_per_seed": 1,
+      "recovery": "explicit_preexisting_per_attempt_authorization_only",
+      "stop_stage": true
+    },
+    "hard_gate_failure": {
+      "recovery": false,
+      "same_seed_repeat": false,
+      "seed_replacement": false,
+      "stop_stage": true
+    },
+    "protocol_violation": {
+      "recovery": false,
+      "stop_stage": true
+    }
+  },
+  "run_order": [
+    909401,
+    909402,
+    909403,
+    909404,
+    909405
+  ],
+  "runtime_failure_repair": "stage7r_failure_handling.py: environment preflight + structured fatal failure; guard in run_p0a_gait_candidate.py",
+  "seed_allocation_sha256": "96174bf1433d16050ecf605099152521920167ea3c0b1c9fc539a2666d0049db",
+  "seed_count": 5,
+  "seed_replacement_allowed": false,
+  "serial_execution": true,
+  "source_manifest": {
+    "created_at": "2026-09-29T16:52:43.207370+0800",
+    "created_at_epoch": 1790671963.2073708,
+    "freeze_status": "FROZEN",
+    "path": "Stage7r_source_manifest.json",
+    "sha256": "9f5633ce0a623bcc720982d774dfe97a574cd1748ce0e2144bb14605803ec3a4"
+  },
+  "stage": "7r-next",
+  "status_machine": [
+    "INIT",
+    "PRECHECK",
+    "PREREGISTRATION_READY",
+    "AWAITING_USER_AUTHORIZATION"
+  ],
+  "stop_rules": {
+    "any_fatal_failure": {
+      "no_automatic_retry": true,
+      "no_seed_swap": true,
+      "recovery_requires_preexisting_authorization": true,
+      "stop_stage_immediately": true
+    },
+    "complete": {
+      "episodes": 5,
+      "per_seed": 1
+    },
+    "hard_gate_failure": {
+      "no_seed_swap": true,
+      "recovery": false,
+      "stop_stage_immediately": true
+    }
+  },
+  "strict_v3_compliance": "UNVERIFIED",
+  "supersedes_note": "Stage 7'' B-only reentry; supersedes the failed Stage 7' batch seeds 909101-909105 (909101 executed, NOT_VALID)",
+  "title": "new independent B-only holdout batch",
+  "v3_gate_frozen": false,
+  "wrapper_change_requires_authorization": true
+}

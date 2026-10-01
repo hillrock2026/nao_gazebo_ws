@@ -1,0 +1,108 @@
+{
+  "artifact": "Phase A episode integrity",
+  "checks": {
+    "body_pose_present_finite": {
+      "detail": {
+        "count": 784,
+        "examples": []
+      },
+      "pass": true
+    },
+    "command_present_finite": {
+      "detail": {
+        "examples": [],
+        "n_bad": 0,
+        "n_ok": 849
+      },
+      "pass": true
+    },
+    "completeness": {
+      "detail": {
+        "actual_duration_sec": 8.479999999999999,
+        "finish_reason": "duration_complete",
+        "requested_duration_sec": 8.0,
+        "termination": "normal_completion"
+      },
+      "pass": true
+    },
+    "contact_present": {
+      "detail": {
+        "examples": [],
+        "n_bad": 0,
+        "n_ok": 849
+      },
+      "pass": true
+    },
+    "dataset_contract_v1_0_1": {
+      "detail": {
+        "errors": [],
+        "manifest_ok": true,
+        "samples_ok": true
+      },
+      "pass": true
+    },
+    "imu_present_finite": {
+      "detail": {
+        "examples": [],
+        "n_bad": 0,
+        "n_ok": 849
+      },
+      "pass": true
+    },
+    "joint_state_present_finite": {
+      "detail": {
+        "examples": [],
+        "n_bad": 0,
+        "n_ok": 849
+      },
+      "pass": true
+    },
+    "sample_count_gt_zero": {
+      "detail": 849,
+      "pass": true
+    },
+    "sim_clock_monotonic": {
+      "detail": {
+        "malformed_lines": [],
+        "monotonic": true
+      },
+      "pass": true
+    }
+  },
+  "episode_id": "smoke_01",
+  "episode_integrity": "PASS",
+  "failure_class": null,
+  "gait_outcome": {
+    "available": true,
+    "body_final_z": 0.3315107527120367,
+    "body_initial_z": 0.3354549629991239,
+    "body_max_pitch_deg": 1.6435337515465633,
+    "body_max_roll_deg": 1.153057638832234,
+    "body_min_z": 0.33100547436991756,
+    "body_net_displacement_m": 0.05308880822129461,
+    "body_net_forward_m": 0.05308716809723863,
+    "body_net_lateral_m": -0.0004173029749797602,
+    "body_torso_height_loss": 0.004449488629206355,
+    "fall_detected": false,
+    "note": "gait outcome is reported, not an integrity verdict"
+  },
+  "reserved": {
+    "contract_status": null,
+    "measurement_quality": null
+  },
+  "sample_count": 849,
+  "signals": {
+    "body_pose": "PASS",
+    "clock": "PASS",
+    "command": "PASS",
+    "contact": "PASS",
+    "imu": "PASS",
+    "joint_state": "PASS"
+  },
+  "termination": "normal_completion",
+  "termination_detail": {
+    "actual_duration_sec": 8.479999999999999,
+    "finish_reason": "duration_complete",
+    "requested_duration_sec": 8.0
+  }
+}

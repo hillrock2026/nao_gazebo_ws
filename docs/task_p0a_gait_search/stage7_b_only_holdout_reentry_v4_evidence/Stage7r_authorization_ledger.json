@@ -1,0 +1,6 @@
+{
+  "artifact": "Stage 7' per-attempt authorization ledger",
+  "authorizations": [],
+  "created_at_local": "2026-09-29T16:52:43+0800",
+  "note": "Empty at preregistration. Each attempt requires an independently issued, single-consumption authorization before it starts. No top-level GRANTED flag is used."
+}

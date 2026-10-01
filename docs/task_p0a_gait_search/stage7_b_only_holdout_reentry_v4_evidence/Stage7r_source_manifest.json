@@ -1,0 +1,143 @@
+{
+  "algorithm": "SHA-256",
+  "artifact": "Stage 7' source manifest",
+  "charter": {
+    "path": "Stage7r_charter.md",
+    "sha256": "2342824f19677664bd35b027abee88ac065b6907a8c8aad3e0fb12e495d731c3"
+  },
+  "created_at": "2026-09-29T16:52:43.207370+0800",
+  "created_at_epoch": 1790671963.2073708,
+  "created_at_local": "2026-09-29T16:52:42+0800",
+  "execution_scripts": [
+    {
+      "path": "scripts/stage7r_setup.py",
+      "sha256": "12a3f3680793ea475f7593f0aaed63915f2203f30584575d6d005cfdb3dbb932"
+    },
+    {
+      "path": "scripts/stage7r_seed_allocate.py",
+      "sha256": "b7a32da7e26ce81ea68ec19f1860efad1cd5886f26c05f518843ad28c68a6889"
+    },
+    {
+      "path": "scripts/stage7r_authorization.py",
+      "sha256": "7db038d5f1b99e73d7bd2547d1629d09bf7001fa7a6fcd0a308e10ffab5effb4"
+    },
+    {
+      "path": "scripts/stage7r_attempt_policy.py",
+      "sha256": "fabca8e84d40438f4fa15a4ecc4fd798d69836fdb0b0a526227f302f5e00aa45"
+    },
+    {
+      "path": "scripts/stage7r_preregister.py",
+      "sha256": "47f3cdd7c086fdeab7c7336f641504e88801153267a1eadb843c0a89ac75f76d"
+    },
+    {
+      "path": "scripts/stage7r_precheck.py",
+      "sha256": "9cfea6bea549c612e54512d85e515e8b8c11d19c7a5ca6db8cb4c6bf173fc0f6"
+    },
+    {
+      "path": "scripts/stage7r_execd.py",
+      "sha256": "cbde76f7a84fcc1c22aa95a4039878fa6ca3102821b3004436d31d41192ada1e"
+    },
+    {
+      "path": "scripts/stage7r_orchestrator.py",
+      "sha256": "7d8990d1e5507e85819adb4c1b205ac102d610ed299eb84f9f28106e9fcc4f40"
+    },
+    {
+      "path": "scripts/stage7r_episode_runner.py",
+      "sha256": "c5d6e6755b3549002509b34625873e6e7671333346394a91e5d2be9c8fb7e9d0"
+    },
+    {
+      "path": "scripts/stage7r_finalize.py",
+      "sha256": "2828a33b4127810dbed0d10af6c2b406f092fce3ac92aa77024b43bf4823282a"
+    },
+    {
+      "path": "scripts/stage7r_path_provenance.py",
+      "sha256": "8d8bb2fd20871322be282f2bc875a9e5c142477bd1993b22a40971aedc39bac5"
+    },
+    {
+      "path": "scripts/stage7r_failure_handling.py",
+      "sha256": "8087a5dac580834a1dc61242fd94d8a371411c0bd89f69eab0e251661c72b97f"
+    },
+    {
+      "path": "scripts/stage7r_env.py",
+      "sha256": "a42c8edec11e9a0ecf69ce182cc413221563aa7f33bcd923d0f8010b7fc99956"
+    }
+  ],
+  "legacy_sources": [
+    {
+      "path": "legacy/stage7_exec_runner_attempt2_old.py",
+      "sha256": "797b4bfd1e25bf75ebddc81b2f71f798a5a478a152e915dc9236138791fcf53a"
+    }
+  ],
+  "note": "Includes ALL execution scripts; freeze-once before any Stage 7 run.",
+  "sources": [
+    {
+      "exists": true,
+      "path": "docs/task_p0a_gait_search/p1bd_evidence/P1BD_config_snapshot.json",
+      "sha256": "64f4e88e5f5ac98f36a8ce9dc58977ad73e73e8d439319cbee20a0880ae3fb04"
+    },
+    {
+      "exists": true,
+      "path": "docs/task_p0a_gait_search/p1r_support_swing/frozen_gates_v2.json",
+      "sha256": "bf6e75e7d5f479b2aaba6143a2b3370a602bf643f4f5df401ab47e81f94d38c5"
+    },
+    {
+      "exists": true,
+      "path": "docs/task_p0a_gait_search/p1r_support_swing/P1R_charter.md",
+      "sha256": "29fe4ce9c483e5c39de8e92d626142fb28964877770b62974738cd8dd45d3520"
+    },
+    {
+      "exists": true,
+      "path": "docs/task_p0a_gait_search/phase5_p1r_v3_contract_provenance_erratum_evidence/Phase5_reentry_contract_schema_corrected.json",
+      "sha256": "5d853c828a2bf682ddff02b18a70e23eb454b6d896014844aaf0a67fd1bd44e4"
+    },
+    {
+      "exists": true,
+      "path": "docs/task_p0a_gait_search/phase5_p1r_v3_contract_reentry_evidence/Phase5_reentry_reference_evaluator.py",
+      "sha256": "35fc021c2c6e2a5f887ecc4ea08e8ca3b89ca3297c6b9f8c816dd222118703bf"
+    },
+    {
+      "exists": true,
+      "path": "tools/run_p0a_gait_candidate.py",
+      "sha256": "6e4d927472f06deba9b1c97432bfc8ac3701905a3d7591e47102873ae21f3491"
+    },
+    {
+      "exists": true,
+      "path": "tools/p0a_phase_analysis.py",
+      "sha256": "0f6796bf5bfdbcafa832c5b65d1d9ddc96f834ecaf34df82d8c0dd4297eaf0e8"
+    },
+    {
+      "exists": true,
+      "path": "tools/analyze_measured_gait.py",
+      "sha256": "1bde955fddcf54605e26cf773a44be808efc061519762c4469c9fa63ab577f6b"
+    },
+    {
+      "exists": true,
+      "path": "tools/phase4e_analysis.py",
+      "sha256": "061d487814acedc62d2a9e4d92fbd6d1c742bdf17539e8043ddc8562b0627d7f"
+    },
+    {
+      "exists": true,
+      "path": "src/nao_gz_sim/scripts/nao_gait_phase.py",
+      "sha256": "4cee76de5db06f7276b9c9803738caa857f0da2d16fbe526d2d86eeb1b6b10fc"
+    },
+    {
+      "exists": true,
+      "path": "src/nao_gz_sim/scripts/phase4b_producer.py",
+      "sha256": "aab60f6fbb18b657736ebf9d7633e65b3d0df021c564cddb537bb806875bd5eb"
+    },
+    {
+      "exists": true,
+      "path": "src/nao_gz_sim/launch/nao_sim.launch.py",
+      "sha256": "2ed565145441df601455e14a9ab4209333f95264a0e6bb65944373201f2ad787"
+    },
+    {
+      "exists": true,
+      "path": "src/nao_gz_sim/worlds/nao_world.sdf",
+      "sha256": "383341d11d831d0376cae074b1205e5ad7784841a6670bcf0db33813065709cc"
+    }
+  ],
+  "underlying_runner": {
+    "path": "tools/run_p0a_gait_candidate.py",
+    "sha256": "6e4d927472f06deba9b1c97432bfc8ac3701905a3d7591e47102873ae21f3491"
+  }
+}

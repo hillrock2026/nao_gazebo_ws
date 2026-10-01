@@ -1,0 +1,104 @@
+{
+  "all_seeds_pass": true,
+  "directions_consistent": true,
+  "mean_forward_m": 0.12352641210694104,
+  "pass": true,
+  "per_seed": [
+    {
+      "checks": {
+        "contact_ok": true,
+        "duration_ok": true,
+        "forward_gt_min": true,
+        "forward_positive": true,
+        "lateral_not_dominant": true,
+        "measurable": true,
+        "no_fall": true,
+        "no_heavy_anomaly": true,
+        "not_severely_truncated": true,
+        "ok": true,
+        "path_over_net_ok": true,
+        "single_step_ok": true,
+        "swing_clearance_ok": true,
+        "tilt_ok": true,
+        "yaw_ok": true
+      },
+      "contact_alternations": 23,
+      "effective_duration": 14.492,
+      "forward": 0.11948214645766463,
+      "lateral": 0.01927708525829895,
+      "path_over_net": 5.737478143860034,
+      "seed": 101,
+      "swing_clearance": 0.007620592399245341,
+      "tilt": 0.5782658867657154,
+      "yaw": -0.62956040310907
+    },
+    {
+      "checks": {
+        "contact_ok": true,
+        "duration_ok": true,
+        "forward_gt_min": true,
+        "forward_positive": true,
+        "lateral_not_dominant": true,
+        "measurable": true,
+        "no_fall": true,
+        "no_heavy_anomaly": true,
+        "not_severely_truncated": true,
+        "ok": true,
+        "path_over_net_ok": true,
+        "single_step_ok": true,
+        "swing_clearance_ok": true,
+        "tilt_ok": true,
+        "yaw_ok": true
+      },
+      "contact_alternations": 23,
+      "effective_duration": 14.486999999999998,
+      "forward": 0.1209686919371369,
+      "lateral": 0.016418719416990774,
+      "path_over_net": 5.6862578472294345,
+      "seed": 202,
+      "swing_clearance": 0.007627879372137325,
+      "tilt": 0.5775527791805318,
+      "yaw": -1.7426137869201621
+    },
+    {
+      "checks": {
+        "contact_ok": true,
+        "duration_ok": true,
+        "forward_gt_min": true,
+        "forward_positive": true,
+        "lateral_not_dominant": true,
+        "measurable": true,
+        "no_fall": true,
+        "no_heavy_anomaly": true,
+        "not_severely_truncated": true,
+        "ok": true,
+        "path_over_net_ok": true,
+        "single_step_ok": true,
+        "swing_clearance_ok": true,
+        "tilt_ok": true,
+        "yaw_ok": true
+      },
+      "contact_alternations": 22,
+      "effective_duration": 14.491999999999999,
+      "forward": 0.13012839792602163,
+      "lateral": 0.015504866278608066,
+      "path_over_net": 5.099321923592925,
+      "seed": 303,
+      "swing_clearance": 0.013784391989737022,
+      "tilt": 0.8258602620457379,
+      "yaw": 2.016253558376343
+    }
+  ],
+  "required_seeds": [
+    101,
+    202,
+    303
+  ],
+  "seed_count_ok": true,
+  "seeds_present": [
+    101,
+    202,
+    303
+  ],
+  "std_forward_m": 0.004707590815703268
+}

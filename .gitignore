@@ -1,0 +1,21 @@
+# Generated ROS 2 build/install/log output
+/build/
+/install/
+/log/
+
+# Local review and agent scratch data
+/.review_tmp/
+**/__pycache__/
+**/.pytest_cache/
+
+# Copilot/agent prompts and review artifacts
+**/*prompt*.md
+**/*prompt*.txt
+**/*review*.md
+**/*review*.txt
+**/*independent_review*.md
+**/*评审*.md
+**/*评审*.txt
+**/*glm53*.md
+**/*glm-5.3*.md
+docs/GLM-5.3 Independent Acceptance - Audit Phase A.txt

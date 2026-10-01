@@ -1,0 +1,18 @@
+{
+  "artifact": "Stage 7' environment manifest",
+  "created_at_local": "2026-09-29T16:52:42+0800",
+  "cwd": "/home/liu/workspace/Nao_Program/nao_gazebo_ws",
+  "gazebo_version": "Gazebo Sim, version 8.15.0",
+  "gz_which": "/opt/ros/jazzy/opt/gz_tools_vendor/bin/gz",
+  "host": "liu",
+  "kernel": "7.0.0-31-generic",
+  "machine": "x86_64",
+  "note": "gazebo_version is a version probe, not a simulation start",
+  "platform": "Linux-7.0.0-31-generic-x86_64-with-glibc2.39",
+  "python": {
+    "executable": "/home/liu/anaconda3/bin/python3",
+    "version": "3.14.6 | packaged by Anaconda, Inc. | (main, Jul  9 2026, 14:37:38) [GCC 14.3.0]"
+  },
+  "ros2_which": "/opt/ros/jazzy/bin/ros2",
+  "ros_distro_env": "jazzy"
+}

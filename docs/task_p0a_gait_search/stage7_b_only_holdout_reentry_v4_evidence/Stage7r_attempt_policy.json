@@ -1,0 +1,75 @@
+{
+  "artifact": "Stage 7' attempt policy (F1-repaired)",
+  "attempt_types": [
+    "initial_episode",
+    "environment_failure",
+    "integrity_failure",
+    "recovery_after_environment_failure",
+    "recovery_after_integrity_failure",
+    "repeat_same_seed",
+    "valid_protocol_episode",
+    "hard_gate_failure",
+    "protocol_violation"
+  ],
+  "counts_as_episode": {
+    "environment_failure": false,
+    "hard_gate_failure": true,
+    "initial_episode": "only if trace valid and not integrity/environment failure",
+    "integrity_failure": false,
+    "protocol_violation": false,
+    "recovery_after_environment_failure": "only if trace valid",
+    "recovery_after_integrity_failure": "only if trace valid",
+    "repeat_same_seed": "only if trace valid",
+    "valid_protocol_episode": true
+  },
+  "environment_failure_stop": true,
+  "forbidden": [
+    "automatic_retry",
+    "implicit_recovery",
+    "same_seed_repeat_without_authorization",
+    "hard_gate_failure_continue",
+    "seed_replacement",
+    "reason_fallback"
+  ],
+  "generated_at": "2026-09-29T16:51:58.%f+0800",
+  "hard_gate_failure_stop_is_absolute": true,
+  "initial_episode_reason_cannot_bypass_recovery": true,
+  "initial_episode_requires_authorization": true,
+  "integrity_failure_stop": true,
+  "max_recovery_per_seed": 1,
+  "may_request_recovery": [
+    "environment_failure",
+    "integrity_failure"
+  ],
+  "per_attempt_authorization_required_before_start": true,
+  "protocol_violation": {
+    "automatic_retry": false,
+    "counts_as_episode": false,
+    "recovery_allowed": false,
+    "seed_replacement": false,
+    "stop_stage": true
+  },
+  "protocol_violation_behaviors": [
+    "unauthorized_attempt",
+    "unauthorized_same_seed_repeat",
+    "unauthorized_recovery",
+    "seed_replacement",
+    "run_A",
+    "continue_after_hard_gate_failure",
+    "out_of_order_seed",
+    "modify_frozen_gates",
+    "modify_diagnostic_policy",
+    "silent_script_change_after_freeze",
+    "script_not_in_source_manifest",
+    "config_or_source_hash_mismatch",
+    "forged_or_missing_provenance",
+    "episode_count_exceeds_preregistration"
+  ],
+  "reason_match_strict": true,
+  "recovery_is_automatic": false,
+  "recovery_is_retry": true,
+  "recovery_requires_preexisting_authorization": true,
+  "recovery_same_seed_allowed": "only when authorization.same_seed_repeat_allowed is true",
+  "resolved_contradiction": "integrity_failure always stops the stage; a same-seed rerun is a recovery that is permitted only with a pre-issued, single-consumption per-attempt authorization. It is not an automatic retry.",
+  "who_may_authorize_recovery": "user (explicit, scope-clear, recorded per attempt)"
+}

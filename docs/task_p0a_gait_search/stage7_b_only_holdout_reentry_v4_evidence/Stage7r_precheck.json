@@ -1,0 +1,345 @@
+{
+  "all_pass": true,
+  "artifact": "Stage 7'' static PRECHECK",
+  "checks": {
+    "10_v3_provisional_clear": {
+      "detail": {
+        "v3_gate_frozen": false
+      },
+      "pass": true
+    },
+    "11_diagnostic_policy_preregistered": {
+      "detail": {
+        "affects_episode_pass": false,
+        "affects_stage_pass": false,
+        "allowed": true,
+        "escalation_rule": "Diagnostics are reported, not hard verdicts. Hard exceptions: contact trace missing/empty/non-monotonic/schema-invalid => measurable=false; onset n_missing>0 => hard FAIL."
+      },
+      "pass": true
+    },
+    "12_recovery_policy_preregistered": {
+      "detail": {
+        "environment_failure": {
+          "automatic": false,
+          "max_recovery_per_seed": 1,
+          "recovery": "explicit_preexisting_per_attempt_authorization_only",
+          "stop_stage": true
+        },
+        "fatal_integrity_failure": {
+          "automatic": false,
+          "max_recovery_per_seed": 1,
+          "recovery": "explicit_preexisting_per_attempt_authorization_only",
+          "stop_stage": true
+        },
+        "hard_gate_failure": {
+          "recovery": false,
+          "same_seed_repeat": false,
+          "seed_replacement": false,
+          "stop_stage": true
+        },
+        "protocol_violation": {
+          "recovery": false,
+          "stop_stage": true
+        }
+      },
+      "pass": true
+    },
+    "13_per_attempt_authorization": {
+      "detail": {
+        "ledger_empty": true
+      },
+      "pass": true
+    },
+    "14_source_manifest_all_scripts": {
+      "detail": {
+        "n_execution_scripts": 13
+      },
+      "pass": true
+    },
+    "15_scripts_hash_locked_no_silent_change": {
+      "detail": {
+        "mismatch": []
+      },
+      "pass": true
+    },
+    "16_path_provenance_rules": {
+      "detail": {
+        "defect": "attempt2_run_dir_abs_stale_after_move"
+      },
+      "pass": true
+    },
+    "17_no_retry_no_seed_swap_encoded": {
+      "detail": {
+        "any_fatal_failure": {
+          "no_automatic_retry": true,
+          "no_seed_swap": true,
+          "recovery_requires_preexisting_authorization": true,
+          "stop_stage_immediately": true
+        },
+        "complete": {
+          "episodes": 5,
+          "per_seed": 1
+        },
+        "hard_gate_failure": {
+          "no_seed_swap": true,
+          "recovery": false,
+          "stop_stage_immediately": true
+        }
+      },
+      "pass": true
+    },
+    "18_no_active_gazebo_ros_controller": {
+      "detail": {
+        "residual_processes": 0
+      },
+      "pass": true
+    },
+    "19_executor_fail_closed_without_authorization": {
+      "detail": {
+        "attempt_id": 1,
+        "n_matches": 0,
+        "reason": "no_single_unconsumed_authorization_for_attempt",
+        "seed": 909401
+      },
+      "pass": true
+    },
+    "1_new_dir_not_overwrite_history": {
+      "detail": {
+        "failed_batch": "docs/task_p0a_gait_search/stage7_b_only_holdout_reentry_v2_evidence",
+        "old": "docs/task_p0a_gait_search/stage7_b_only_holdout_confirmation_evidence",
+        "prev": "docs/task_p0a_gait_search/stage7_b_only_holdout_reentry_evidence"
+      },
+      "pass": true
+    },
+    "20_no_new_episode_started": {
+      "detail": {
+        "runs_empty": true
+      },
+      "pass": true
+    },
+    "21_protocol_violation_taxonomy_present": {
+      "detail": [
+        "initial_episode",
+        "environment_failure",
+        "integrity_failure",
+        "recovery_after_environment_failure",
+        "recovery_after_integrity_failure",
+        "repeat_same_seed",
+        "valid_protocol_episode",
+        "hard_gate_failure",
+        "protocol_violation"
+      ],
+      "pass": true
+    },
+    "22_protocol_violation_stop_policy_consistent": {
+      "detail": {
+        "automatic_retry": false,
+        "counts_as_episode": false,
+        "recovery_allowed": false,
+        "seed_replacement": false,
+        "stop_stage": true
+      },
+      "pass": true
+    },
+    "23_source_manifest_hash_embedded_in_preregistration": {
+      "detail": {
+        "created_at": "2026-09-29T16:52:43.207370+0800",
+        "created_at_epoch": 1790671963.2073708,
+        "freeze_status": "FROZEN",
+        "path": "Stage7r_source_manifest.json",
+        "sha256": "9f5633ce0a623bcc720982d774dfe97a574cd1748ce0e2144bb14605803ec3a4"
+      },
+      "pass": true
+    },
+    "24_source_manifest_hash_matches": {
+      "detail": {
+        "actual": "9f5633ce0a623bcc720982d774dfe97a574cd1748ce0e2144bb14605803ec3a4",
+        "embedded": "9f5633ce0a623bcc720982d774dfe97a574cd1748ce0e2144bb14605803ec3a4"
+      },
+      "pass": true
+    },
+    "25_source_manifest_created_before_preregistration_freeze": {
+      "detail": {
+        "manifest_epoch": 1790671963.2073708,
+        "prereg_epoch": 1790671964.409032
+      },
+      "pass": true
+    },
+    "26_reason_match_strict": {
+      "detail": {
+        "reason_match_strict": true
+      },
+      "pass": true
+    },
+    "27_initial_episode_reason_cannot_bypass_recovery": {
+      "detail": {
+        "1_initial_episode_match_passes": true,
+        "2_recovery_auth_cannot_take_initial_request": true,
+        "3_env_recovery_auth_cannot_take_initial_request": true,
+        "4_reason_mismatch_rejected": true,
+        "5_same_seed_not_authorized_rejected": true,
+        "6_wrapper_change_not_authorized_rejected": true,
+        "7_attempt_seed_mismatch_rejected": true,
+        "8_consumed_reuse_rejected": true,
+        "9_recovery_cannot_borrow_initial_auth": true
+      },
+      "pass": true
+    },
+    "28_authorization_tests_pass": {
+      "detail": {
+        "authorization_self_test": {
+          "double_consume_refused": true,
+          "issued_authorizes": true,
+          "no_ledger_fails_closed": true,
+          "recovery_authorized": true,
+          "top_level_flag_not_used": true,
+          "wrong_attempt_refused": true,
+          "wrong_seed_refused": true
+        },
+        "reason_self_test": {
+          "1_initial_episode_match_passes": true,
+          "2_recovery_auth_cannot_take_initial_request": true,
+          "3_env_recovery_auth_cannot_take_initial_request": true,
+          "4_reason_mismatch_rejected": true,
+          "5_same_seed_not_authorized_rejected": true,
+          "6_wrapper_change_not_authorized_rejected": true,
+          "7_attempt_seed_mismatch_rejected": true,
+          "8_consumed_reuse_rejected": true,
+          "9_recovery_cannot_borrow_initial_auth": true
+        }
+      },
+      "pass": true
+    },
+    "29_runtime_failure_handling_present": {
+      "detail": {
+        "failure_handling_self_test": {
+          "empty_dir_invalid": true,
+          "empty_dir_missing_state": true,
+          "empty_file_invalid": true,
+          "env_missing_ros2": true,
+          "env_no_overlay": true,
+          "file_maps_integrity": true,
+          "gate_maps_integrity": true,
+          "measured_maps_environment": true,
+          "measured_reason": true,
+          "record_no_fabrication": true,
+          "record_no_gate_verdict": true,
+          "record_not_valid": true,
+          "record_ok_false": true,
+          "residual_scan_int": true,
+          "valid_trace_ok": true
+        }
+      },
+      "pass": true
+    },
+    "2_new_charter_frozen": {
+      "detail": {
+        "charter": "2342824f19677664bd35b027abee88ac065b6907a8c8aad3e0fb12e495d731c3"
+      },
+      "pass": true
+    },
+    "30_historical_and_failure_evidence_hashes_intact": {
+      "detail": {
+        "dirs": {
+          "stage0_qualification": {
+            "failed": 0,
+            "ok": 32
+          },
+          "stage6_reentry": {
+            "failed": 0,
+            "ok": 17
+          },
+          "stage6_screening": {
+            "failed": 0,
+            "ok": 36
+          },
+          "stage7_confirmation": {
+            "failed": 0,
+            "ok": 90
+          },
+          "stage7p_reentry_failure": {
+            "failed": 0,
+            "ok": 56
+          },
+          "stage7r_current_failed_batch": {
+            "failed": 0,
+            "ok": 78
+          },
+          "stage7r_v3": {
+            "failed": 0,
+            "ok": 42
+          }
+        },
+        "runner_unchanged": true
+      },
+      "pass": true
+    },
+    "31_orchestrator_filename_binding": {
+      "detail": {
+        "exists": [
+          true,
+          true
+        ],
+        "in_sha256sums": [
+          true,
+          true
+        ],
+        "referenced": [
+          "Stage7r_preregistration.json",
+          "Stage7r_run_order.json"
+        ]
+      },
+      "pass": true
+    },
+    "32_environment_fingerprint_binds_preregistration": {
+      "detail": {
+        "live": "1c45b6400b057c5420a3e3418b654ad3a040fb7b5dfcf642d1a43eca1cc06fff",
+        "prereg": "1c45b6400b057c5420a3e3418b654ad3a040fb7b5dfcf642d1a43eca1cc06fff"
+      },
+      "pass": true
+    },
+    "3_seeds_published": {
+      "detail": [
+        909401,
+        909402,
+        909403,
+        909404,
+        909405
+      ],
+      "pass": true
+    },
+    "4_seed_freshness_scanned": {
+      "detail": {
+        "n_files_scanned": 3852
+      },
+      "pass": true
+    },
+    "5_seeds_not_forbidden": {
+      "detail": {
+        "intersection": []
+      },
+      "pass": true
+    },
+    "6_b_config_explicit": {
+      "detail": "explicit_support_swing",
+      "pass": true
+    },
+    "7_step_frequency_0.8": {
+      "detail": 0.8,
+      "pass": true
+    },
+    "8_sway_sign_-1": {
+      "detail": -1,
+      "pass": true
+    },
+    "9_gate_file_hash_frozen": {
+      "detail": "bf6e75e7d5f479b2aaba6143a2b3370a602bf643f4f5df401ab47e81f94d38c5",
+      "pass": true
+    }
+  },
+  "created_at_local": "2026-09-29T16:52:45+0800",
+  "execution_authorization": "NOT_GRANTED",
+  "n_checks": 32,
+  "n_pass": 32,
+  "terminal": "PRECHECK_PASS_PENDING_AUTHORIZATION"
+}

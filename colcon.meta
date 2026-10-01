@@ -1,0 +1,24 @@
+{
+    "names": {
+        "nao_meshes": {
+            "cmake-args": [
+                "-DPython3_EXECUTABLE=/usr/bin/python3"
+            ]
+        },
+        "nao_description": {
+            "cmake-args": [
+                "-DPython3_EXECUTABLE=/usr/bin/python3"
+            ]
+        },
+        "nao_state_publisher": {
+            "cmake-args": [
+                "-DPython3_EXECUTABLE=/usr/bin/python3"
+            ]
+        },
+        "nao_gz_sim": {
+            "cmake-args": [
+                "-DPython3_EXECUTABLE=/usr/bin/python3"
+            ]
+        }
+    }
+}

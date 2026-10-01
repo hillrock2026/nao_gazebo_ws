@@ -1,0 +1,28 @@
+{
+  "artifact": "Stage 7' path/provenance repair record",
+  "authoritative_attempt3": {
+    "actual_current_abs": "/home/liu/workspace/Nao_Program/nao_gazebo_ws/docs/task_p0a_gait_search/stage7_b_only_holdout_confirmation_evidence/runs/seed-909001",
+    "recorded_run_dir_abs": "/home/liu/workspace/Nao_Program/nao_gazebo_ws/docs/task_p0a_gait_search/stage7_b_only_holdout_confirmation_evidence/runs/seed-909001",
+    "stale": false
+  },
+  "created_at_local": "2026-09-29T16:51:58+0800",
+  "defect": {
+    "actual_current_abs": "/home/liu/workspace/Nao_Program/nao_gazebo_ws/docs/task_p0a_gait_search/stage7_b_only_holdout_confirmation_evidence/runs/attempt2_defective_launchcmd/seed-909001",
+    "description": "attempt-2 run directory was moved from runs/seed-909001 to runs/attempt2_defective_launchcmd/seed-909001, but its run_result.json::run_dir_abs still references the old path.",
+    "id": "attempt2_run_dir_abs_stale_after_move",
+    "recorded_run_dir_abs": "/home/liu/workspace/Nao_Program/nao_gazebo_ws/docs/task_p0a_gait_search/stage7_b_only_holdout_confirmation_evidence/runs/seed-909001",
+    "run_result_json_sha256": "ac7b3bf3b54edb845cc157756823ced5014ed213455fe3c572c87efbff64da46",
+    "stale": true
+  },
+  "evidence_modified": false,
+  "move_mapping": [
+    {
+      "attempt": 2,
+      "from": "/home/liu/workspace/Nao_Program/nao_gazebo_ws/docs/task_p0a_gait_search/stage7_b_only_holdout_confirmation_evidence/runs/seed-909001",
+      "seed": 909001,
+      "to": "/home/liu/workspace/Nao_Program/nao_gazebo_ws/docs/task_p0a_gait_search/stage7_b_only_holdout_confirmation_evidence/runs/attempt2_defective_launchcmd/seed-909001"
+    }
+  ],
+  "normalization_rule": "Future runs record BOTH run_dir_rel (workspace-relative, canonical) and run_dir_abs (= os.path.realpath(out_root)). Evidence archives must ship a move_mapping; run_result files may not silently retain pre-move absolute paths. A relocated run must state old->new in an erratum.",
+  "remediation": "Historical attempt-2 evidence is NOT modified. The mapping in this file is the authoritative resolution of the stale reference."
+}

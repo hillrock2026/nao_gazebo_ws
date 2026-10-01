@@ -1,0 +1,74 @@
+{
+  "artifact": "Stage 7' executable gate policy (provisional)",
+  "claim_wording_required": "satisfies the P1-R v3 provisional engineering contract under the frozen executable gate subset, with fk_landing_valid=UNVERIFIED",
+  "created_at_local": "2026-09-29T16:52:41+0800",
+  "diagnostic_failure_policy": {
+    "affects_episode_pass": false,
+    "affects_stage_pass": false,
+    "allowed": true,
+    "escalation_rule": "Diagnostics are reported, not hard verdicts. Hard exceptions: contact trace missing/empty/non-monotonic/schema-invalid => measurable=false; onset n_missing>0 => hard FAIL."
+  },
+  "diagnostic_metrics": [
+    "zero_contact_max_sec",
+    "m0_legacy_contact_delay_max_sec",
+    "swing_to_support_onset_delay_sec",
+    "ds_both_contact_rate",
+    "left_swing_right_support_contact_rate",
+    "right_swing_left_support_contact_rate"
+  ],
+  "evaluator": {
+    "sha256": "35fc021c2c6e2a5f887ecc4ea08e8ca3b89ca3297c6b9f8c816dd222118703bf",
+    "source": "docs/task_p0a_gait_search/phase5_p1r_v3_contract_reentry_evidence/Phase5_reentry_reference_evaluator.py"
+  },
+  "executable_hard_gates": {
+    "excludes": [
+      "fk_landing_valid"
+    ],
+    "n_hard_gates": 18,
+    "role": "frozen executable subset of the v3 hard-gate hierarchy",
+    "sha256": "bf6e75e7d5f479b2aaba6143a2b3370a602bf643f4f5df401ab47e81f94d38c5",
+    "source": "docs/task_p0a_gait_search/p1r_support_swing/frozen_gates_v2.json"
+  },
+  "fk_landing_valid": {
+    "is_not_applicable": false,
+    "is_pass": false,
+    "reason": "no validated Stage 7' raw-trace evaluator",
+    "status": "UNVERIFIED"
+  },
+  "forbidden_wording": [
+    "strict v3 compliant",
+    "fully v3 validated",
+    "final v3 pass"
+  ],
+  "gate_schema": {
+    "sha256": "5d853c828a2bf682ddff02b18a70e23eb454b6d896014844aaf0a67fd1bd44e4",
+    "source": "docs/task_p0a_gait_search/phase5_p1r_v3_contract_provenance_erratum_evidence/Phase5_reentry_contract_schema_corrected.json"
+  },
+  "policy": "KEEP_PROVISIONAL",
+  "recovery_policy": {
+    "environment_failure": {
+      "automatic": false,
+      "max_recovery_per_seed": 1,
+      "recovery": "explicit_preexisting_per_attempt_authorization_only",
+      "stop_stage": true
+    },
+    "fatal_integrity_failure": {
+      "automatic": false,
+      "max_recovery_per_seed": 1,
+      "recovery": "explicit_preexisting_per_attempt_authorization_only",
+      "stop_stage": true
+    },
+    "hard_gate_failure": {
+      "recovery": false,
+      "same_seed_repeat": false,
+      "seed_replacement": false,
+      "stop_stage": true
+    },
+    "protocol_violation": {
+      "recovery": false,
+      "stop_stage": true
+    }
+  },
+  "strict_v3_compliance": "UNVERIFIED",
+  "v3_gate_frozen": false
+}

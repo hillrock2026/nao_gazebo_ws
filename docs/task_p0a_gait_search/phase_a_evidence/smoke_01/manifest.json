@@ -1,0 +1,72 @@
+{
+  "artifact": "Phase A episode manifest",
+  "collection_status": "normal_completion",
+  "dataset": {
+    "dir": "dataset",
+    "manifest": "dataset/manifest.json",
+    "samples": "dataset/samples.jsonl",
+    "trace_dir": "trace"
+  },
+  "dataset_schema_version": "1.0.1",
+  "duration_sec": 8.479999999999999,
+  "end_time": 12.059,
+  "episode_id": "smoke_01",
+  "episode_integrity": "PASS",
+  "failure_class": null,
+  "integrity_report": "episode_integrity.json",
+  "joint_order": [
+    "HeadYaw",
+    "HeadPitch",
+    "LHipYawPitch",
+    "LHipRoll",
+    "LHipPitch",
+    "LKneePitch",
+    "LAnklePitch",
+    "LAnkleRoll",
+    "LShoulderPitch",
+    "LShoulderRoll",
+    "LElbowYaw",
+    "LElbowRoll",
+    "LWristYaw",
+    "RHipYawPitch",
+    "RHipRoll",
+    "RHipPitch",
+    "RKneePitch",
+    "RAnklePitch",
+    "RAnkleRoll",
+    "RShoulderPitch",
+    "RShoulderRoll",
+    "RElbowYaw",
+    "RElbowRoll",
+    "RWristYaw"
+  ],
+  "provenance": "provenance.json",
+  "requested_duration_sec": 8.0,
+  "sample_count": 849,
+  "schema_name": "nao_gazebo_episode",
+  "schema_version": "phase_a_1.0.0",
+  "signals": [
+    "clock",
+    "joint_state",
+    "joint_command",
+    "imu",
+    "left_contact",
+    "right_contact",
+    "body_pose"
+  ],
+  "simulation_time": {
+    "first_ts": 3.579,
+    "last_ts": 12.059,
+    "time_source": "gazebo_simulation_time"
+  },
+  "source_topics": [
+    "/clock",
+    "/joint_states",
+    "/joint_command",
+    "/imu/data",
+    "/left_foot/contact",
+    "/right_foot/contact",
+    "/body_pose"
+  ],
+  "start_time": 3.579
+}

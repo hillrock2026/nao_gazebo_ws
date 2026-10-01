@@ -1,0 +1,121 @@
+{
+  "all_seeds_fresh": true,
+  "artifact": "Stage 7' B-only holdout seed allocation",
+  "automatic_retry": false,
+  "episodes_per_seed": 1,
+  "forbidden_or_historical_seeds": [
+    10101,
+    30303,
+    40404,
+    50505,
+    606001,
+    606002,
+    606003,
+    606004,
+    606005,
+    707001,
+    707002,
+    707003,
+    707004,
+    707005,
+    808001,
+    809001,
+    909001,
+    909002,
+    909003,
+    909004,
+    909005,
+    909101,
+    909102,
+    909103,
+    909104,
+    909105,
+    909201,
+    909202,
+    909203,
+    909204,
+    909205,
+    909301,
+    909302,
+    909303,
+    909304,
+    909305
+  ],
+  "freshness_scan_hits": [],
+  "freshness_scan_scope": {
+    "max_file_bytes": 8000000,
+    "n_files_scanned": 3852,
+    "per_seed": {
+      "909401": {
+        "literal_hits": 129,
+        "self_reference_hits": [
+          "docs/task_p0a_gait_search/stage7_b_only_holdout_reentry_v4_evidence/scripts/stage7r_seed_allocate.py"
+        ],
+        "semantic_hit_files": [],
+        "semantic_hits": 0
+      },
+      "909402": {
+        "literal_hits": 127,
+        "self_reference_hits": [
+          "docs/task_p0a_gait_search/stage7_b_only_holdout_reentry_v4_evidence/scripts/stage7r_seed_allocate.py"
+        ],
+        "semantic_hit_files": [],
+        "semantic_hits": 0
+      },
+      "909403": {
+        "literal_hits": 120,
+        "self_reference_hits": [
+          "docs/task_p0a_gait_search/stage7_b_only_holdout_reentry_v4_evidence/scripts/stage7r_seed_allocate.py"
+        ],
+        "semantic_hit_files": [],
+        "semantic_hits": 0
+      },
+      "909404": {
+        "literal_hits": 150,
+        "self_reference_hits": [
+          "docs/task_p0a_gait_search/stage7_b_only_holdout_reentry_v4_evidence/scripts/stage7r_seed_allocate.py"
+        ],
+        "semantic_hit_files": [],
+        "semantic_hits": 0
+      },
+      "909405": {
+        "literal_hits": 138,
+        "self_reference_hits": [
+          "docs/task_p0a_gait_search/stage7_b_only_holdout_reentry_v4_evidence/scripts/stage7r_seed_allocate.py"
+        ],
+        "semantic_hit_files": [],
+        "semantic_hits": 0
+      }
+    },
+    "root": "/home/liu/workspace/Nao_Program/nao_gazebo_ws",
+    "semantic_rule": "literal occurrence AND ('seed' within 30 chars OR a seed-like key immediately followed by the number)",
+    "skipped_dirs": [
+      ".cache",
+      ".git",
+      ".mypy_cache",
+      ".pytest_cache",
+      ".venv",
+      "__pycache__",
+      "build",
+      "log",
+      "node_modules"
+    ]
+  },
+  "published_at": "2026-09-29T16:51:11+0800",
+  "seed_allocation_sha256": "96174bf1433d16050ecf605099152521920167ea3c0b1c9fc539a2666d0049db",
+  "seed_allocation_sha256_note": "SHA-256 over {stage, seed_count, seeds, seed_source}; allocation file also locked in SHA256SUMS.",
+  "seed_count": 5,
+  "seed_replacement_allowed": false,
+  "seed_source": "operator-selected fresh holdout integers recorded before any Stage 7 run",
+  "seeds": [
+    909401,
+    909402,
+    909403,
+    909404,
+    909405
+  ],
+  "self_reference_hit_files": [
+    "docs/task_p0a_gait_search/stage7_b_only_holdout_reentry_v4_evidence/scripts/stage7r_seed_allocate.py"
+  ],
+  "stage": "7-v4"
+}
