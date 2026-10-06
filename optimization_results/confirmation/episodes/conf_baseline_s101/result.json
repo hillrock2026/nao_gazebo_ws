@@ -1,0 +1,7 @@
+{
+  "config_id": "conf_baseline_s101",
+  "labels": {
+    "ready_sim": 0.901
+  },
+  "seed": 101
+}

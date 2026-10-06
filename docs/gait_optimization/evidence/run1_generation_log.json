@@ -1,0 +1,458 @@
+{
+  "generations": [
+    {
+      "best_fitness": 0.0,
+      "generation": 0,
+      "mean_fitness": -0.5,
+      "records": [
+        {
+          "candidate_id": "opt0_g00_c00",
+          "detail_reason": null,
+          "fitness": -1.0,
+          "generation": 0,
+          "git_commit": "5526a26e35e2001f295bee3cb4ec89760165089d",
+          "gz_seed": 101,
+          "overrides": {
+            "double_support_ratio": 0.3403072695057386,
+            "step_frequency_hz": 0.6707533576343091,
+            "step_length_m": 0.05848219807279925,
+            "sway_amplitude_rad": 0.10755719965910439,
+            "swing_height_m": 0.014855913242329478
+          },
+          "seed": 101,
+          "sim_result_path": "optimization_results/episodes/opt0_g00_c00/result_p0a.json",
+          "status": "fall",
+          "terms": {},
+          "theta_named": {
+            "double_support": 0.3403072695057386,
+            "frequency": 0.6707533576343091,
+            "step_length": 0.05848219807279925,
+            "sway_amplitude": 0.10755719965910439,
+            "swing_height": 0.014855913242329478
+          },
+          "timestamp": "2026-10-01T11:42:05+0800",
+          "x": [
+            0.6413699678799876,
+            0.22562779802859084,
+            0.2815975212094136,
+            0.7257681737643464,
+            0.23022879863641754
+          ]
+        },
+        {
+          "candidate_id": "opt0_g00_c01",
+          "detail_reason": null,
+          "fitness": 0.0,
+          "generation": 0,
+          "git_commit": "5526a26e35e2001f295bee3cb4ec89760165089d",
+          "gz_seed": 101,
+          "overrides": {
+            "double_support_ratio": 0.13854169680056821,
+            "step_frequency_hz": 0.40230898198970627,
+            "step_length_m": 0.022225843360558023,
+            "sway_amplitude_rad": 0.11200758312652474,
+            "swing_height_m": 0.012741842282461825
+          },
+          "seed": 101,
+          "sim_result_path": "optimization_results/episodes/opt0_g00_c01/result_p0a.json",
+          "status": "ok",
+          "terms": {
+            "energy": 1.0,
+            "instability": 0.5936741991127883,
+            "slip": 0.813613592431896,
+            "velocity": 0.0
+          },
+          "theta_named": {
+            "double_support": 0.13854169680056821,
+            "frequency": 0.40230898198970627,
+            "step_length": 0.022225843360558023,
+            "sway_amplitude": 0.11200758312652474,
+            "swing_height": 0.012741842282461825
+          },
+          "timestamp": "2026-10-01T11:43:02+0800",
+          "x": [
+            0.0370973893426337,
+            0.0019241516580885195,
+            0.22119549378462353,
+            0.2213542420014205,
+            0.24803033250609896
+          ]
+        },
+        {
+          "candidate_id": "opt0_g00_c02",
+          "detail_reason": null,
+          "fitness": 0.0,
+          "generation": 0,
+          "git_commit": "5526a26e35e2001f295bee3cb4ec89760165089d",
+          "gz_seed": 101,
+          "overrides": {
+            "double_support_ratio": 0.23928841418290814,
+            "step_frequency_hz": 0.4062205436156271,
+            "step_length_m": 0.03234576192907231,
+            "sway_amplitude_rad": 0.051679477970401955,
+            "swing_height_m": 0.009820893583752068
+          },
+          "seed": 101,
+          "sim_result_path": "optimization_results/episodes/opt0_g00_c02/result_p0a.json",
+          "status": "ok",
+          "terms": {
+            "energy": 0.20919784581993528,
+            "instability": 0.45368621889819893,
+            "slip": 0.6300959055382195,
+            "velocity": 0.2117941049556671
+          },
+          "theta_named": {
+            "double_support": 0.23928841418290814,
+            "frequency": 0.4062205436156271,
+            "step_length": 0.03234576192907231,
+            "sway_amplitude": 0.051679477970401955,
+            "swing_height": 0.009820893583752068
+          },
+          "timestamp": "2026-10-01T11:43:58+0800",
+          "x": [
+            0.2057626988178719,
+            0.005183786346355884,
+            0.13773981667863053,
+            0.47322103545727034,
+            0.006717911881607805
+          ]
+        },
+        {
+          "candidate_id": "opt0_g00_c03",
+          "detail_reason": null,
+          "fitness": -1.0,
+          "generation": 0,
+          "git_commit": "5526a26e35e2001f295bee3cb4ec89760165089d",
+          "gz_seed": 101,
+          "overrides": {
+            "double_support_ratio": 0.4314876212344279,
+            "step_frequency_hz": 0.5657910952778751,
+            "step_length_m": 0.03746067811116484,
+            "sway_amplitude_rad": 0.10917681132205753,
+            "swing_height_m": 0.022351578297585457
+          },
+          "seed": 101,
+          "sim_result_path": "optimization_results/episodes/opt0_g00_c03/result_p0a.json",
+          "status": "fall",
+          "terms": {},
+          "theta_named": {
+            "double_support": 0.4314876212344279,
+            "frequency": 0.5657910952778751,
+            "step_length": 0.03746067811116484,
+            "sway_amplitude": 0.10917681132205753,
+            "swing_height": 0.022351578297585457
+          },
+          "timestamp": "2026-10-01T11:44:53+0800",
+          "x": [
+            0.29101130185274726,
+            0.13815924606489582,
+            0.49575937993101293,
+            0.9537190530860697,
+            0.23670724528823012
+          ]
+        }
+      ]
+    },
+    {
+      "best_fitness": 0.0,
+      "generation": 1,
+      "mean_fitness": -0.75,
+      "records": [
+        {
+          "candidate_id": "opt0_g01_c00",
+          "detail_reason": null,
+          "fitness": 0.0,
+          "generation": 1,
+          "git_commit": "5526a26e35e2001f295bee3cb4ec89760165089d",
+          "gz_seed": 101,
+          "overrides": {
+            "double_support_ratio": 0.05341916783059247,
+            "step_frequency_hz": 0.40064125010928014,
+            "step_length_m": 0.020552704703305526,
+            "sway_amplitude_rad": 0.07017512053429155,
+            "swing_height_m": 0.006158826793280435
+          },
+          "seed": 101,
+          "sim_result_path": "optimization_results/episodes/opt0_g01_c00/result_p0a.json",
+          "status": "ok",
+          "terms": {
+            "energy": 1.0,
+            "instability": 0.2387169651260062,
+            "slip": 0.31689650480339665,
+            "velocity": 0.051684791764333424
+          },
+          "theta_named": {
+            "double_support": 0.05341916783059247,
+            "frequency": 0.40064125010928014,
+            "step_length": 0.020552704703305526,
+            "sway_amplitude": 0.07017512053429155,
+            "swing_height": 0.006158826793280435
+          },
+          "timestamp": "2026-10-01T11:45:49+0800",
+          "x": [
+            0.009211745055092098,
+            0.0005343750910667746,
+            0.03310933695086956,
+            0.008547919576481171,
+            0.08070048213716617
+          ]
+        },
+        {
+          "candidate_id": "opt0_g01_c01",
+          "detail_reason": null,
+          "fitness": -1.0,
+          "generation": 1,
+          "git_commit": "5526a26e35e2001f295bee3cb4ec89760165089d",
+          "gz_seed": 101,
+          "overrides": {
+            "double_support_ratio": 0.1757816432434111,
+            "step_frequency_hz": 0.490291355785493,
+            "step_length_m": 0.021900171161586983,
+            "sway_amplitude_rad": 0.12994420629904957,
+            "swing_height_m": 0.013639075419190141
+          },
+          "seed": 101,
+          "sim_result_path": "optimization_results/episodes/opt0_g01_c01/result_p0a.json",
+          "status": "fall",
+          "terms": {},
+          "theta_named": {
+            "double_support": 0.1757816432434111,
+            "frequency": 0.490291355785493,
+            "step_length": 0.021900171161586983,
+            "sway_amplitude": 0.12994420629904957,
+            "swing_height": 0.013639075419190141
+          },
+          "timestamp": "2026-10-01T11:46:45+0800",
+          "x": [
+            0.031669519359783065,
+            0.07524279648791081,
+            0.24683072626257546,
+            0.3144541081085278,
+            0.3197768251961982
+          ]
+        },
+        {
+          "candidate_id": "opt0_g01_c02",
+          "detail_reason": null,
+          "fitness": -1.0,
+          "generation": 1,
+          "git_commit": "5526a26e35e2001f295bee3cb4ec89760165089d",
+          "gz_seed": 101,
+          "overrides": {
+            "double_support_ratio": 0.125373846140786,
+            "step_frequency_hz": 0.5713139057767896,
+            "step_length_m": 0.027543801494000354,
+            "sway_amplitude_rad": 0.10375818792072877,
+            "swing_height_m": 0.018102630698452665
+          },
+          "seed": 101,
+          "sim_result_path": "optimization_results/episodes/opt0_g01_c02/result_p0a.json",
+          "status": "fall",
+          "terms": {},
+          "theta_named": {
+            "double_support": 0.125373846140786,
+            "frequency": 0.5713139057767896,
+            "step_length": 0.027543801494000354,
+            "sway_amplitude": 0.10375818792072877,
+            "swing_height": 0.018102630698452665
+          },
+          "timestamp": "2026-10-01T11:47:44+0800",
+          "x": [
+            0.1257300249000059,
+            0.14276158814732468,
+            0.37436087709864757,
+            0.18843461535196504,
+            0.21503275168291508
+          ]
+        },
+        {
+          "candidate_id": "opt0_g01_c03",
+          "detail_reason": null,
+          "fitness": -1.0,
+          "generation": 1,
+          "git_commit": "5526a26e35e2001f295bee3cb4ec89760165089d",
+          "gz_seed": 101,
+          "overrides": {
+            "double_support_ratio": 0.2683528339141512,
+            "step_frequency_hz": 0.8908559560311954,
+            "step_length_m": 0.024858496254412603,
+            "sway_amplitude_rad": 0.05113838673828928,
+            "swing_height_m": 0.013275913291540379
+          },
+          "seed": 101,
+          "sim_result_path": "optimization_results/episodes/opt0_g01_c03/result_p0a.json",
+          "status": "fall",
+          "terms": {},
+          "theta_named": {
+            "double_support": 0.2683528339141512,
+            "frequency": 0.8908559560311954,
+            "step_length": 0.024858496254412603,
+            "sway_amplitude": 0.05113838673828928,
+            "swing_height": 0.013275913291540379
+          },
+          "timestamp": "2026-10-01T11:48:41+0800",
+          "x": [
+            0.0809749375735434,
+            0.40904663002599606,
+            0.23645466547258226,
+            0.545882084785378,
+            0.004553546953157113
+          ]
+        }
+      ]
+    },
+    {
+      "best_fitness": 0.0,
+      "generation": 2,
+      "mean_fitness": -0.5,
+      "records": [
+        {
+          "candidate_id": "opt0_g02_c00",
+          "detail_reason": null,
+          "fitness": -1.0,
+          "generation": 2,
+          "git_commit": "5526a26e35e2001f295bee3cb4ec89760165089d",
+          "gz_seed": 101,
+          "overrides": {
+            "double_support_ratio": 0.0594240656998197,
+            "step_frequency_hz": 0.6307273059701649,
+            "step_length_m": 0.02054921911853314,
+            "sway_amplitude_rad": 0.11598323906515633,
+            "swing_height_m": 0.006878518109386076
+          },
+          "seed": 101,
+          "sim_result_path": "optimization_results/episodes/opt0_g02_c00/result_p0a.json",
+          "status": "fall",
+          "terms": {},
+          "theta_named": {
+            "double_support": 0.0594240656998197,
+            "frequency": 0.6307273059701649,
+            "step_length": 0.02054921911853314,
+            "sway_amplitude": 0.11598323906515633,
+            "swing_height": 0.006878518109386076
+          },
+          "timestamp": "2026-10-01T11:49:37+0800",
+          "x": [
+            0.009153651975552282,
+            0.1922727549751374,
+            0.05367194598245929,
+            0.023560164249549237,
+            0.2639329562606253
+          ]
+        },
+        {
+          "candidate_id": "opt0_g02_c01",
+          "detail_reason": null,
+          "fitness": 0.0,
+          "generation": 2,
+          "git_commit": "5526a26e35e2001f295bee3cb4ec89760165089d",
+          "gz_seed": 101,
+          "overrides": {
+            "double_support_ratio": 0.0643588658537517,
+            "step_frequency_hz": 0.40434983159410015,
+            "step_length_m": 0.033475646406232386,
+            "sway_amplitude_rad": 0.07660347477035419,
+            "swing_height_m": 0.005637204738724536
+          },
+          "seed": 101,
+          "sim_result_path": "optimization_results/episodes/opt0_g02_c01/result_p0a.json",
+          "status": "ok",
+          "terms": {
+            "energy": 1.0,
+            "instability": 0.1525304564541034,
+            "slip": 0.42789146288947627,
+            "velocity": 0.10004474070459707
+          },
+          "theta_named": {
+            "double_support": 0.0643588658537517,
+            "frequency": 0.40434983159410015,
+            "step_length": 0.033475646406232386,
+            "sway_amplitude": 0.07660347477035419,
+            "swing_height": 0.005637204738724536
+          },
+          "timestamp": "2026-10-01T11:50:34+0800",
+          "x": [
+            0.2245941067705398,
+            0.00362485966175011,
+            0.018205849677843874,
+            0.03589716463437922,
+            0.10641389908141674
+          ]
+        },
+        {
+          "candidate_id": "opt0_g02_c02",
+          "detail_reason": null,
+          "fitness": 0.0,
+          "generation": 2,
+          "git_commit": "5526a26e35e2001f295bee3cb4ec89760165089d",
+          "gz_seed": 101,
+          "overrides": {
+            "double_support_ratio": 0.11667309010303084,
+            "step_frequency_hz": 0.5929806608876839,
+            "step_length_m": 0.02077719684384498,
+            "sway_amplitude_rad": 0.09166720351840792,
+            "swing_height_m": 0.008559959154624496
+          },
+          "seed": 101,
+          "sim_result_path": "optimization_results/episodes/opt0_g02_c02/result_p0a.json",
+          "status": "ok",
+          "terms": {
+            "energy": 1.0,
+            "instability": 0.24206076265437054,
+            "slip": 0.7644831661865324,
+            "velocity": 0.0
+          },
+          "theta_named": {
+            "double_support": 0.11667309010303084,
+            "frequency": 0.5929806608876839,
+            "step_length": 0.02077719684384498,
+            "sway_amplitude": 0.09166720351840792,
+            "swing_height": 0.008559959154624496
+          },
+          "timestamp": "2026-10-01T11:51:29+0800",
+          "x": [
+            0.0129532807307497,
+            0.16081721740640317,
+            0.10171311870355704,
+            0.16668272525757707,
+            0.16666881407363165
+          ]
+        },
+        {
+          "candidate_id": "opt0_g02_c03",
+          "detail_reason": null,
+          "fitness": -1.0,
+          "generation": 2,
+          "git_commit": "5526a26e35e2001f295bee3cb4ec89760165089d",
+          "gz_seed": 101,
+          "overrides": {
+            "double_support_ratio": 0.09839076185177838,
+            "step_frequency_hz": 0.5810800837158099,
+            "step_length_m": 0.020026162758766616,
+            "sway_amplitude_rad": 0.12635421078643166,
+            "swing_height_m": 0.0140567700158903
+          },
+          "seed": 101,
+          "sim_result_path": "optimization_results/episodes/opt0_g02_c03/result_p0a.json",
+          "status": "fall",
+          "terms": {},
+          "theta_named": {
+            "double_support": 0.09839076185177838,
+            "frequency": 0.5810800837158099,
+            "step_length": 0.020026162758766616,
+            "sway_amplitude": 0.12635421078643166,
+            "swing_height": 0.0140567700158903
+          },
+          "timestamp": "2026-10-01T11:52:25+0800",
+          "x": [
+            0.0004360459794436156,
+            0.15090006976317488,
+            0.2587648575968657,
+            0.12097690462944594,
+            0.30541684314572665
+          ]
+        }
+      ]
+    }
+  ]
+}

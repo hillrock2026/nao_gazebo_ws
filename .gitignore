@@ -19,3 +19,14 @@
 **/*glm53*.md
 **/*glm-5.3*.md
 docs/GLM-5.3 Independent Acceptance - Audit Phase A.txt
+
+# Keep review and acceptance documents out of new commits (case-insensitive names).
+**/*[Aa][Uu][Dd][Ii][Tt]*.md
+**/*[Rr][Ee][Vv][Ii][Ee][Ww]*.md
+**/*[Aa][Cc][Cc][Ee][Pp][Tt][Aa][Nn][Cc][Ee]*.md
+**/*[Rr][Ff][Cc]*.md
+**/*[Dd][Ee][Cc][Ii][Ss][Ii][Oo][Nn]*[Rr][Ee][Qq][Uu][Ee][Ss][Tt]*.md
+docs/gait_optimization/OPT2A_POST_GLM_REMEDIATION_REPORT.md
+**/*[Aa][Uu][Dd][Ii][Tt]*.txt
+**/*[Rr][Ee][Vv][Ii][Ee][Ww]*.txt
+**/*[Aa][Cc][Cc][Ee][Pp][Tt][Aa][Nn][Cc][Ee]*.txt

@@ -1,0 +1,60 @@
+best:
+  fitness: 0.32750505973959376
+  status: ok
+  candidate_id: opt0_g01_c00
+  generation: 1
+  theta_named:
+    step_length: 0.021847667480823223
+    frequency: 0.400005463173065
+    swing_height: 0.006559718205547006
+    double_support: 0.12036590610908834
+    sway_amplitude: 0.05029130248563128
+  x_normalized:
+  - 0.030794458013720383
+  - 4.552644220817674e-06
+  - 0.04456337730134302
+  - 0.17591476527272085
+  - 0.0011652099425251174
+  overrides:
+    step_length_m: 0.021847667480823223
+    step_frequency_hz: 0.400005463173065
+    swing_height_m: 0.006559718205547006
+    double_support_ratio: 0.12036590610908834
+    sway_amplitude_rad: 0.05029130248563128
+  git_commit: 5526a26e35e2001f295bee3cb4ec89760165089d
+  timestamp: 2026-10-01T12:02:55+0800
+  seed: 101
+  gz_seed: 101
+  sim_result_path: optimization_results/episodes/opt0_g01_c00/result_p0a.json
+  baseline_fitness: 0.17687958881901922
+space:
+- name: step_length
+  override_key: step_length_m
+  unit: m
+  low: 0.02
+  high: 0.08
+  anchor_value: 0.02
+- name: frequency
+  override_key: step_frequency_hz
+  unit: Hz
+  low: 0.4
+  high: 1.6
+  anchor_value: 0.5
+- name: swing_height
+  override_key: swing_height_m
+  unit: m
+  low: 0.005
+  high: 0.04
+  anchor_value: 0.008
+- name: double_support
+  override_key: double_support_ratio
+  unit: '-'
+  low: 0.05
+  high: 0.45
+  anchor_value: 0.3
+- name: sway_amplitude
+  override_key: sway_amplitude_rad
+  unit: rad
+  low: 0.05
+  high: 0.3
+  anchor_value: 0.06

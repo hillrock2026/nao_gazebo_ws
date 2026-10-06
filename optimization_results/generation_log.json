@@ -1,0 +1,483 @@
+{
+  "generations": [
+    {
+      "best_fitness": 0.19587155087339164,
+      "generation": 0,
+      "mean_fitness": -0.4247755004250182,
+      "records": [
+        {
+          "candidate_id": "opt0_g00_c00",
+          "detail_reason": null,
+          "fitness": -1.0,
+          "generation": 0,
+          "git_commit": "5526a26e35e2001f295bee3cb4ec89760165089d",
+          "gz_seed": 101,
+          "overrides": {
+            "double_support_ratio": 0.3403072695057386,
+            "step_frequency_hz": 0.6707533576343091,
+            "step_length_m": 0.05848219807279925,
+            "sway_amplitude_rad": 0.10755719965910439,
+            "swing_height_m": 0.014855913242329478
+          },
+          "seed": 101,
+          "sim_result_path": "optimization_results/episodes/opt0_g00_c00/result_p0a.json",
+          "status": "fall",
+          "terms": {},
+          "theta_named": {
+            "double_support": 0.3403072695057386,
+            "frequency": 0.6707533576343091,
+            "step_length": 0.05848219807279925,
+            "sway_amplitude": 0.10755719965910439,
+            "swing_height": 0.014855913242329478
+          },
+          "timestamp": "2026-10-01T11:59:06+0800",
+          "x": [
+            0.6413699678799876,
+            0.22562779802859084,
+            0.2815975212094136,
+            0.7257681737643464,
+            0.23022879863641754
+          ]
+        },
+        {
+          "candidate_id": "opt0_g00_c01",
+          "detail_reason": null,
+          "fitness": 0.10502644742653544,
+          "generation": 0,
+          "git_commit": "5526a26e35e2001f295bee3cb4ec89760165089d",
+          "gz_seed": 101,
+          "overrides": {
+            "double_support_ratio": 0.13854169680056821,
+            "step_frequency_hz": 0.40230898198970627,
+            "step_length_m": 0.022225843360558023,
+            "sway_amplitude_rad": 0.11200758312652474,
+            "swing_height_m": 0.012741842282461825
+          },
+          "seed": 101,
+          "sim_result_path": "optimization_results/episodes/opt0_g00_c01/result_p0a.json",
+          "status": "ok",
+          "terms": {
+            "energy": 1.0,
+            "instability": 0.4887322628111843,
+            "slip": 0.7476761649873328,
+            "velocity": 0.0
+          },
+          "theta_named": {
+            "double_support": 0.13854169680056821,
+            "frequency": 0.40230898198970627,
+            "step_length": 0.022225843360558023,
+            "sway_amplitude": 0.11200758312652474,
+            "swing_height": 0.012741842282461825
+          },
+          "timestamp": "2026-10-01T12:00:05+0800",
+          "x": [
+            0.0370973893426337,
+            0.0019241516580885195,
+            0.22119549378462353,
+            0.2213542420014205,
+            0.24803033250609896
+          ]
+        },
+        {
+          "candidate_id": "opt0_g00_c02",
+          "detail_reason": null,
+          "fitness": 0.19587155087339164,
+          "generation": 0,
+          "git_commit": "5526a26e35e2001f295bee3cb4ec89760165089d",
+          "gz_seed": 101,
+          "overrides": {
+            "double_support_ratio": 0.23928841418290814,
+            "step_frequency_hz": 0.4062205436156271,
+            "step_length_m": 0.03234576192907231,
+            "sway_amplitude_rad": 0.051679477970401955,
+            "swing_height_m": 0.009820893583752068
+          },
+          "seed": 101,
+          "sim_result_path": "optimization_results/episodes/opt0_g00_c02/result_p0a.json",
+          "status": "ok",
+          "terms": {
+            "energy": 1.0,
+            "instability": 0.4259139901744474,
+            "slip": 0.6811542407059947,
+            "velocity": 0.08404463202684377
+          },
+          "theta_named": {
+            "double_support": 0.23928841418290814,
+            "frequency": 0.4062205436156271,
+            "step_length": 0.03234576192907231,
+            "sway_amplitude": 0.051679477970401955,
+            "swing_height": 0.009820893583752068
+          },
+          "timestamp": "2026-10-01T12:01:01+0800",
+          "x": [
+            0.2057626988178719,
+            0.005183786346355884,
+            0.13773981667863053,
+            0.47322103545727034,
+            0.006717911881607805
+          ]
+        },
+        {
+          "candidate_id": "opt0_g00_c03",
+          "detail_reason": null,
+          "fitness": -1.0,
+          "generation": 0,
+          "git_commit": "5526a26e35e2001f295bee3cb4ec89760165089d",
+          "gz_seed": 101,
+          "overrides": {
+            "double_support_ratio": 0.4314876212344279,
+            "step_frequency_hz": 0.5657910952778751,
+            "step_length_m": 0.03746067811116484,
+            "sway_amplitude_rad": 0.10917681132205753,
+            "swing_height_m": 0.022351578297585457
+          },
+          "seed": 101,
+          "sim_result_path": "optimization_results/episodes/opt0_g00_c03/result_p0a.json",
+          "status": "fall",
+          "terms": {},
+          "theta_named": {
+            "double_support": 0.4314876212344279,
+            "frequency": 0.5657910952778751,
+            "step_length": 0.03746067811116484,
+            "sway_amplitude": 0.10917681132205753,
+            "swing_height": 0.022351578297585457
+          },
+          "timestamp": "2026-10-01T12:01:58+0800",
+          "x": [
+            0.29101130185274726,
+            0.13815924606489582,
+            0.49575937993101293,
+            0.9537190530860697,
+            0.23670724528823012
+          ]
+        }
+      ]
+    },
+    {
+      "best_fitness": 0.32750505973959376,
+      "generation": 1,
+      "mean_fitness": 0.21973887030040484,
+      "records": [
+        {
+          "candidate_id": "opt0_g01_c00",
+          "detail_reason": null,
+          "fitness": 0.32750505973959376,
+          "generation": 1,
+          "git_commit": "5526a26e35e2001f295bee3cb4ec89760165089d",
+          "gz_seed": 101,
+          "overrides": {
+            "double_support_ratio": 0.12036590610908834,
+            "step_frequency_hz": 0.400005463173065,
+            "step_length_m": 0.021847667480823223,
+            "sway_amplitude_rad": 0.05029130248563128,
+            "swing_height_m": 0.006559718205547006
+          },
+          "seed": 101,
+          "sim_result_path": "optimization_results/episodes/opt0_g01_c00/result_p0a.json",
+          "status": "ok",
+          "terms": {
+            "energy": 0.780403084964043,
+            "instability": 0.27367708890563514,
+            "slip": 0.43878274791025434,
+            "velocity": 0.09609804748979518
+          },
+          "theta_named": {
+            "double_support": 0.12036590610908834,
+            "frequency": 0.400005463173065,
+            "step_length": 0.021847667480823223,
+            "sway_amplitude": 0.05029130248563128,
+            "swing_height": 0.006559718205547006
+          },
+          "timestamp": "2026-10-01T12:02:55+0800",
+          "x": [
+            0.030794458013720383,
+            4.552644220817674e-06,
+            0.04456337730134302,
+            0.17591476527272085,
+            0.0011652099425251174
+          ]
+        },
+        {
+          "candidate_id": "opt0_g01_c01",
+          "detail_reason": null,
+          "fitness": 0.17303604429254854,
+          "generation": 1,
+          "git_commit": "5526a26e35e2001f295bee3cb4ec89760165089d",
+          "gz_seed": 101,
+          "overrides": {
+            "double_support_ratio": 0.23248637893082863,
+            "step_frequency_hz": 0.4108159412627275,
+            "step_length_m": 0.030174239971341006,
+            "sway_amplitude_rad": 0.0515367063863167,
+            "swing_height_m": 0.008343215063207638
+          },
+          "seed": 101,
+          "sim_result_path": "optimization_results/episodes/opt0_g01_c01/result_p0a.json",
+          "status": "ok",
+          "terms": {
+            "energy": 1.0,
+            "instability": 0.45968687342730835,
+            "slip": 0.5343183591533415,
+            "velocity": 0.0566987196875257
+          },
+          "theta_named": {
+            "double_support": 0.23248637893082863,
+            "frequency": 0.4108159412627275,
+            "step_length": 0.030174239971341006,
+            "sway_amplitude": 0.0515367063863167,
+            "swing_height": 0.008343215063207638
+          },
+          "timestamp": "2026-10-01T12:03:52+0800",
+          "x": [
+            0.16957066618901673,
+            0.009013284385606243,
+            0.0955204303773611,
+            0.4562159473270716,
+            0.006146825545266797
+          ]
+        },
+        {
+          "candidate_id": "opt0_g01_c02",
+          "detail_reason": null,
+          "fitness": 0.2310639708964614,
+          "generation": 1,
+          "git_commit": "5526a26e35e2001f295bee3cb4ec89760165089d",
+          "gz_seed": 101,
+          "overrides": {
+            "double_support_ratio": 0.22622462434305507,
+            "step_frequency_hz": 0.5456629022057167,
+            "step_length_m": 0.020240637038221813,
+            "sway_amplitude_rad": 0.0764404605220633,
+            "swing_height_m": 0.008777997575976984
+          },
+          "seed": 101,
+          "sim_result_path": "optimization_results/episodes/opt0_g01_c02/result_p0a.json",
+          "status": "ok",
+          "terms": {
+            "energy": 1.0,
+            "instability": 0.21993971185174288,
+            "slip": 0.6607386859915879,
+            "velocity": 0.05170880568681025
+          },
+          "theta_named": {
+            "double_support": 0.22622462434305507,
+            "frequency": 0.5456629022057167,
+            "step_length": 0.020240637038221813,
+            "sway_amplitude": 0.0764404605220633,
+            "swing_height": 0.008777997575976984
+          },
+          "timestamp": "2026-10-01T12:04:49+0800",
+          "x": [
+            0.004010617303696879,
+            0.1213857518380972,
+            0.10794278788505665,
+            0.4405615608576377,
+            0.10576184208825318
+          ]
+        },
+        {
+          "candidate_id": "opt0_g01_c03",
+          "detail_reason": null,
+          "fitness": 0.14735040627301565,
+          "generation": 1,
+          "git_commit": "5526a26e35e2001f295bee3cb4ec89760165089d",
+          "gz_seed": 101,
+          "overrides": {
+            "double_support_ratio": 0.1438100380661272,
+            "step_frequency_hz": 0.8101727485338592,
+            "step_length_m": 0.038528511444206416,
+            "sway_amplitude_rad": 0.06586054960465648,
+            "swing_height_m": 0.008162483951448841
+          },
+          "seed": 101,
+          "sim_result_path": "optimization_results/episodes/opt0_g01_c03/result_p0a.json",
+          "status": "ok",
+          "terms": {
+            "energy": 1.0,
+            "instability": 0.23396967674737704,
+            "slip": 0.9313937756062233,
+            "velocity": 0.0
+          },
+          "theta_named": {
+            "double_support": 0.1438100380661272,
+            "frequency": 0.8101727485338592,
+            "step_length": 0.038528511444206416,
+            "sway_amplitude": 0.06586054960465648,
+            "swing_height": 0.008162483951448841
+          },
+          "timestamp": "2026-10-01T12:05:45+0800",
+          "x": [
+            0.30880852407010695,
+            0.34181062377821597,
+            0.09035668432710975,
+            0.23452509516531797,
+            0.06344219841862593
+          ]
+        }
+      ]
+    },
+    {
+      "best_fitness": 0.24093956212541573,
+      "generation": 2,
+      "mean_fitness": 0.20708913231015452,
+      "records": [
+        {
+          "candidate_id": "opt0_g02_c00",
+          "detail_reason": null,
+          "fitness": 0.17195029098346587,
+          "generation": 2,
+          "git_commit": "5526a26e35e2001f295bee3cb4ec89760165089d",
+          "gz_seed": 101,
+          "overrides": {
+            "double_support_ratio": 0.1903456101079936,
+            "step_frequency_hz": 0.5812916562860629,
+            "step_length_m": 0.02011925780900722,
+            "sway_amplitude_rad": 0.05085384914778982,
+            "swing_height_m": 0.008439881328006516
+          },
+          "seed": 101,
+          "sim_result_path": "optimization_results/episodes/opt0_g02_c00/result_p0a.json",
+          "status": "ok",
+          "terms": {
+            "energy": 1.0,
+            "instability": 0.26664424903049755,
+            "slip": 0.677040360303707,
+            "velocity": 0.011917146965384392
+          },
+          "theta_named": {
+            "double_support": 0.1903456101079936,
+            "frequency": 0.5812916562860629,
+            "step_length": 0.02011925780900722,
+            "sway_amplitude": 0.05085384914778982,
+            "swing_height": 0.008439881328006516
+          },
+          "timestamp": "2026-10-01T12:06:42+0800",
+          "x": [
+            0.001987630150120317,
+            0.15107638023838577,
+            0.09828232365732903,
+            0.35086402526998395,
+            0.003415396591159273
+          ]
+        },
+        {
+          "candidate_id": "opt0_g02_c01",
+          "detail_reason": null,
+          "fitness": 0.22829284608287037,
+          "generation": 2,
+          "git_commit": "5526a26e35e2001f295bee3cb4ec89760165089d",
+          "gz_seed": 101,
+          "overrides": {
+            "double_support_ratio": 0.11869248717321065,
+            "step_frequency_hz": 0.5174996675633596,
+            "step_length_m": 0.04060162528883803,
+            "sway_amplitude_rad": 0.05058558644665415,
+            "swing_height_m": 0.005261752843663557
+          },
+          "seed": 101,
+          "sim_result_path": "optimization_results/episodes/opt0_g02_c01/result_p0a.json",
+          "status": "ok",
+          "terms": {
+            "energy": 1.0,
+            "instability": 0.32457409945576676,
+            "slip": 0.5078105847059923,
+            "velocity": 0.06545689936101394
+          },
+          "theta_named": {
+            "double_support": 0.11869248717321065,
+            "frequency": 0.5174996675633596,
+            "step_length": 0.04060162528883803,
+            "sway_amplitude": 0.05058558644665415,
+            "swing_height": 0.005261752843663557
+          },
+          "timestamp": "2026-10-01T12:07:38+0800",
+          "x": [
+            0.3433604214806339,
+            0.09791638963613294,
+            0.007478652676101631,
+            0.17173121793302662,
+            0.00234234578661659
+          ]
+        },
+        {
+          "candidate_id": "opt0_g02_c02",
+          "detail_reason": null,
+          "fitness": 0.24093956212541573,
+          "generation": 2,
+          "git_commit": "5526a26e35e2001f295bee3cb4ec89760165089d",
+          "gz_seed": 101,
+          "overrides": {
+            "double_support_ratio": 0.15161457421309316,
+            "step_frequency_hz": 0.5630484585027375,
+            "step_length_m": 0.02080759393918246,
+            "sway_amplitude_rad": 0.06320747201314612,
+            "swing_height_m": 0.005176302636188293
+          },
+          "seed": 101,
+          "sim_result_path": "optimization_results/episodes/opt0_g02_c02/result_p0a.json",
+          "status": "ok",
+          "terms": {
+            "energy": 1.0,
+            "instability": 0.24901460344443754,
+            "slip": 0.6497344000843057,
+            "velocity": 0.06754752903559483
+          },
+          "theta_named": {
+            "double_support": 0.15161457421309316,
+            "frequency": 0.5630484585027375,
+            "step_length": 0.02080759393918246,
+            "sway_amplitude": 0.06320747201314612,
+            "swing_height": 0.005176302636188293
+          },
+          "timestamp": "2026-10-01T12:08:35+0800",
+          "x": [
+            0.013459898986374307,
+            0.13587371541894794,
+            0.005037218176808355,
+            0.2540364355327329,
+            0.05282988805258446
+          ]
+        },
+        {
+          "candidate_id": "opt0_g02_c03",
+          "detail_reason": null,
+          "fitness": 0.18717383004886617,
+          "generation": 2,
+          "git_commit": "5526a26e35e2001f295bee3cb4ec89760165089d",
+          "gz_seed": 101,
+          "overrides": {
+            "double_support_ratio": 0.16740056825907693,
+            "step_frequency_hz": 0.4354125634381052,
+            "step_length_m": 0.024983803479770167,
+            "sway_amplitude_rad": 0.11364051924801252,
+            "swing_height_m": 0.008108136552556988
+          },
+          "seed": 101,
+          "sim_result_path": "optimization_results/episodes/opt0_g02_c03/result_p0a.json",
+          "status": "ok",
+          "terms": {
+            "energy": 1.0,
+            "instability": 0.3059570970595513,
+            "slip": 0.677044216402085,
+            "velocity": 0.03921962334835551
+          },
+          "theta_named": {
+            "double_support": 0.16740056825907693,
+            "frequency": 0.4354125634381052,
+            "step_length": 0.024983803479770167,
+            "sway_amplitude": 0.11364051924801252,
+            "swing_height": 0.008108136552556988
+          },
+          "timestamp": "2026-10-01T12:09:31+0800",
+          "x": [
+            0.0830633913295028,
+            0.029510469531754308,
+            0.0888039015016282,
+            0.2935014206476923,
+            0.2545620769920501
+          ]
+        }
+      ]
+    }
+  ]
+}

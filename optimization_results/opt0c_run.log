@@ -1,0 +1,18 @@
+[opt0c] preflight PASS
+[opt0c] baseline s101 fit=+0.1178 status=ok      speed=+0.0004 fwd=+0.0061 fall=False
+[opt0c] best     s101 fit=+0.1998 status=ok      speed=+0.0031 fwd=+0.0450 fall=False
+[opt0c] baseline s202 fit=+0.1422 status=ok      speed=-0.0005 fwd=-0.0073 fall=False
+[opt0c] best     s202 fit=+0.2153 status=ok      speed=+0.0038 fwd=+0.0548 fall=False
+[opt0c] baseline s303 fit=+0.1257 status=ok      speed=+0.0005 fwd=+0.0077 fall=False
+[opt0c] best     s303 fit=+0.2415 status=ok      speed=+0.0034 fwd=+0.0495 fall=False
+[opt0c] === DECISION ===
+{
+  "LEVEL_3": "ACHIEVED",
+  "OPT0C_RESULT": "PASS",
+  "conditions": {
+    "cond1_best_3of3_ok_nofall": true,
+    "cond2_delta_fitness_3of3_gt0": true,
+    "cond3_mean_best_speed_gt_baseline": true,
+    "cond4_mean_best_forward_gt_baseline": true
+  }
+}

@@ -1,0 +1,249 @@
+[INFO] [launch]: All log files can be found below /home/liu/.ros/log/2026-10-01-12-02-55-953308-liu-290858
+[INFO] [launch]: Default logging verbosity is set to INFO
+[INFO] [gz-1]: process started with pid [290865]
+[INFO] [parameter_bridge-2]: process started with pid [290866]
+[INFO] [parameter_bridge-3]: process started with pid [290867]
+[INFO] [joint_state_converter-4]: process started with pid [290868]
+[INFO] [body_pose_converter-5]: process started with pid [290869]
+[INFO] [parameter_bridge-6]: process started with pid [290870]
+[INFO] [imu_converter-7]: process started with pid [290871]
+[INFO] [parameter_bridge-8]: process started with pid [290872]
+[INFO] [contact_converter-9]: process started with pid [290873]
+[INFO] [world_tf_converter-10]: process started with pid [290874]
+[INFO] [robot_state_publisher-11]: process started with pid [290875]
+[INFO] [phase4b_trace.py-12]: process started with pid [290876]
+[INFO] [phase4b_producer.py-13]: process started with pid [290879]
+[joint_state_converter-4] [INFO] [1790827376.224009680] [joint_state_converter]: joint_state_converter: raw='/nao/joint_states_raw' -> output='/joint_states' (reliable, volatile, keep_last 10); effort is forced empty
+[body_pose_converter-5] [INFO] [1790827376.268714743] [body_pose_converter]: body_pose_converter: gz '/world/nao_world/pose/info' model 'nao' -> '/body_pose' (frame_id=world)
+[imu_converter-7] [INFO] [1790827376.276906537] [imu_converter]: imu_converter: raw='/nao/imu_raw' -> '/imu/data' (frame_id='ImuTorsoAccelerometer_frame', reliable, volatile, keep_last 10)
+[parameter_bridge-3] [INFO] [1790827376.285416900] [ros_gz_bridge]: Creating GZ->ROS Bridge: [/nao/joint_states_raw (gz.msgs.Model) -> /nao/joint_states_raw (sensor_msgs/msg/JointState)] (Lazy 0)
+[contact_converter-9] [INFO] [1790827376.287844538] [contact_converter]: contact_converter: left '/nao/left_foot_contact_raw' -> '/left_foot/contact', right '/nao/right_foot_contact_raw' -> '/right_foot/contact' (model='nao', ground='ground_plane', reliable, volatile, keep_last 1, update_rate=100.0 Hz, stale_after=0.050 s sim)
+[robot_state_publisher-11] [INFO] [1790827376.324573519] [robot_state_publisher]: Robot initialized
+[parameter_bridge-8] [INFO] [1790827376.353591955] [ros_gz_bridge]: Creating GZ->ROS Bridge: [/nao/left_foot_contact_raw (gz.msgs.Contacts) -> /nao/left_foot_contact_raw (ros_gz_interfaces/msg/Contacts)] (Lazy 0)
+[parameter_bridge-6] [INFO] [1790827376.362213201] [ros_gz_bridge]: Creating GZ->ROS Bridge: [/nao/imu_raw (gz.msgs.IMU) -> /nao/imu_raw (sensor_msgs/msg/Imu)] (Lazy 0)
+[parameter_bridge-8] [INFO] [1790827376.363393339] [ros_gz_bridge]: Creating GZ->ROS Bridge: [/nao/right_foot_contact_raw (gz.msgs.Contacts) -> /nao/right_foot_contact_raw (ros_gz_interfaces/msg/Contacts)] (Lazy 0)
+[world_tf_converter-10] [INFO] [1790827376.381370825] [world_tf_converter]: world_tf_converter: gz '/world/nao_world/pose/info' model 'nao' -> world -> base_link on '/tf' (reliable, volatile, keep_last 100)
+[gz-1] [1;32m[Msg] [0m[1;32mGazebo Sim Server v[0m[1;32m8.15.0[0m[1;32m[0m
+[gz-1] [1;32m[Msg] [0m[1;32mSetting seed value: [0m[1;32m101[0m[1;32m[0m
+[gz-1] [1;32m[Msg] [0m[1;32mLoading SDF world file[[0m[1;32m/home/liu/workspace/Nao_Program/nao_gazebo_ws/install/nao_gz_sim/share/nao_gz_sim/worlds/nao_world.sdf[0m[1;32m].[0m
+[gz-1] [1;32m[Msg] [0m[1;32mServing entity system service on [[0m[1;32m/[0m[1;32mentity/system/add[0m[1;32m][0m[1;32m[0m
+[gz-1] [1;36m[Dbg] [Physics.cc:1004] [0m[1;36mLoaded [[0m[1;36mgz::physics::dartsim::Plugin[0m[1;36m] from library [[0m[1;36m/opt/ros/jazzy/opt/gz_physics_vendor/lib/gz-physics-7/engine-plugins/libgz-physics-dartsim-plugin.so[0m[1;36m][0m[1;36m[0m
+[gz-1] [1;36m[Dbg] [SystemManager.cc:80] [0m[1;36mLoaded system [[0m[1;36mgz::sim::systems::Physics[0m[1;36m] for entity [[0m[1;36m1[0m[1;36m][0m[1;36m[0m
+[gz-1] [1;32m[Msg] [0m[1;32mCreate[0m[1;32m service on [[0m[1;32m/world/nao_world/create_multiple[0m[1;32m] (async)[0m[1;32m[0m
+[gz-1] [1;32m[Msg] [0m[1;32mCreate[0m[1;32m service on [[0m[1;32m/world/nao_world/create_multiple/blocking[0m[1;32m] (blocking)[0m[1;32m[0m
+[gz-1] [1;32m[Msg] [0m[1;32mRemove[0m[1;32m service on [[0m[1;32m/world/nao_world/remove[0m[1;32m] (async)[0m[1;32m[0m
+[gz-1] [1;32m[Msg] [0m[1;32mRemove[0m[1;32m service on [[0m[1;32m/world/nao_world/remove/blocking[0m[1;32m] (blocking)[0m[1;32m[0m
+[gz-1] [1;32m[Msg] [0m[1;32mPose[0m[1;32m service on [[0m[1;32m/world/nao_world/set_pose[0m[1;32m] (async)[0m[1;32m[0m
+[gz-1] [1;32m[Msg] [0m[1;32mPose[0m[1;32m service on [[0m[1;32m/world/nao_world/set_pose/blocking[0m[1;32m] (blocking)[0m[1;32m[0m
+[gz-1] [1;32m[Msg] [0m[1;32mPose[0m[1;32m service on [[0m[1;32m/world/nao_world/set_pose_vector[0m[1;32m] (async)[0m[1;32m[0m
+[gz-1] [1;32m[Msg] [0m[1;32mPose[0m[1;32m service on [[0m[1;32m/world/nao_world/set_pose_vector/blocking[0m[1;32m] (blocking)[0m[1;32m[0m
+[gz-1] [1;32m[Msg] [0m[1;32mLight configuration[0m[1;32m service on [[0m[1;32m/world/nao_world/light_config[0m[1;32m] (async)[0m[1;32m[0m
+[gz-1] [1;32m[Msg] [0m[1;32mLight configuration[0m[1;32m service on [[0m[1;32m/world/nao_world/light_config/blocking[0m[1;32m] (blocking)[0m[1;32m[0m
+[gz-1] [1;32m[Msg] [0m[1;32mPhysics[0m[1;32m service on [[0m[1;32m/world/nao_world/set_physics[0m[1;32m] (async)[0m[1;32m[0m
+[gz-1] [1;32m[Msg] [0m[1;32mPhysics[0m[1;32m service on [[0m[1;32m/world/nao_world/set_physics/blocking[0m[1;32m] (blocking)[0m[1;32m[0m
+[gz-1] [1;32m[Msg] [0m[1;32mSphericalCoordinates[0m[1;32m service on [[0m[1;32m/world/nao_world/set_spherical_coordinates[0m[1;32m] (async)[0m[1;32m[0m
+[gz-1] [1;32m[Msg] [0m[1;32mSphericalCoordinates[0m[1;32m service on [[0m[1;32m/world/nao_world/set_spherical_coordinates/blocking[0m[1;32m] (blocking)[0m[1;32m[0m
+[gz-1] [1;32m[Msg] [0m[1;32mEnable collision[0m[1;32m service on [[0m[1;32m/world/nao_world/enable_collision[0m[1;32m] (async)[0m[1;32m[0m
+[gz-1] [1;32m[Msg] [0m[1;32mEnable collision[0m[1;32m service on [[0m[1;32m/world/nao_world/enable_collision/blocking[0m[1;32m] (blocking)[0m[1;32m[0m
+[gz-1] [1;32m[Msg] [0m[1;32mDisable collision[0m[1;32m service on [[0m[1;32m/world/nao_world/disable_collision[0m[1;32m] (async)[0m[1;32m[0m
+[gz-1] [1;32m[Msg] [0m[1;32mDisable collision[0m[1;32m service on [[0m[1;32m/world/nao_world/disable_collision/blocking[0m[1;32m] (blocking)[0m[1;32m[0m
+[gz-1] [1;32m[Msg] [0m[1;32mMaterial[0m[1;32m service on [[0m[1;32m/world/nao_world/visual_config[0m[1;32m] (async)[0m[1;32m[0m
+[gz-1] [1;32m[Msg] [0m[1;32mMaterial[0m[1;32m service on [[0m[1;32m/world/nao_world/visual_config/blocking[0m[1;32m] (blocking)[0m[1;32m[0m
+[gz-1] [1;32m[Msg] [0m[1;32mMaterial[0m[1;32m service on [[0m[1;32m/world/nao_world/wheel_slip[0m[1;32m] (async)[0m[1;32m[0m
+[gz-1] [1;32m[Msg] [0m[1;32mMaterial[0m[1;32m service on [[0m[1;32m/world/nao_world/wheel_slip/blocking[0m[1;32m] (blocking)[0m[1;32m[0m
+[phase4b_producer.py-13] [INFO] [1790827376.812922588] [phase4b_producer]: phase4b_producer: method=walk step=0.022m freq=0.40Hz swing=0.007m ds=0.12 leg_ext=0.244 sway=0.05 sway_sign=+1 phase_mode=legacy rate=100.0Hz dir=forward arm_neutral=1.500 arm_roll=0.000 elbow=0.300 arm_swing=0.120 arm_phase_off=0.000
+[phase4b_trace.py-12] [INFO] [1790827376.847638770] [phase4b_trace]: phase4b_trace writing to optimization_results/episodes/opt0_g01_c00/trace
+[parameter_bridge-2] [INFO] [1790827377.323764794] [ros_gz_bridge]: Creating GZ->ROS Bridge: [/clock (gz.msgs.Clock) -> /clock (rosgraph_msgs/msg/Clock)] (Lazy 0)
+[INFO] [create-14]: process started with pid [291164]
+[create-14] [INFO] [1790827379.421419070] [ros_gz_sim]: Entity creation successful.
+[INFO] [create-14]: process has finished cleanly [pid 291164]
+[gz-1] [INFO] [1790827379.643449875] [nao_phase4a_actuator]: nao_phase4a_actuator ready: topic='/joint_command' joints=24 p_gain=15.00 max_velocity=4.00
+[gz-1] [1;36m[Dbg] [SystemManager.cc:80] [0m[1;36mLoaded system [[0m[1;36mgz::sim::systems::UserCommands[0m[1;36m] for entity [[0m[1;36m1[0m[1;36m][0m[1;36m[0m
+[gz-1] [1;36m[Dbg] [SystemManager.cc:80] [0m[1;36mLoaded system [[0m[1;36mgz::sim::systems::SceneBroadcaster[0m[1;36m] for entity [[0m[1;36m1[0m[1;36m][0m[1;36m[0m
+[gz-1] [1;36m[Dbg] [SystemManager.cc:80] [0m[1;36mLoaded system [[0m[1;36mgz::sim::systems::Imu[0m[1;36m] for entity [[0m[1;36m1[0m[1;36m][0m[1;36m[0m
+[gz-1] [1;36m[Dbg] [SystemManager.cc:80] [0m[1;36mLoaded system [[0m[1;36mgz::sim::systems::Contact[0m[1;36m] for entity [[0m[1;36m1[0m[1;36m][0m[1;36m[0m
+[gz-1] [1;32m[Msg] [0m[1;32mLoaded level [[0m[1;32mdefault[0m[1;32m][0m[1;32m[0m
+[gz-1] [1;32m[Msg] [0m[1;32mServing world controls on [[0m[1;32m/world/nao_world[0m[1;32m/control], [[0m[1;32m/world/nao_world[0m[1;32m/control/state] and [[0m[1;32m/world/nao_world[0m[1;32m/playback/control][0m[1;32m[0m
+[gz-1] [1;32m[Msg] [0m[1;32mServing GUI information on [[0m[1;32m/world/nao_world[0m[1;32m/[0m[1;32mgui/info[0m[1;32m][0m[1;32m[0m
+[gz-1] [1;32m[Msg] [0m[1;32mWorld [[0m[1;32mnao_world[0m[1;32m] initialized with [[0m[1;32m1ms[0m[1;32m] physics profile.[0m[1;32m[0m
+[gz-1] [1;32m[Msg] [0m[1;32mServing world SDF generation service on [[0m[1;32m/world/nao_world[0m[1;32m/[0m[1;32mgenerate_world_sdf[0m[1;32m][0m[1;32m[0m
+[gz-1] [1;32m[Msg] [0m[1;32mServing world names on [[0m[1;32m/gazebo/worlds[0m[1;32m][0m[1;32m[0m
+[gz-1] [1;32m[Msg] [0m[1;32mResource path add service on [[0m[1;32m/gazebo/resource_paths/add[0m[1;32m].[0m[1;32m[0m
+[gz-1] [1;32m[Msg] [0m[1;32mResource path get service on [[0m[1;32m/gazebo/resource_paths/get[0m[1;32m].[0m[1;32m[0m
+[gz-1] [1;32m[Msg] [0m[1;32mResource path resolve service on [[0m[1;32m/gazebo/resource_paths/resolve[0m[1;32m].[0m[1;32m[0m
+[gz-1] [1;32m[Msg] [0m[1;32mResource paths published on [[0m[1;32m/gazebo/resource_paths[0m[1;32m].[0m[1;32m[0m
+[gz-1] [1;32m[Msg] [0m[1;32mServer control service on [[0m[1;32m/server_control[0m[1;32m].[0m[1;32m[0m
+[gz-1] [1;32m[Msg] [0m[1;32mFound no publishers on /stats, adding root stats topic[0m[1;32m[0m
+[gz-1] [1;32m[Msg] [0m[1;32mFound no publishers on /clock, adding root clock topic[0m[1;32m[0m
+[gz-1] [1;36m[Dbg] [SimulationRunner.cc:627] [0m[1;36mCreating PostUpdate worker threads: [0m[1;36m4[0m[1;36m[0m
+[gz-1] [1;36m[Dbg] [SimulationRunner.cc:638] [0m[1;36mCreating postupdate worker thread ([0m[1;36m0[0m[1;36m)[0m[1;36m[0m
+[gz-1] [1;36m[Dbg] [SimulationRunner.cc:638] [0m[1;36mCreating postupdate worker thread ([0m[1;36m1[0m[1;36m)[0m[1;36m[0m
+[gz-1] [1;36m[Dbg] [SimulationRunner.cc:638] [0m[1;36mCreating postupdate worker thread ([0m[1;36m2[0m[1;36m)[0m[1;36m[0m
+[gz-1] [1;32m[Msg] [0m[1;32mServing scene information on [[0m[1;32m/world/nao_world[0m[1;32m/[0m[1;32mscene/info[0m[1;32m][0m[1;32m[0m
+[gz-1] [1;32m[Msg] [0m[1;32mServing graph information on [[0m[1;32m/world/nao_world[0m[1;32m/[0m[1;32mscene/graph[0m[1;32m][0m[1;32m[0m
+[gz-1] [1;32m[Msg] [0m[1;32mServing full state on [[0m[1;32m/world/nao_world[0m[1;32m/[0m[1;32mstate[0m[1;32m][0m[1;32m[0m
+[gz-1] [1;32m[Msg] [0m[1;32mServing full state (async) on [[0m[1;32m/world/nao_world[0m[1;32m/[0m[1;32mstate_async[0m[1;32m][0m[1;32m[0m
+[gz-1] [1;32m[Msg] [0m[1;32mPublishing scene information on [[0m[1;32m/world/nao_world/scene/info[0m[1;32m][0m[1;32m[0m
+[gz-1] [1;32m[Msg] [0m[1;32mPublishing entity deletions on [[0m[1;32m/world/nao_world/scene/deletion[0m[1;32m][0m[1;32m[0m
+[gz-1] [1;32m[Msg] [0m[1;32mPublishing state changes on [[0m[1;32m/world/nao_world/state[0m[1;32m][0m[1;32m[0m
+[gz-1] [1;32m[Msg] [0m[1;32mPublishing pose messages on [[0m[1;32m/world/nao_world[0m[1;32m/[0m[1;32mpose/info[0m[1;32m][0m[1;32m[0m
+[gz-1] [1;32m[Msg] [0m[1;32mPublishing dynamic pose messages on [[0m[1;32m/world/nao_world[0m[1;32m/[0m[1;32mdynamic_pose/info[0m[1;32m][0m[1;32m[0m
+[gz-1] [1;36m[Dbg] [SystemManager.cc:80] [0m[1;36mLoaded system [[0m[1;36mgz::sim::systems::JointStatePublisher[0m[1;36m] for entity [[0m[1;36m10[0m[1;36m][0m[1;36m[0m
+[gz-1] [INFO] [1790827379.664092685] [nao_phase4a_actuator]: nao_phase4a_actuator: hold_on_start captured start pose
+[phase4b_producer.py-13] [INFO] [1790827379.681316214] [phase4b_producer]: model ready at sim 0.921 s; gait starts at +0.50 s
+[contact_converter-9] [INFO] [1790827382.446420599] [contact_converter]: left foot contact = true
+[contact_converter-9] [INFO] [1790827382.604365083] [contact_converter]: right foot contact = true
+[contact_converter-9] [INFO] [1790827383.047167446] [contact_converter]: left foot contact = false
+[contact_converter-9] [INFO] [1790827383.153700214] [contact_converter]: left foot contact = true
+[contact_converter-9] [INFO] [1790827383.191086930] [contact_converter]: right foot contact = false
+[contact_converter-9] [INFO] [1790827383.331046291] [contact_converter]: left foot contact = false
+[contact_converter-9] [INFO] [1790827384.039057220] [contact_converter]: left foot contact = true
+[contact_converter-9] [INFO] [1790827384.154786622] [contact_converter]: right foot contact = true
+[contact_converter-9] [INFO] [1790827384.548437809] [contact_converter]: right foot contact = false
+[gz-1] [1;36m[Dbg] [SystemManager.cc:80] [0m[1;36mLoaded system [[0m[1;36mnao_gz_sim::NaoPhase4aActuator[0m[1;36m] for entity [[0m[1;36m10[0m[1;36m][0m[1;36m[0m
+[gz-1] [1;36m[Dbg] [UserCommands.cc:1093] [0m[1;36mCreated entity [[0m[1;36m10[0m[1;36m] named [[0m[1;36mnao[0m[1;36m][0m[1;36m[0m
+[gz-1] [1;32m[Msg] [0m[1;32mContact system publishing on [0m[1;32m/nao/left_foot_contact_raw[0m[1;32m[0m
+[gz-1] [1;32m[Msg] [0m[1;32mContact system publishing on [0m[1;32m/nao/right_foot_contact_raw[0m[1;32m[0m
+[gz-1] [1;36m[Dbg] [ImuSensor.cc:150] [0m[1;36mIMU data for [[0m[1;36mnao::base_link::imu_sensor[0m[1;36m] advertised on [[0m[1;36m/nao/imu_raw[0m[1;36m][0m[1;36m[0m
+[gz-1] [1;36m[Dbg] [SimulationRunner.cc:654] [0m[1;36mExiting postupdate worker thread ([0m[1;36m2[0m[1;36m)[0m[1;36m[0m
+[gz-1] [1;36m[Dbg] [SimulationRunner.cc:654] [0m[1;36mExiting postupdate worker thread ([0m[1;36m1[0m[1;36m)[0m[1;36m[0m
+[gz-1] [1;36mExiting postupdate worker thread ([0m[1;36m0[0m[1;36m)[0m[1;36m[0m
+[gz-1] [1;36m[Dbg] [SimulationRunner.cc:627] [0m[1;36mCreating PostUpdate worker threads: [0m[1;36m5[0m[1;36m[0m
+[gz-1] [1;36m[Dbg] [SimulationRunner.cc:638] [0m[1;36mCreating postupdate worker thread ([0m[1;36m0[0m[1;36m)[0m[1;36m[0m
+[gz-1] [1;36m[Dbg] [SimulationRunner.cc:638] [0m[1;36mCreating postupdate worker thread ([0m[1;36m1[0m[1;36m)[0m[1;36m[0m
+[gz-1] [1;36m[Dbg] [SimulationRunner.cc:638] [0m[1;36mCreating postupdate worker thread ([0m[1;36m2[0m[1;36m)[0m[1;36m[0m
+[gz-1] [1;36m[Dbg] [SimulationRunner.cc:638] [0m[1;36mCreating postupdate worker thread ([0m[1;36m3[0m[1;36m)[0m[1;36m[0m
+[contact_converter-9] [INFO] [1790827384.736372186] [contact_converter]: left foot contact = false
+[contact_converter-9] [INFO] [1790827384.748312219] [contact_converter]: right foot contact = true
+[contact_converter-9] [INFO] [1790827384.858084356] [contact_converter]: right foot contact = false
+[contact_converter-9] [INFO] [1790827385.260095133] [contact_converter]: left foot contact = true
+[contact_converter-9] [INFO] [1790827385.479718417] [contact_converter]: left foot contact = false
+[contact_converter-9] [INFO] [1790827385.500756392] [contact_converter]: left foot contact = true
+[contact_converter-9] [INFO] [1790827385.580690792] [contact_converter]: right foot contact = true
+[contact_converter-9] [INFO] [1790827386.016604902] [contact_converter]: left foot contact = false
+[contact_converter-9] [INFO] [1790827386.094453828] [contact_converter]: left foot contact = true
+[contact_converter-9] [INFO] [1790827386.128431915] [contact_converter]: right foot contact = false
+[contact_converter-9] [INFO] [1790827386.223297744] [contact_converter]: left foot contact = false
+[contact_converter-9] [INFO] [1790827386.903106836] [contact_converter]: right foot contact = true
+[contact_converter-9] [INFO] [1790827386.940553977] [contact_converter]: left foot contact = true
+[contact_converter-9] [INFO] [1790827387.467985596] [contact_converter]: right foot contact = false
+[contact_converter-9] [INFO] [1790827387.573490711] [contact_converter]: left foot contact = false
+[contact_converter-9] [INFO] [1790827387.574257454] [contact_converter]: right foot contact = true
+[contact_converter-9] [INFO] [1790827387.701296503] [contact_converter]: right foot contact = false
+[contact_converter-9] [INFO] [1790827388.261796818] [contact_converter]: left foot contact = true
+[contact_converter-9] [INFO] [1790827388.389960052] [contact_converter]: right foot contact = true
+[contact_converter-9] [INFO] [1790827388.919189210] [contact_converter]: right foot contact = false
+[contact_converter-9] [INFO] [1790827389.196122904] [contact_converter]: left foot contact = false
+[contact_converter-9] [INFO] [1790827389.698619135] [contact_converter]: right foot contact = true
+[contact_converter-9] [INFO] [1790827389.907348183] [contact_converter]: left foot contact = true
+[contact_converter-9] [INFO] [1790827390.213762497] [contact_converter]: right foot contact = false
+[contact_converter-9] [INFO] [1790827390.430963879] [contact_converter]: left foot contact = false
+[contact_converter-9] [INFO] [1790827390.495861280] [contact_converter]: right foot contact = true
+[contact_converter-9] [INFO] [1790827390.586696865] [contact_converter]: right foot contact = false
+[contact_converter-9] [INFO] [1790827391.088782008] [contact_converter]: left foot contact = true
+[contact_converter-9] [INFO] [1790827391.192775575] [contact_converter]: left foot contact = false
+[contact_converter-9] [INFO] [1790827391.232036781] [contact_converter]: left foot contact = true
+[contact_converter-9] [INFO] [1790827391.364351312] [contact_converter]: right foot contact = true
+[contact_converter-9] [INFO] [1790827391.386927657] [contact_converter]: left foot contact = false
+[contact_converter-9] [INFO] [1790827391.418826034] [contact_converter]: left foot contact = true
+[contact_converter-9] [INFO] [1790827391.474377359] [contact_converter]: right foot contact = false
+[contact_converter-9] [INFO] [1790827391.485390229] [contact_converter]: right foot contact = true
+[contact_converter-9] [INFO] [1790827391.544853323] [contact_converter]: left foot contact = false
+[contact_converter-9] [INFO] [1790827391.555779540] [contact_converter]: left foot contact = true
+[contact_converter-9] [INFO] [1790827391.606884173] [contact_converter]: right foot contact = false
+[contact_converter-9] [INFO] [1790827391.621032116] [contact_converter]: right foot contact = true
+[contact_converter-9] [INFO] [1790827391.694918172] [contact_converter]: left foot contact = false
+[contact_converter-9] [INFO] [1790827391.711899227] [contact_converter]: left foot contact = true
+[contact_converter-9] [INFO] [1790827391.833589415] [contact_converter]: left foot contact = false
+[contact_converter-9] [INFO] [1790827391.846915676] [contact_converter]: right foot contact = false
+[contact_converter-9] [INFO] [1790827391.858531947] [contact_converter]: left foot contact = true
+[contact_converter-9] [INFO] [1790827392.044813429] [contact_converter]: left foot contact = false
+[contact_converter-9] [INFO] [1790827392.593601349] [contact_converter]: right foot contact = true
+[contact_converter-9] [INFO] [1790827392.805202089] [contact_converter]: left foot contact = true
+[contact_converter-9] [INFO] [1790827393.274163354] [contact_converter]: left foot contact = false
+[contact_converter-9] [INFO] [1790827393.333331601] [contact_converter]: left foot contact = true
+[contact_converter-9] [INFO] [1790827393.356814566] [contact_converter]: right foot contact = false
+[contact_converter-9] [INFO] [1790827393.421996205] [contact_converter]: right foot contact = true
+[contact_converter-9] [INFO] [1790827393.433348857] [contact_converter]: left foot contact = false
+[contact_converter-9] [INFO] [1790827393.541432075] [contact_converter]: right foot contact = false
+[contact_converter-9] [INFO] [1790827393.964377536] [contact_converter]: left foot contact = true
+[contact_converter-9] [INFO] [1790827394.155642610] [contact_converter]: right foot contact = true
+[contact_converter-9] [INFO] [1790827394.293538096] [contact_converter]: left foot contact = false
+[contact_converter-9] [INFO] [1790827394.450391119] [contact_converter]: left foot contact = true
+[contact_converter-9] [INFO] [1790827394.695970591] [contact_converter]: right foot contact = false
+[contact_converter-9] [INFO] [1790827394.855255048] [contact_converter]: left foot contact = false
+[contact_converter-9] [INFO] [1790827395.385022846] [contact_converter]: right foot contact = true
+[contact_converter-9] [INFO] [1790827395.617552410] [contact_converter]: left foot contact = true
+[contact_converter-9] [INFO] [1790827395.916011941] [contact_converter]: right foot contact = false
+[contact_converter-9] [INFO] [1790827396.006691215] [contact_converter]: right foot contact = true
+[contact_converter-9] [INFO] [1790827396.054170409] [contact_converter]: left foot contact = false
+[contact_converter-9] [INFO] [1790827396.262695210] [contact_converter]: right foot contact = false
+[contact_converter-9] [INFO] [1790827396.901034171] [contact_converter]: right foot contact = true
+[contact_converter-9] [INFO] [1790827397.229620508] [contact_converter]: left foot contact = true
+[contact_converter-9] [INFO] [1790827397.603426667] [contact_converter]: right foot contact = false
+[contact_converter-9] [INFO] [1790827397.627910027] [contact_converter]: right foot contact = true
+[contact_converter-9] [INFO] [1790827397.667592588] [contact_converter]: left foot contact = false
+[contact_converter-9] [INFO] [1790827397.745058681] [contact_converter]: right foot contact = false
+[contact_converter-9] [INFO] [1790827398.261539193] [contact_converter]: right foot contact = true
+[contact_converter-9] [INFO] [1790827398.421895078] [contact_converter]: right foot contact = false
+[contact_converter-9] [INFO] [1790827398.509515654] [contact_converter]: right foot contact = true
+[contact_converter-9] [INFO] [1790827398.663353886] [contact_converter]: left foot contact = true
+[contact_converter-9] [INFO] [1790827398.715807547] [contact_converter]: right foot contact = false
+[contact_converter-9] [INFO] [1790827398.816337543] [contact_converter]: right foot contact = true
+[contact_converter-9] [INFO] [1790827398.883613037] [contact_converter]: left foot contact = false
+[contact_converter-9] [INFO] [1790827398.933260921] [contact_converter]: left foot contact = true
+[contact_converter-9] [INFO] [1790827399.025692789] [contact_converter]: left foot contact = false
+[contact_converter-9] [INFO] [1790827399.107947760] [contact_converter]: right foot contact = false
+[contact_converter-9] [INFO] [1790827399.130586745] [contact_converter]: right foot contact = true
+[contact_converter-9] [INFO] [1790827399.233100691] [contact_converter]: right foot contact = false
+[phase4b_trace.py-12] [INFO] [1790827400.417487905] [phase4b_trace]: record duration reached; finalising
+[INFO] [phase4b_trace.py-12]: process has finished cleanly [pid 290876]
+[WARNING] [launch]: user interrupted with ctrl-c (SIGINT)
+[parameter_bridge-6] [INFO] [1790827401.624781580] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[parameter_bridge-2] [INFO] [1790827401.624804932] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[world_tf_converter-10] [INFO] [1790827401.624828403] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[parameter_bridge-8] [INFO] [1790827401.624852407] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[parameter_bridge-3] [INFO] [1790827401.625148892] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[body_pose_converter-5] [INFO] [1790827401.625581697] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[contact_converter-9] [INFO] [1790827401.625592797] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[INFO] [phase4b_producer.py-13]: sending signal 'SIGINT' to process[phase4b_producer.py-13]
+[INFO] [robot_state_publisher-11]: sending signal 'SIGINT' to process[robot_state_publisher-11]
+[INFO] [world_tf_converter-10]: sending signal 'SIGINT' to process[world_tf_converter-10]
+[INFO] [contact_converter-9]: sending signal 'SIGINT' to process[contact_converter-9]
+[INFO] [parameter_bridge-8]: sending signal 'SIGINT' to process[parameter_bridge-8]
+[ERROR] [phase4b_producer.py-13]: process has died [pid 290879, exit code -2, cmd '/home/liu/workspace/Nao_Program/nao_gazebo_ws/install/nao_gz_sim/lib/nao_gz_sim/phase4b_producer.py --ros-args --params-file /tmp/launch_params_za9i12dr'].
+[ERROR] [robot_state_publisher-11]: process has died [pid 290875, exit code -2, cmd '/opt/ros/jazzy/lib/robot_state_publisher/robot_state_publisher --ros-args --params-file /tmp/launch_params_2ahmbuio'].
+[ERROR] [world_tf_converter-10]: process has died [pid 290874, exit code -2, cmd '/home/liu/workspace/Nao_Program/nao_gazebo_ws/install/nao_gz_sim/lib/nao_gz_sim/world_tf_converter --ros-args --params-file /tmp/launch_params_jf2g0w6z'].
+[ERROR] [contact_converter-9]: process has died [pid 290873, exit code -2, cmd '/home/liu/workspace/Nao_Program/nao_gazebo_ws/install/nao_gz_sim/lib/nao_gz_sim/contact_converter --ros-args --params-file /tmp/launch_params_r9msvoq_'].
+[INFO] [imu_converter-7]: sending signal 'SIGINT' to process[imu_converter-7]
+[INFO] [parameter_bridge-6]: sending signal 'SIGINT' to process[parameter_bridge-6]
+[INFO] [body_pose_converter-5]: sending signal 'SIGINT' to process[body_pose_converter-5]
+[INFO] [joint_state_converter-4]: sending signal 'SIGINT' to process[joint_state_converter-4]
+[ERROR] [imu_converter-7]: process has died [pid 290871, exit code -2, cmd '/home/liu/workspace/Nao_Program/nao_gazebo_ws/install/nao_gz_sim/lib/nao_gz_sim/imu_converter --ros-args --params-file /tmp/launch_params_lev41a8k'].
+[INFO] [parameter_bridge-3]: sending signal 'SIGINT' to process[parameter_bridge-3]
+[INFO] [parameter_bridge-2]: sending signal 'SIGINT' to process[parameter_bridge-2]
+[INFO] [gz-1]: sending signal 'SIGINT' to process[gz-1]
+[ERROR] [body_pose_converter-5]: process has died [pid 290869, exit code -2, cmd '/home/liu/workspace/Nao_Program/nao_gazebo_ws/install/nao_gz_sim/lib/nao_gz_sim/body_pose_converter --ros-args --params-file /tmp/launch_params_4q5wtl0s'].
+[ERROR] [joint_state_converter-4]: process has died [pid 290868, exit code -2, cmd '/home/liu/workspace/Nao_Program/nao_gazebo_ws/install/nao_gz_sim/lib/nao_gz_sim/joint_state_converter --ros-args --params-file /tmp/launch_params_w0a3s3n5'].
+[gz-1] [INFO] [1790827401.627805180] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[imu_converter-7] [INFO] [1790827401.628359778] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[robot_state_publisher-11] [INFO] [1790827401.628814845] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[parameter_bridge-8] Failed to delete datawriter, at ./src/publisher.cpp:45 during '__function__'
+[joint_state_converter-4] [INFO] [1790827401.636349408] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[parameter_bridge-8] [INFO] [1790827401.678259524] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[parameter_bridge-6] [INFO] [1790827401.682691495] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[parameter_bridge-3] [INFO] [1790827401.687080673] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[parameter_bridge-2] [INFO] [1790827401.688077886] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[gz-1] [INFO] [1790827401.689487435] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[INFO] [parameter_bridge-8]: process has finished cleanly [pid 290872]
+[INFO] [parameter_bridge-3]: process has finished cleanly [pid 290867]
+[INFO] [parameter_bridge-2]: process has finished cleanly [pid 290866]
+[INFO] [parameter_bridge-6]: process has finished cleanly [pid 290870]
+[gz-1] [1;36m[Dbg] [SignalHandler.cc:142] [0m[1;36mReceived signal[[0m[1;36m2[0m[1;36m].[0m
+[gz-1] [1;36m[Dbg] [ServerPrivate.cc:122] [0m[1;36mServer received signal[[0m[1;36m2[0m[1;36m][0m
+[gz-1] [1;36m[Dbg] [gz.cc:434] [0m[1;36mShutting down gz-sim-server[0m[1;36m[0m
+[gz-1] [1;36m[Dbg] [SimulationRunner.cc:654] [0m[1;36mExiting postupdate worker thread ([0m[1;36m1[0m[1;36m)[0m[1;36m[0m
+[gz-1] [1;36m[Dbg] [SimulationRunner.cc:654] [0m[1;36mExiting postupdate worker thread ([0m[1;36m2[0m[1;36m)[0m[1;36m[0m
+[gz-1] [1;36m[Dbg] [SimulationRunner.cc:654] [0m[1;36mExiting postupdate worker thread ([0m[1;36m0[0m[1;36m)[0m[1;36m[0m
+[gz-1] [1;36m[Dbg] [SimulationRunner.cc:654] [0m[1;36mExiting postupdate worker thread ([0m[1;36m3[0m[1;36m)[0m[1;36m[0m
+[INFO] [gz-1]: process has finished cleanly [pid 290865]

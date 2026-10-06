@@ -1,0 +1,103 @@
+# gait_opt_baseline.yaml — frozen baseline + background vector for Phase OPT-0
+#
+# The optimizer varies ONLY the 5 axes in `optimization_axes`. Everything in
+# `frozen_background` is held at the anchor value so the gait generator is a
+# black box with a fixed environment. `tools/run_p0a_gait_candidate.py`
+# (FROZEN) resolves the effective config as:
+#     anchor config  <  EXPERIMENT_DEFAULTS  <  optimizer overrides
+# so this file does NOT re-implement that resolution; it records the values and
+# the provenance.
+
+baseline_id: OPT0-BASELINE
+date: "2026-10-01"
+
+anchor:
+  # Restored from backup/ (the frozen runner hardcodes this path).
+  path: docs/task4_phase4e_pathb_b3_evidence/b3_0/candidates.json
+  sha256: 116dde704ba2d4bbf3f5afaaefc0c5a77a478541d341a86536e38ac0426bc13b
+  anchor_id: B3-ANCHOR
+  anchor_source: "B2 frozen_configs.json NATURAL-SWING + explicit foot_pitch_swing_rad=0.10"
+
+# Seed policy (see seed semantics: replicate label vs physics seed).
+seed: 101            # replicate label passed to the runner (--seed)
+gz_seed: 101         # REAL physics RNG seed -> gz sim --seed (makes runs reproducible)
+
+# The 5-dimensional optimization vector, expressed in NORMALIZED [0,1]^5 space.
+# The optimizer works entirely in this space; the mapper linearly projects each
+# axis onto [low, high]. Ranges are strictly inside the producer's own
+# _validate_parameters acceptance ranges so a legal vector is never rejected.
+optimization_axes:
+  - name: step_length
+    override_key: step_length_m
+    unit: m
+    low: 0.02
+    high: 0.08
+    anchor_value: 0.02
+    reason: forward velocity; upper bound = producer safety cap max_step_length_m
+  - name: frequency
+    override_key: step_frequency_hz
+    unit: Hz
+    low: 0.40
+    high: 1.60
+    anchor_value: 0.5
+    reason: cadence; trades speed vs stability
+  - name: swing_height
+    override_key: swing_height_m
+    unit: m
+    low: 0.005
+    high: 0.040
+    anchor_value: 0.008
+    reason: foot clearance; trades fall risk vs energy
+  - name: double_support_ratio
+    override_key: double_support_ratio
+    unit: "-"
+    low: 0.05
+    high: 0.45
+    anchor_value: 0.3
+    reason: support overlap -> stability vs speed
+  - name: sway_amplitude
+    override_key: sway_amplitude_rad
+    unit: rad
+    low: 0.05
+    high: 0.30
+    anchor_value: 0.06
+    reason: lateral weight shift -> balance vs energy
+
+# Held fixed for Phase OPT-0 (arm / head / upper body frozen, per task).
+frozen_background:
+  actuator_hold_on_start: true
+  actuator_max_velocity: 4.0
+  actuator_p_gain: 15.0
+  arm_neutral_pitch_rad: 1.5
+  arm_neutral_roll_rad: 0.0
+  arm_phase_offset_rad: 0.0
+  arm_swing_rad: 0.12
+  arm_swing_sign: 1
+  command_rate_hz: 100.0
+  duration_sec: 18.0          # NOTE: runner EXPERIMENT_DEFAULTS overrides to 16.0
+  elbow_bend_rad: 0.3
+  foot_pitch_swing_rad: 0.1
+  gait_blend_sec: 1.5
+  gait_method: walk
+  hold_final_sec: 2.0         # NOTE: runner EXPERIMENT_DEFAULTS overrides to 1.0
+  leg_extension_m: 0.24401
+  stand_sec: 24.0
+  start_delay_sec: 0.5
+  stop_ramp_sec: 1.5
+  walking_direction: forward
+
+# Fitness weights (bounded NON-saturating score; see optimization/fitness.py).
+fitness:
+  V_ref_mps: 0.05        # velocity clipped to [0, V_ref] -> [0,1]
+  tilt_ref_deg: 30.0     # |torso tilt| clipped to [0, tilt_ref] -> [0,1]
+  yaw_ref_deg: 45.0      # |yaw change| clipped to [0, yaw_ref] -> [0,1]
+  pon_ref: 20.0          # path_over_net clipped to [1, pon_ref] -> [0,1]
+  step_ref_m: 0.01       # max_single_step clipped to [0, step_ref] -> [0,1]
+  score_scale: 0.3       # fitness = 0.5*(tanh(raw/score_scale)+1) in (0,1)
+  weights:
+    w_velocity: 1.0
+    w_instability: 0.3
+    w_energy: 0.1
+    w_slip: 0.1
+  penalty_fall: -1.0
+  penalty_invalid: -2.0

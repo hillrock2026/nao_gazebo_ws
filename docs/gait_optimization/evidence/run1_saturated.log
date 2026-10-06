@@ -1,0 +1,18 @@
+[opt0] baseline anchor_normalized=(0.0, 0.0833, 0.0857, 0.625, 0.04)
+[opt0] baseline fitness=+0.0000 status=ok
+[opt0] g0 c0 fit=-1.0000 status=fall    named={'step_length': 0.0585, 'frequency': 0.6708, 'swing_height': 0.0149, 'double_support': 0.3403, 'sway_amplitude': 0.1076}
+[opt0] g0 c1 fit=+0.0000 status=ok      named={'step_length': 0.0222, 'frequency': 0.4023, 'swing_height': 0.0127, 'double_support': 0.1385, 'sway_amplitude': 0.112}
+[opt0] g0 c2 fit=+0.0000 status=ok      named={'step_length': 0.0323, 'frequency': 0.4062, 'swing_height': 0.0098, 'double_support': 0.2393, 'sway_amplitude': 0.0517}
+[opt0] g0 c3 fit=-1.0000 status=fall    named={'step_length': 0.0375, 'frequency': 0.5658, 'swing_height': 0.0224, 'double_support': 0.4315, 'sway_amplitude': 0.1092}
+[opt0] generation 0: best=+0.0000 mean=-0.5000
+[opt0] g1 c0 fit=+0.0000 status=ok      named={'step_length': 0.0206, 'frequency': 0.4006, 'swing_height': 0.0062, 'double_support': 0.0534, 'sway_amplitude': 0.0702}
+[opt0] g1 c1 fit=-1.0000 status=fall    named={'step_length': 0.0219, 'frequency': 0.4903, 'swing_height': 0.0136, 'double_support': 0.1758, 'sway_amplitude': 0.1299}
+[opt0] g1 c2 fit=-1.0000 status=fall    named={'step_length': 0.0275, 'frequency': 0.5713, 'swing_height': 0.0181, 'double_support': 0.1254, 'sway_amplitude': 0.1038}
+[opt0] g1 c3 fit=-1.0000 status=fall    named={'step_length': 0.0249, 'frequency': 0.8909, 'swing_height': 0.0133, 'double_support': 0.2684, 'sway_amplitude': 0.0511}
+[opt0] generation 1: best=+0.0000 mean=-0.7500
+[opt0] g2 c0 fit=-1.0000 status=fall    named={'step_length': 0.0205, 'frequency': 0.6307, 'swing_height': 0.0069, 'double_support': 0.0594, 'sway_amplitude': 0.116}
+[opt0] g2 c1 fit=+0.0000 status=ok      named={'step_length': 0.0335, 'frequency': 0.4043, 'swing_height': 0.0056, 'double_support': 0.0644, 'sway_amplitude': 0.0766}
+[opt0] g2 c2 fit=+0.0000 status=ok      named={'step_length': 0.0208, 'frequency': 0.593, 'swing_height': 0.0086, 'double_support': 0.1167, 'sway_amplitude': 0.0917}
+[opt0] g2 c3 fit=-1.0000 status=fall    named={'step_length': 0.02, 'frequency': 0.5811, 'swing_height': 0.0141, 'double_support': 0.0984, 'sway_amplitude': 0.1264}
+[opt0] generation 2: best=+0.0000 mean=-0.5000
+[opt0] BEST fit=+0.0000 status=ok (baseline +0.0000) named={'step_length': 0.02, 'frequency': 0.5, 'swing_height': 0.008, 'double_support': 0.3, 'sway_amplitude': 0.06}

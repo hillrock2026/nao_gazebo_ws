@@ -1,0 +1,39 @@
+{
+  "candidate_id": "opt0_baseline",
+  "detail_reason": null,
+  "fitness": 0.17687958881901922,
+  "generation": -1,
+  "git_commit": "5526a26e35e2001f295bee3cb4ec89760165089d",
+  "gz_seed": 101,
+  "overrides": {
+    "double_support_ratio": 0.3,
+    "step_frequency_hz": 0.5,
+    "step_length_m": 0.02,
+    "sway_amplitude_rad": 0.06,
+    "swing_height_m": 0.008
+  },
+  "seed": 101,
+  "sim_result_path": "optimization_results/episodes/opt0_baseline/result_p0a.json",
+  "status": "ok",
+  "terms": {
+    "energy": 1.0,
+    "instability": 0.282427634332704,
+    "slip": 0.6825931775457093,
+    "velocity": 0.022342615200449327
+  },
+  "theta_named": {
+    "double_support": 0.3,
+    "frequency": 0.5,
+    "step_length": 0.02,
+    "sway_amplitude": 0.06,
+    "swing_height": 0.008
+  },
+  "timestamp": "2026-10-01T11:58:09+0800",
+  "x": [
+    0.0,
+    0.0833333333333333,
+    0.0857142857142857,
+    0.625,
+    0.03999999999999998
+  ]
+}
