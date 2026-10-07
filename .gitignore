@@ -51,3 +51,11 @@ dataset/stage0/**/dataset/samples.jsonl
 # Superseded pre-declaration ring0 episodes, moved aside (not part of the
 # pre-registered corpus, preserved for traceability, not committed).
 dataset/_superseded_predeclaration/
+
+# --- Stage 1 contract of record (BF-1 prevention) ---------------------------
+# Same rationale as the Stage 0 negation above: the Stage 1 Dynamics Dataset
+# RFC is a pre-implementation CONTRACT, not an ephemeral review document, and
+# must be recoverable after `git clone`. This negates ONLY that one file; the
+# broad RFC ignore rule above stays intact for everything else.
+# (Last matching rule wins, so this must stay at the end of the file.)
+!docs/STAGE1_DYNAMICS_DATASET_RFC.md
