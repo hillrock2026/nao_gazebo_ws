@@ -1,0 +1,1 @@
+/opt/ros/jazzy/opt/gz_tools_vendor/bin/gz sim -v 4 -r -s --seed 0 --physics-engine gz-physics-dartsim-plugin /home/liu/workspace/Nao_Program/nao_gazebo_ws/install/nao_gz_sim/share/nao_gz_sim/worlds/nao_world.sdf

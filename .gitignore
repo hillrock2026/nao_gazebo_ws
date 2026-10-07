@@ -30,3 +30,24 @@ docs/gait_optimization/OPT2A_POST_GLM_REMEDIATION_REPORT.md
 **/*[Aa][Uu][Dd][Ii][Tt]*.txt
 **/*[Rr][Ee][Vv][Ii][Ee][Ww]*.txt
 **/*[Aa][Cc][Cc][Ee][Pp][Tt][Aa][Nn][Cc][Ee]*.txt
+
+# --- Stage 0 contract of record (BF-1) -------------------------------------
+# The Stage 0 governing RFC is a CONTRACT, not an ephemeral review document: a
+# third party must be able to recover it after `git clone`. This negates ONLY
+# that one file; every other review/audit/RFC/acceptance rule above is left
+# intact. (Last matching rule wins, so this must stay at the end of the file.)
+!docs/STAGE0_PARAMETERIZED_GAIT_RFC_REV1.md
+
+# --- Stage 0 corpus commit scope (owner decision, 2026-10-06) ---------------
+# Commit the reconstruction chain (theta list, per-episode records/metrics/
+# provenance/integrity/manifest/run_config) and the corpus index. Exclude the
+# bulky, regenerable raw streams and canonical sample dumps (~510 MB -> a few
+# MB). Raw traces and samples.jsonl are regenerable from the committed theta
+# list + tools/run_stage0_dataset.py. See
+# docs/STAGE0_CLOSURE_COMPLETION_REPORT.md.
+dataset/stage0/**/trace/
+dataset/stage0/**/dataset/samples.jsonl
+
+# Superseded pre-declaration ring0 episodes, moved aside (not part of the
+# pre-registered corpus, preserved for traceability, not committed).
+dataset/_superseded_predeclaration/

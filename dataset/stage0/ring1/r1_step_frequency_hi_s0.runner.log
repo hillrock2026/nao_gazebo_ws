@@ -1,0 +1,23 @@
+EPISODE_ID:                 r1_step_frequency_hi_s0
+SEED:                       0
+REQUESTED_GAIT_DURATION_SEC: 16.0
+RECORD_WINDOW_DURATION_SEC:  20.0
+EXECUTION_DURATION_SEC:      20.908
+ACCEPTED_SAMPLE_SPAN_SEC:    16.830
+GAIT_RELATIVE_COVERAGE:      0.8931
+GAIT_HEAD_GAP_SEC:           1.710
+GAIT_TAIL_TRUNCATION_SEC:    0.000
+COVERAGE_STATUS:             PARTIAL
+SAMPLE_COUNT:                1684
+
+JOINT_STATE: PASS
+COMMAND: PASS
+IMU: PASS
+CONTACT: PASS
+BODY_POSE: PASS
+CLOCK: PASS
+
+EPISODE_INTEGRITY:   PASS
+TERMINATION:         normal_completion
+
+episode_dir: /home/liu/workspace/Nao_Program/nao_gazebo_ws/dataset/stage0/ring1/r1_step_frequency_hi_s0

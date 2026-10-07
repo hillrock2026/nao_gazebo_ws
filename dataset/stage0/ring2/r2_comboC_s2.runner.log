@@ -1,0 +1,23 @@
+EPISODE_ID:                 r2_comboC_s2
+SEED:                       2
+REQUESTED_GAIT_DURATION_SEC: 16.0
+RECORD_WINDOW_DURATION_SEC:  20.0
+EXECUTION_DURATION_SEC:      20.930
+ACCEPTED_SAMPLE_SPAN_SEC:    18.760
+GAIT_RELATIVE_COVERAGE:      1.0000
+GAIT_HEAD_GAP_SEC:           0.000
+GAIT_TAIL_TRUNCATION_SEC:    0.000
+COVERAGE_STATUS:             FULL
+SAMPLE_COUNT:                1877
+
+JOINT_STATE: PASS
+COMMAND: PASS
+IMU: PASS
+CONTACT: PASS
+BODY_POSE: PASS
+CLOCK: PASS
+
+EPISODE_INTEGRITY:   PASS
+TERMINATION:         normal_completion
+
+episode_dir: /home/liu/workspace/Nao_Program/nao_gazebo_ws/dataset/stage0/ring2/r2_comboC_s2

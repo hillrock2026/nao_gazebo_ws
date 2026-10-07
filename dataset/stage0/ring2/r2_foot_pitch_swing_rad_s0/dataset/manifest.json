@@ -1,0 +1,103 @@
+{
+  "schema_name": "nao_gazebo_trajectory",
+  "schema_version": "1.0.1",
+  "serialization_format": "JSONL + manifest JSON",
+  "robot": "nao",
+  "time_source": "gazebo_simulation_time",
+  "time_unit": "s",
+  "joint_order": [
+    "HeadYaw",
+    "HeadPitch",
+    "LHipYawPitch",
+    "LHipRoll",
+    "LHipPitch",
+    "LKneePitch",
+    "LAnklePitch",
+    "LAnkleRoll",
+    "LShoulderPitch",
+    "LShoulderRoll",
+    "LElbowYaw",
+    "LElbowRoll",
+    "LWristYaw",
+    "RHipYawPitch",
+    "RHipRoll",
+    "RHipPitch",
+    "RKneePitch",
+    "RAnklePitch",
+    "RAnkleRoll",
+    "RShoulderPitch",
+    "RShoulderRoll",
+    "RElbowYaw",
+    "RElbowRoll",
+    "RWristYaw"
+  ],
+  "joint_position_unit": "rad",
+  "joint_velocity_unit": "rad/s",
+  "imu": {
+    "frame_id": "ImuTorsoAccelerometer_frame",
+    "orientation_representation": "quaternion_xyzw",
+    "orientation_frame": "ImuTorsoAccelerometer_frame",
+    "orientation_unit_norm": true,
+    "angular_velocity_unit": "rad/s",
+    "angular_velocity_frame": "ImuTorsoAccelerometer_frame",
+    "linear_acceleration_unit": "m/s^2",
+    "linear_acceleration_frame": "ImuTorsoAccelerometer_frame",
+    "linear_acceleration_includes_gravity": true,
+    "covariance_semantics": "all_zero_no_noise_model"
+  },
+  "contact": {
+    "left_topic": "/left_foot/contact",
+    "right_topic": "/right_foot/contact",
+    "message_type": "std_msgs/msg/Bool",
+    "has_header": false,
+    "semantics": "true = matching foot main collision pair with ground_plane is fresh within freshness_window_sec",
+    "ground_model": "ground_plane",
+    "left_link": "l_ankle",
+    "left_collision": "l_ankle_collision",
+    "right_link": "r_ankle",
+    "right_collision": "r_ankle_collision",
+    "freshness_window_sec": 0.05
+  },
+  "command": {
+    "topic": "/joint_command",
+    "message_type": "sensor_msgs/msg/JointState",
+    "semantics": "position_target",
+    "dimension": 24,
+    "order": "same_as_joint_order",
+    "position_unit": "rad",
+    "has_header": true,
+    "header_stamp_source": "gazebo_simulation_time",
+    "velocity_array": "must_be_empty",
+    "effort_array": "must_be_empty",
+    "frame_id": ""
+  },
+  "sync_policy": {
+    "main_clock": "new_joint_states_message",
+    "imu": "nearest_neighbor_sim_time",
+    "contact": "clock_freshness_zero_order_hold",
+    "command": "hold_last_causal_bounded"
+  },
+  "sync_tolerance_sec": {
+    "imu_nearest_max": 0.01,
+    "contact_freshness_max": 0.05,
+    "command_hold_max": 0.05
+  },
+  "source_topics": {
+    "joint_state": "/joint_states",
+    "imu": "/imu/data",
+    "left_contact": "/left_foot/contact",
+    "right_contact": "/right_foot/contact",
+    "command": "/joint_command",
+    "clock": "/clock"
+  },
+  "source_message_types": {
+    "joint_state": "sensor_msgs/msg/JointState",
+    "imu": "sensor_msgs/msg/Imu",
+    "left_contact": "std_msgs/msg/Bool",
+    "right_contact": "std_msgs/msg/Bool",
+    "command": "sensor_msgs/msg/JointState",
+    "clock": "rosgraph_msgs/msg/Clock"
+  },
+  "missing_data_policy": "reject_sample",
+  "invalid_data_policy": "drop_sample_and_count_reason"
+}

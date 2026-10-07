@@ -1,0 +1,31 @@
+{
+  "artifact": "Stage 0 sampling config (effective)",
+  "canonical_runner": "tools/run_phase_a_episode.py",
+  "git_commit": "6d00f90b7d80060f5b42b7d64499699ec3100911",
+  "output_root": "dataset/stage0",
+  "ring_id": 1,
+  "seeds": [
+    0,
+    1,
+    2
+  ],
+  "theta_ids": [
+    "r1_step_length_lo",
+    "r1_step_length_hi",
+    "r1_step_frequency_lo",
+    "r1_step_frequency_hi",
+    "r1_swing_height_lo",
+    "r1_swing_height_hi",
+    "r1_double_support_ratio_lo",
+    "r1_double_support_ratio_hi",
+    "r1_leg_extension_lo",
+    "r1_leg_extension_hi",
+    "r1_sway_amplitude_rad_lo",
+    "r1_sway_amplitude_rad_hi",
+    "r1_foot_pitch_swing_rad_lo",
+    "r1_foot_pitch_swing_rad_hi"
+  ],
+  "theta_list_declared_at": "2026-10-06T12:43:46+0800",
+  "theta_list_hash": "844646f55076f67647c9159a6c1f53018af89276154ff3a4ad3bdce28df95dbf",
+  "theta_list_path": "dataset/stage0/stage0_theta_list.json"
+}

@@ -1,0 +1,138 @@
+{
+  "artifact": "Phase A episode integrity",
+  "checks": {
+    "body_pose_present_finite": {
+      "detail": {
+        "count": 1317,
+        "examples": []
+      },
+      "pass": true
+    },
+    "command_present_finite": {
+      "detail": {
+        "examples": [],
+        "n_bad": 0,
+        "n_ok": 1574
+      },
+      "pass": true
+    },
+    "completeness": {
+      "detail": {
+        "accepted_sample_span_sec": 15.73,
+        "finish_reason": "duration_complete",
+        "gait_relative_coverage": 0.828125,
+        "gait_tail_truncation_sec": 0.0,
+        "requested_gait_duration_sec": 16.0,
+        "termination": "normal_completion"
+      },
+      "pass": true
+    },
+    "contact_present": {
+      "detail": {
+        "examples": [],
+        "n_bad": 0,
+        "n_ok": 1574
+      },
+      "pass": true
+    },
+    "dataset_contract_v1_0_1": {
+      "detail": {
+        "errors": [],
+        "manifest_ok": true,
+        "samples_ok": true
+      },
+      "pass": true
+    },
+    "imu_present_finite": {
+      "detail": {
+        "examples": [],
+        "n_bad": 0,
+        "n_ok": 1574
+      },
+      "pass": true
+    },
+    "joint_state_present_finite": {
+      "detail": {
+        "examples": [],
+        "n_bad": 0,
+        "n_ok": 1574
+      },
+      "pass": true
+    },
+    "sample_count_gt_zero": {
+      "detail": 1574,
+      "pass": true
+    },
+    "sim_clock_monotonic": {
+      "detail": {
+        "malformed_lines": [],
+        "monotonic": true
+      },
+      "pass": true
+    }
+  },
+  "coverage": {
+    "coverage_status": "PARTIAL",
+    "denominator_sec": 16.0,
+    "gait_end_sec": 17.501,
+    "gait_head_gap_sec": 2.7500000000000004,
+    "gait_relative_coverage": 0.828125,
+    "gait_start_sec": 1.501,
+    "gait_start_source": "caller (producer ready + start_delay)",
+    "gait_tail_truncation_sec": 0.0,
+    "gap_policy": "union of consecutive-sample intervals clipped to the gait window; intervals > 0.10s treated as uncovered gaps",
+    "n_samples_in_window": 1326,
+    "numerator_covered_sec": 13.25,
+    "requested_gait_duration_sec": 16.0,
+    "timestamp_source": "dataset/samples.jsonl[].timestamp"
+  },
+  "duration": {
+    "accepted_sample_span_sec": 15.73,
+    "actual_duration_sec_LEGACY": 15.73,
+    "execution_duration_sec": 20.968999999999998,
+    "execution_duration_source": "trace/clock_trace.jsonl first->last sim time",
+    "legacy_note": "actual_duration_sec/duration_sec are deprecated aliases of accepted_sample_span_sec and were ambiguous; use the explicit *_sec fields above",
+    "record_window_duration_sec": 20.0,
+    "requested_gait_duration_sec": 16.0
+  },
+  "episode_id": "r1_swing_height_lo_s2",
+  "episode_integrity": "PASS",
+  "failure_class": null,
+  "gait_outcome": {
+    "available": true,
+    "body_final_z": 0.3315100063531066,
+    "body_initial_z": 0.3354549629991239,
+    "body_max_pitch_deg": 8.391843674769676,
+    "body_max_roll_deg": 4.281109704138455,
+    "body_min_z": 0.33082429945177355,
+    "body_net_displacement_m": 0.04631240362169333,
+    "body_net_forward_m": 0.03919469558984955,
+    "body_net_lateral_m": 0.024670114852542974,
+    "body_torso_height_loss": 0.0046306635473503666,
+    "fall_detected": false,
+    "note": "gait outcome is reported, not an integrity verdict",
+    "producer_contract_pass": true,
+    "walking_pass": false
+  },
+  "reserved": {
+    "contract_status": null,
+    "measurement_quality": null
+  },
+  "sample_count": 1574,
+  "signals": {
+    "body_pose": "PASS",
+    "clock": "PASS",
+    "command": "PASS",
+    "contact": "PASS",
+    "imu": "PASS",
+    "joint_state": "PASS"
+  },
+  "termination": "normal_completion",
+  "termination_detail": {
+    "accepted_sample_span_sec": 15.73,
+    "actual_duration_sec": 15.73,
+    "finish_reason": "duration_complete",
+    "gait_tail_truncation_sec": 0.0,
+    "requested_gait_duration_sec": 16.0
+  }
+}

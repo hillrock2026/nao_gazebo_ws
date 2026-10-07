@@ -1,0 +1,10 @@
+{
+  "artifact": "Stage 0 corpus index metadata (volatile)",
+  "content_hash": "eaf8795961cad9933ed7dd5aaebe928d220a0d44289624904feec3135d1c6c6d",
+  "episode_count": 96,
+  "generated_at": "2026-10-07T11:02:23+0800",
+  "index_file": "corpus_index.json",
+  "index_sha256": "260fd9e7888839f01abf640e9773542b8e6afc331c8e4be64b528c871e7a0544",
+  "note": "generated_at is volatile and is deliberately excluded from corpus_index.json so that the index hash is stable across runs.",
+  "schema": "stage0_corpus_index_meta_1.0.0"
+}

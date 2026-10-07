@@ -1,0 +1,23 @@
+EPISODE_ID:                 r1_leg_extension_hi_s1
+SEED:                       1
+REQUESTED_GAIT_DURATION_SEC: 16.0
+RECORD_WINDOW_DURATION_SEC:  20.0
+EXECUTION_DURATION_SEC:      20.967
+ACCEPTED_SAMPLE_SPAN_SEC:    16.430
+GAIT_RELATIVE_COVERAGE:      0.8719
+GAIT_HEAD_GAP_SEC:           2.050
+GAIT_TAIL_TRUNCATION_SEC:    0.000
+COVERAGE_STATUS:             PARTIAL
+SAMPLE_COUNT:                1644
+
+JOINT_STATE: PASS
+COMMAND: PASS
+IMU: PASS
+CONTACT: PASS
+BODY_POSE: PASS
+CLOCK: PASS
+
+EPISODE_INTEGRITY:   PASS
+TERMINATION:         normal_completion
+
+episode_dir: /home/liu/workspace/Nao_Program/nao_gazebo_ws/dataset/stage0/ring1/r1_leg_extension_hi_s1

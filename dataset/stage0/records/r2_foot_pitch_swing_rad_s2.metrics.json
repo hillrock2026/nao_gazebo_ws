@@ -1,0 +1,202 @@
+{
+  "anomalies": [],
+  "artifact": "P0-a measured gait analysis",
+  "between_group": [],
+  "displacement_definition": "end_pose - start_pose over window samples",
+  "fall_definition": "measured fall evidence: base_link height <= 0.25 m or absolute torso tilt >= 60.0 deg inside the window; fall episodes keep full metrics and are excluded from non-fall speed statistics",
+  "forward_axis_definition": "base_link world position projected on the window-start measured heading (world +x rotated by unwrapped yaw at window start)",
+  "groups": {
+    "ring2::None": {
+      "actual_speed_mean_mps": {
+        "max": null,
+        "mean": null,
+        "min": null,
+        "n": 0,
+        "std": null
+      },
+      "actual_speed_std_within_mps": {
+        "max": null,
+        "mean": null,
+        "min": null,
+        "n": 0,
+        "std": null
+      },
+      "config_id": null,
+      "fall_count": 1,
+      "fall_rate": 1.0,
+      "fall_runs": [
+        {
+          "actual_speed_mean_mps": -0.025316009639422637,
+          "fall_evidence": [
+            {
+              "min_z_m": 0.05924384004413196,
+              "threshold_m": 0.25,
+              "type": "height_drop"
+            },
+            {
+              "max_tilt_deg": 166.21820902443505,
+              "threshold_deg": 60.0,
+              "type": "torso_tilt"
+            }
+          ],
+          "forward_displacement_m": -0.36685429568487343,
+          "lateral_displacement_m": -0.07416590899864874,
+          "net_displacement_m": 0.3742761765328384,
+          "run_dir": "/home/liu/workspace/Nao_Program/nao_gazebo_ws/dataset/stage0/ring2/r2_foot_pitch_swing_rad_s2",
+          "seed": null,
+          "torso_tilt_max_deg": 166.21820902443505
+        }
+      ],
+      "forward_displacement_m": {
+        "max": null,
+        "mean": null,
+        "min": null,
+        "n": 0,
+        "std": null
+      },
+      "gait_parameters": {
+        "double_support_ratio": 0.3,
+        "foot_pitch_swing_rad": 0.25,
+        "gait_method": "walk",
+        "leg_extension_m": 0.24401,
+        "step_frequency_hz": 0.8,
+        "step_length_m": 0.02,
+        "sway_amplitude_rad": 0.06,
+        "sway_sign": -1,
+        "swing_height_m": 0.008,
+        "walking_direction": "forward"
+      },
+      "lateral_displacement_m": {
+        "max": null,
+        "mean": null,
+        "min": null,
+        "n": 0,
+        "std": null
+      },
+      "net_displacement_m": {
+        "max": null,
+        "mean": null,
+        "min": null,
+        "n": 0,
+        "std": null
+      },
+      "non_fall_measurable_count": 0,
+      "seeds": [],
+      "source": "ring2",
+      "torso_tilt_max_deg": {
+        "max": null,
+        "mean": null,
+        "min": null,
+        "n": 0,
+        "std": null
+      },
+      "total_episode_count": 1,
+      "yaw_change_deg": {
+        "max": null,
+        "mean": null,
+        "min": null,
+        "n": 0,
+        "std": null
+      }
+    }
+  },
+  "min_effective_duration_sec": 5.0,
+  "n_fall": 1,
+  "n_measurable": 1,
+  "n_runs": 1,
+  "runs": [
+    {
+      "actual_speed_mean_mps": -0.025316009639422637,
+      "actual_speed_std_mps": 0.1280625754336679,
+      "anomalies": [],
+      "body_dx_m": -0.3714995939532495,
+      "body_dy_m": -0.04550503282727278,
+      "body_dz_m": -0.2752925643436399,
+      "body_min_z_m": 0.05924384004413196,
+      "config_id": null,
+      "contact": {
+        "alternation_count": 34,
+        "alternation_fraction": 0.918918918918919,
+        "n_support": 38,
+        "ok": true,
+        "reason": null
+      },
+      "controller_parameters": {
+        "actuator_max_velocity": 4.0,
+        "actuator_p_gain": 15.0,
+        "command_rate_hz": 100.0
+      },
+      "effective_duration_sec": 14.491,
+      "end_pose": {
+        "x": -0.4123838333212749,
+        "y": -0.0621188556606482,
+        "z": 0.06046973606531645
+      },
+      "fall": true,
+      "fall_evidence": [
+        {
+          "min_z_m": 0.05924384004413196,
+          "threshold_m": 0.25,
+          "type": "height_drop"
+        },
+        {
+          "max_tilt_deg": 166.21820902443505,
+          "threshold_deg": 60.0,
+          "type": "torso_tilt"
+        }
+      ],
+      "forward_displacement_m": -0.36685429568487343,
+      "gait_parameters": {
+        "double_support_ratio": 0.3,
+        "foot_pitch_swing_rad": 0.25,
+        "gait_method": "walk",
+        "leg_extension_m": 0.24401,
+        "step_frequency_hz": 0.8,
+        "step_length_m": 0.02,
+        "sway_amplitude_rad": 0.06,
+        "sway_sign": -1,
+        "swing_height_m": 0.008,
+        "walking_direction": "forward"
+      },
+      "lateral_displacement_m": -0.07416590899864874,
+      "max_single_step_m": 0.016191911879840537,
+      "measurable": true,
+      "missing_duration_sec": 0.009000000000000341,
+      "n_steady_samples": 920,
+      "net_displacement_m": 0.3742761765328384,
+      "path_over_net": 2.6588690721094097,
+      "path_speed_mean_mps": 0.06867375268860158,
+      "ready_sim": 0.9630000000000001,
+      "run_dir": "/home/liu/workspace/Nao_Program/nao_gazebo_ws/dataset/stage0/ring2/r2_foot_pitch_swing_rad_s2",
+      "seed": null,
+      "source": "ring2",
+      "start_pose": {
+        "x": -0.0408842393680254,
+        "y": -0.01661382283337542,
+        "z": 0.3357623004089564
+      },
+      "torso_tilt_final_deg": 89.9103244266427,
+      "torso_tilt_max_deg": 166.21820902443505,
+      "trace_truncated": true,
+      "window": {
+        "actual_hi": 17.457,
+        "actual_lo": 2.966,
+        "effective_duration_sec": 14.491,
+        "min_effective_duration_sec": 5.0,
+        "min_steady_samples": 50,
+        "missing_duration_sec": 0.009000000000000341,
+        "n": 920,
+        "nominal_hi": 17.463,
+        "nominal_lo": 2.963,
+        "truncated": true
+      },
+      "yaw_change_deg": -23.57353775151309,
+      "yaw_start_rad": -0.07759556593072445
+    }
+  ],
+  "speed_definition": "forward_displacement / effective_duration",
+  "speed_std_definition": "population std of per-sample projected forward velocity over the window",
+  "tool": "tools/analyze_measured_gait.py",
+  "trace_truncation_definition": "nominal window = steady_window(cfg, ready); actual window = [first,last] valid measured pose inside it; trace_truncated is true when actual_hi < nominal_hi; a window whose effective duration is below min_effective_duration_sec (5.0 s) is measurable=false",
+  "window_definition": "phase4e_analysis.steady_window(cfg, ready) = [ready+start_delay+gait_blend, ready+start_delay+duration]"
+}
