@@ -138,7 +138,7 @@ a7a7d7f2262893f0844777a86e2caa29c09f1797821f1f0b84e8c11811ace94e  tools/test_sta
 
 ## 17. Current HEAD
 
-- Implementation commit (this report references it): created immediately after this file — see § Git state below; final HEAD recorded at report finalization. Working tree after the commits: clean except the pre-existing untracked `docs/task4_phase4b_evidence/` (out of Stage 1 scope, untouched). **Not pushed** — remote publication remains an owner/process action.
+- Implementation commit: `3032780c120404849046b53cf691a12123675cd1` ("STAGE1: normative schema binding and artifact consistency R14"; this § 17 hash reference was finalized in the immediately following report-finalization commit). Working tree after the commits: clean except the pre-existing untracked `docs/task4_phase4b_evidence/` (out of Stage 1 scope, untouched). **Not pushed** — remote publication remains an owner/process action.
 
 ## 18. Explicit authorization state
 
