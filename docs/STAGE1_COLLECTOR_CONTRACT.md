@@ -3,7 +3,7 @@
 | 项 | 值 |
 |---|---|
 | Document | STAGE1_COLLECTOR_CONTRACT |
-| Status | **Level 1 preparation artifact — collector implementation contract, evidence-pinned（v1.5，随 R13 fail-closed schema hardening 升版）** |
+| Status | **Level 1 preparation artifact — collector implementation contract, evidence-pinned（v1.6，随 R14 normative schema binding 升版）** |
 | Governing RFC | [STAGE1_DYNAMICS_DATASET_RFC.md](file:///home/liu/workspace/Nao_Program/nao_gazebo_ws/docs/STAGE1_DYNAMICS_DATASET_RFC.md)（**REV1.4-HARDENING，ACQUISITION-CONTRACT-READY，pending final independent audit acceptance**；App. B V-1/V-2 probe 判据） |
 | Evidence base | REV1.3 证据（probe run 8，walk + FROZEN_GAIT 环境，in-gait 窗口）：[V1_report_REV13.json](file:///home/liu/workspace/Nao_Program/nao_gazebo_ws/dataset/stage1/probe/V1_report_REV13.json)、[V2_report_REV13.json](file:///home/liu/workspace/Nao_Program/nao_gazebo_ws/dataset/stage1/probe/V2_report_REV13.json)，schema `stage1-probe/1.3`，**V-1 与 V-2 双 PASS**；REV1.2 历史（run 6）：`V1/V2_report_REV12.json`（schema 1.2）；REV1.1 历史（run 3）：`V1/V2_report.json`（schema 1.1） |
 | Authorization | Level 2（collector implementation）合同依据。**Level 3（bulk acquisition）未授权**：probe 双 PASS 仅为判据证据，Level 3 仍需 RFC REV1.3 final independent audit 接受 + 报告 pinning + remote publication（owner 动作，见 §12） |
@@ -317,6 +317,123 @@ flight 检测、1.0 N 阈值等 REV1.0 条款在两态合同下**只能**作用�
 
 **[RULE] 完整性（§11 原则，R11 不重设计）：** `episode_integrity_hash` 的 hash scope/算法按 RFC §3.10 原定义执行（sha256 over episode canonical sample file）；R11 只要求 provenance 字段全量存在并通过 smoke 检查，**不改变** hash 定义。
 
+### 8.4 [RULE] Normative machine-readable schema（R14 机器绑定源）
+
+以下 JSON block 是 [RFC Appendix D](file:///home/liu/workspace/Nao_Program/nao_gazebo_ws/docs/STAGE1_DYNAMICS_DATASET_RFC.md) normative schema 的**逐字节相同副本**（R14）。checker （`tools/stage1_contract_check.py`）在运行时从 RFC Appendix D 加载该 schema，并要求 RFC block == 本 block（canonical JSON 相等）——**任一文档的任何 schema/语义变异（增、删、改）均为 validation failure**；prose（本 §8 checklist 表与 RFC §3.10 表）仅保留字段名一致性检查，语义一律以 block 为准（不再解析自然语言关键词，R14/B2）。
+
+```json
+{
+  "schema_version": "stage1-normative-schema/1.0",
+  "status_semantics": {
+    "composition_status": "UNVERIFIED",
+    "wrench_frame_status": "UNKNOWN",
+    "wrench_blocked_statuses": ["null_blocked", "blocked"],
+    "valid_field_statuses": ["measured", "derived", "derived_pending_validation"]
+  },
+  "frame_fields": {
+    "measured": {"status": "measured", "fields": [
+      {"name": "joint_position"},
+      {"name": "joint_velocity"},
+      {"name": "base_pose"},
+      {"name": "pose_source_stamp"},
+      {"name": "left_contact"},
+      {"name": "right_contact"},
+      {"name": "imu_orientation"},
+      {"name": "imu_linear_acceleration"},
+      {"name": "imu_angular_velocity"},
+      {"name": "controller_command"}
+    ]},
+    "ordinary_derived": {"status": "derived", "fields": [
+      {"name": "joint_acceleration"},
+      {"name": "base_velocity"},
+      {"name": "base_angular_velocity"},
+      {"name": "gait_phase"},
+      {"name": "desired_velocity"}
+    ]},
+    "option_a": {"status": "derived_pending_validation", "fields": [
+      {"name": "left_foot_pose", "type": "pose", "position": 3, "orientation": 4},
+      {"name": "right_foot_pose", "type": "pose", "position": 3, "orientation": 4},
+      {"name": "left_foot_velocity", "type": "vector", "length": 3},
+      {"name": "right_foot_velocity", "type": "vector", "length": 3},
+      {"name": "com_position", "type": "vector", "length": 3},
+      {"name": "com_velocity", "type": "vector", "length": 3},
+      {"name": "com_acceleration", "type": "vector", "length": 3},
+      {"name": "zmp_position", "type": "vector", "length": 2}
+    ]},
+    "option_b": {"status": "null_blocked", "fields": [
+      {"name": "left_contact_force", "type": "vector", "length": 3},
+      {"name": "right_contact_force", "type": "vector", "length": 3},
+      {"name": "left_contact_moment", "type": "vector", "length": 3},
+      {"name": "right_contact_moment", "type": "vector", "length": 3},
+      {"name": "cop_position", "type": "vector", "length": 2}
+    ]}
+  },
+  "provenance_fields": [
+    {"name": "theta", "required": true, "nullable": false, "type": "object"},
+    {"name": "theta_id", "required": true, "nullable": false, "type": "string"},
+    {"name": "theta_hash", "required": true, "nullable": false, "type": "sha256"},
+    {"name": "theta_list_hash", "required": true, "nullable": false, "type": "sha256"},
+    {"name": "git_commit", "required": true, "nullable": false, "type": "commit40"},
+    {"name": "config_hash", "required": true, "nullable": false, "type": "sha256"},
+    {"name": "cop_derivation_hash", "required": true, "nullable": true, "type": "sha256"},
+    {"name": "gazebo_seed", "required": true, "nullable": false, "type": "int"},
+    {"name": "robot_model_version", "required": true, "nullable": false, "type": "sha256"},
+    {"name": "world_model_version", "required": true, "nullable": false, "type": "sha256"},
+    {"name": "gz_sim_version", "required": true, "nullable": false, "type": "string"},
+    {"name": "stage1_rfc_hash", "required": true, "nullable": false, "type": "sha256"},
+    {"name": "acquisition_wallclock_utc", "required": true, "nullable": false, "type": "string"},
+    {"name": "ring", "required": true, "nullable": false, "type": "string"},
+    {"name": "frame_count", "required": true, "nullable": false, "type": "int_nonneg"},
+    {"name": "t_start", "required": true, "nullable": false, "type": "number_finite"},
+    {"name": "t_end", "required": true, "nullable": false, "type": "number_finite"},
+    {"name": "episode_integrity_hash", "required": true, "nullable": false, "type": "sha256"}
+  ],
+  "raw_structures": {
+    "contacts": {
+      "required_record_keys": ["stamp_s", "contacts"],
+      "optional_record_keys": ["n_contacts"],
+      "contact_required_keys": ["header", "collision1", "collision2", "position", "normal", "depth", "wrenches"],
+      "contact_optional_keys": ["world"],
+      "wrench_required_keys": ["body_1_name", "body_1_id", "body_2_name", "body_2_id", "body_1_wrench", "body_2_wrench"],
+      "wrench_member_required_keys": ["force", "torque", "force_offset"]
+    },
+    "pose_info": {
+      "required_record_keys": ["stamp_s", "entries"],
+      "entry_required_keys": ["name", "position", "orientation"],
+      "entry_optional_keys": ["id"]
+    },
+    "joint_command": {
+      "required_record_keys": ["stamp_s", "command"],
+      "command_length": 24
+    },
+    "joint_states": {
+      "required_record_keys": ["stamp_s", "name"],
+      "optional_record_keys": ["position", "velocity"]
+    },
+    "body_pose": {
+      "required_record_keys": ["stamp_s", "position"],
+      "optional_record_keys": ["orientation"]
+    }
+  },
+  "raw_categories": {
+    "contacts_left": "contacts",
+    "contacts_right": "contacts",
+    "pose_info": "pose_info",
+    "joint_command": "joint_command",
+    "joint_states": "joint_states",
+    "body_pose": "body_pose"
+  },
+  "required_raw_categories": ["contacts_left", "contacts_right", "pose_info", "joint_command"],
+  "frame_artifact": {
+    "type": "array_of_frames",
+    "count_must_equal": "frame_count",
+    "empty_episode_allowed": true
+  }
+}
+```
+
+**[RULE] frame artifact 计数一致性（R14/B4）：** smoke frame artifact 是 **frame record 数组**；provenance 的 `frame_count` 必须等于数组实际长度（空 episode `frame_count=0` + `frames=[]` 合法；`frame_count` 保持 `int_nonneg`，不强制 `> 0`）。
+
 ---
 
 ## 9. Collector implementation boundary（GLM §6，重申）
@@ -402,3 +519,4 @@ python3 tools/stage1_contract_check.py --smoke \
 | 1.3 | REV1.4/R11 升版（GPT-5.6 audit of REV1.3，Decision B 的两个 blocker）：Governing RFC → REV1.4-HARDENING；**R11-A** pending-validation 传播规则 + null-vs-pending 实现选择 + 传播链 + 非传播规则（§4.7，机器可执行 via `tools/stage1_contract_check.py`）；**R11-B** RFC §3.10 为 provenance 唯一 source of truth，§8 重写为完整 18-field checklist（derived/must-equal），§10-6 升级为逐 field 检查 + §10-8 新增传播检查（Tests A–D：`tools/test_stage1_r11.py`）。无新 V-gate、无字段增删、R6–R10 不重开 |
 | 1.4 | R12 fail-closed enforcement 升版（R11 Closure Audit Decision C 的执行层 blocker）：§8 声明 R12-C 双向机器绑定（同时解析 RFC §3.10 与本 §8 表，任一增删 field → FAIL）；§10 增补 R12-A 单一 fail-closed smoke CLI（`--smoke`，任一项失败 → exit != 0，缺失 artifact = FAIL）；R12-B status allowlist 化（unknown/unrecognized status、缺失 status/manifest/root declaration 均 FAIL）；R12-D raw 结构契约（已知类别 + 必需键 + required streams 绑定 Contract §6 tokens）。测试：`tools/test_stage1_r12.py`（40 cases：负测矩阵、mutation 测试、anti-circular fixtures、CLI exit codes、R6–R10 回归）+ `tools/test_stage1_r11.py`（fixture 按 R12 契约加强，15 cases 全过）。无 RFC 规则变化、无新 V-gate、probe 未动 |
 | 1.5 | R13 fail-closed schema hardening 升版（R12 Closure Audit Decision C 的四个 artifact bypass B1–B4）：**B1** frame Option-A 强制（manifest 声明必须与 emitted artifact 一致：field 存在/非 null/RFC 形状——pose {position[3], orientation[4]}、vec3、zmp vec2）；**B2** §8 声明 R13-B 语义绑定（nullable/type/optional 标记从两份文档提取并与 canonical 逐项比对，任一文档语义变异 → FAIL）；**B3** raw 嵌套结构（RFC §3.6.1 双侧 JointW wrench force/torque/force_offset、contact-point 数组、§3.9 24 维 command；"not-a-wrench"/"not-a-pose-entry" 拒绝；未知 native 键保留不拒）；**B4** provenance 类型/范围（bool≠int、frame_count≥0、t 有限非 NaN/Inf、t_end≥t_start）。测试：`tools/test_stage1_r13.py`（49 cases：§23 端到端 smoke 矩阵全走真实 CLI exit code、语义/字段 mutation、嵌套/类型攻击、R6–R10 回归、RFC hash 不变断言）+ r11/r12 suites（fixture 按 R13 契约更新，15+40 全过）。RFC 未修改（hash 195178f5…）、probe 未动、无新 V-gate |
+| 1.6 | R14 normative schema binding 升版（R13 Closure Audit Decision C 的四个 bypass B1–B4）：新增 §8.4 normative machine-readable schema（RFC Appendix D 的逐字节相同副本，checker 运行时加载、两 block canonical 相等强校验）；B1 Option-A 形状来自 normative block；B2 显式 required/nullable/type 语义取代 prose 关键词解析；B3 raw 保留 requiredness 全绑定（Contact header、body_1_id/body_2_id、JointWrench members、raw pose orientation、24 维 command）；B4 frame artifact = frame 数组 + frame_count == 实际记录数（空 episode 合法）。测试：`tools/test_stage1_r14.py`（M1–M14 全经真实 --smoke CLI）+ r11/r12/r13 suites。RFC → REV1.5-NORMATIVE-SCHEMA（Appendix D 新增，语义不变） |

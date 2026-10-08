@@ -6,10 +6,10 @@ residual-learning preparation.
 
 | Field | Value |
 |---|---|
-| Revision | REV1.4-HARDENING |
-| Status | **ACQUISITION-CONTRACT-READY** — R11 minimal hardening (pending-validation propagation, provenance completeness binding) per the GPT-5.6 independent adversarial audit of REV1.3 (Decision B — READY AFTER MINOR FIXES); **pending final independent audit acceptance**; three-tier authorization, see § 0.0 |
-| Author | Implementation Agent (DeepSeek / Qoder role); REV1.2 corrections: Implementation Agent (GLM-5.3); REV1.3 hardening: Implementation Agent (GLM-5.3); REV1.4 (R11) hardening: Implementation Agent (GLM-5.3) |
-| Date | 2026-10-08 (REV1.1: 2026-10-07; REV1.2/1.3/1.4: 2026-10-08) |
+| Revision | REV1.5-NORMATIVE-SCHEMA |
+| Status | **ACQUISITION-CONTRACT-READY** — R14 normative machine-readable schema binding + artifact consistency per the GPT-5.6 independent closure audit of R13 (Decision C — BLOCKED); **pending final independent audit acceptance**; three-tier authorization, see § 0.0 |
+| Author | Implementation Agent (DeepSeek / Qoder role); REV1.2 corrections: Implementation Agent (GLM-5.3); REV1.3 hardening: Implementation Agent (GLM-5.3); REV1.4 (R11) hardening: Implementation Agent (GLM-5.3); REV1.5 (R14) normative schema: Implementation Agent (GLM-5.3) |
+| Date | 2026-10-08 (REV1.1: 2026-10-07; REV1.2–1.5: 2026-10-08) |
 | Roadmap position | Baseline Dataset (Stage 0, frozen) → **Dynamics Dataset (this RFC)** → LIPM Prior → Residual Network → Optimization → Sim2Real |
 
 ## 0. Scope declaration (read first)
@@ -30,17 +30,28 @@ publication validation replacing the absolute effective-frequency band (R6), Sta
 contact validity (R7), V-2 composition evidence with an explicit status (R8), measured/derived
 label correction (R9), and timestamp association-compatibility wording (R10).
 
-**REV1.4 (this revision) applies the R11 minimal hardening for the two blockers identified by
-the GPT-5.6 independent adversarial audit of REV1.3 (Decision B — READY AFTER MINOR FIXES):**
-**R11-A — pending-validation propagation** (§ 3.0 validation-status propagation rule; schema
-class annotations extended to every derived field that transitively depends on the unverified
-composition or on the unknown wrench frame/reference) and **R11-B — provenance completeness
-binding** (§ 3.10 declared the single source of truth for collector provenance; collector
-checklists and smoke validation must equal it). Hardening only — no new V-gate, no field
-added or removed, no population/seeds/rings change, no controller/gait/Stage 0 change, no
-optimization, and no reopening of any R6–R10 decision. **REV1.4 is pending final independent
-audit acceptance** — no acceptance criterion is claimed satisfied by this revision, and no
-acquisition authorization is claimed.
+**REV1.4 (superseded by this revision) applied the R11 minimal hardening for the two blockers
+of the GPT-5.6 independent adversarial audit of REV1.3 (Decision B — READY AFTER MINOR
+FIXES):** R11-A pending-validation propagation (§ 3.0 rule; schema class annotations extended
+to every derived field that transitively depends on the unverified composition or the unknown
+wrench frame/reference) and R11-B provenance completeness binding (§ 3.10 declared the single
+source of truth for collector provenance). No new V-gate, no field added/removed, no
+population/seeds/rings change, no reopening of any R6–R10 decision.
+
+**REV1.5 (this revision) applies the R14 normative-schema binding for the four bypasses of the
+GPT-5.6 independent closure audit of R13 (Decision C — BLOCKED):** B1 (Option-A shapes were
+hardcoded in the checker), B2 (prose-keyword semantic parsing was fragile — "non-null" counted
+as nullable), B3 (raw-retention requiredness not fully bound), B4 (frame_count vs actual frame
+records). The change is **Appendix D**: a normative machine-readable JSON schema block that is
+the single machine source of truth — the Collector Contract embeds an identical copy and the
+smoke checker loads its semantics from this block at run time (the checker owns no independent
+schema); explicit `required`/`nullable`/`type`/shape semantics replace all prose-keyword
+parsing; the raw-retention requiredness (Contact headers, `body_1_id`/`body_2_id`, pose
+orientation, JointWrench members) and the frame-artifact count rule (`frame_count` == actual
+frame records; empty episodes allowed) are machine-enforced. No research-objective, R6–R10,
+acquisition-requirement, or raw/derived scientific-meaning change. **REV1.5 is pending final
+independent audit acceptance** — no acceptance criterion is claimed satisfied by this revision,
+and no acquisition authorization is claimed.
 
 ### 0.0 Authorization levels (three-tier, explicit — REV1.1)
 
@@ -48,7 +59,7 @@ acquisition authorization is claimed.
 |---|---|---|
 | 1 — Preparation | Completion of this RFC revision; read-only V-1/V-2 probes (`tools/stage1_probe.py`, new file); collector contract specification (`docs/STAGE1_COLLECTOR_CONTRACT.md`, new file) | **authorized** |
 | 2 — Collector implementation | Implementing the collector per `docs/STAGE1_COLLECTOR_CONTRACT.md` as a **read-only instrumentation process**: new subscribers, a new writer process, storage under `dataset/stage1/` only — no modification to any frozen component (runner, controller/gait generator, converters, model, world, physics, launch files) | **authorized within the § 7 boundary** |
-| 3 — Bulk raw acquisition | The 96 pre-registered episodes (§ 4.1) | **NOT authorized by this document alone.** Requires: acceptance of this revision by the **final independent audit** (REV1.4 is pending), V-1 pass **and** V-2 pass, probe results pinned (Appendix B), and remote publication of the Stage 0 closure commit and this contract (owner action, GPT-5.6 correction 8). |
+| 3 — Bulk raw acquisition | The 96 pre-registered episodes (§ 4.1) | **NOT authorized by this document alone.** Requires: acceptance of this revision by the **final independent audit** (REV1.5 is pending), V-1 pass **and** V-2 pass, probe results pinned (Appendix B), and remote publication of the Stage 0 closure commit and this contract (owner action, GPT-5.6 correction 8). |
 
 Analysis, LIPM fitting, residual learning, training, and optimization are **never** authorized by
 this document and require separate authorization (§ 7).
@@ -493,12 +504,13 @@ validation possible without circularity (neither quantity is used to compute the
 
 Every episode record must carry:
 
-> **R11-B (REV1.4): this table is the single source of truth for collector provenance
+> **R11-B (REV1.4) / R14: this table is the single source of truth for collector provenance
 > completeness.** The collector MUST emit every field below. Collector-contract checklists
 > and smoke validations are *derived from* and *must equal* this list — a simplified or
-> paraphrased provenance subset is contract drift and is a validation failure. The
-> machine-readable enforcement lives in `tools/stage1_contract_check.py`
-> (`MANDATORY_PROVENANCE_FIELDS`, bound to this table by parsing it — see the R11 report).
+> paraphrased provenance subset is contract drift and is a validation failure. **R14: the
+> machine-readable semantics (required / nullable / type) live in Appendix D**; this prose
+> table's field names must equal the Appendix D `provenance_fields` names (machine-checked),
+> and the checker reads semantics from Appendix D, never from prose keywords.
 
 | Field | Source / rule |
 |---|---|
@@ -887,11 +899,150 @@ dataset/stage1/
 - The exact raw/derived/provenance layout, immutability and recomputation rules are specified in
   `docs/STAGE1_COLLECTOR_CONTRACT.md` (Level 1 deliverable, referenced by this contract).
 
+# Appendix D — Normative machine-readable schema (REV1.5 / R14)
+
+The JSON block below is the **single machine-readable normative schema** of this contract
+(R14): the Collector Contract embeds an identical copy (its § 8.4), and the smoke checker
+(`tools/stage1_contract_check.py`) loads its field lists, statuses, shapes, provenance
+semantics, raw-retention requirements, and the frame-artifact count rule **from this block at
+run time — the checker owns no independent schema**. The prose sections of this RFC remain the
+human-readable definition; **in case of any discrepancy, this block governs**. Provenance field
+names must additionally equal the § 3.10 table and the Collector Contract § 8 checklist
+(machine-checked). Modifying this block is an RFC revision (§ 4.4): any schema/semantic
+mutation makes previously-valid artifacts fail `--smoke` (fail-closed), and any drift between
+this block and the Collector Contract's copy is a validation failure. Explicit machine-readable
+semantics (`required`, `nullable`, `type`, `shape`) replace all prose-keyword parsing (R14/B2).
+
+```json
+{
+  "schema_version": "stage1-normative-schema/1.0",
+  "status_semantics": {
+    "composition_status": "UNVERIFIED",
+    "wrench_frame_status": "UNKNOWN",
+    "wrench_blocked_statuses": ["null_blocked", "blocked"],
+    "valid_field_statuses": ["measured", "derived", "derived_pending_validation"]
+  },
+  "frame_fields": {
+    "measured": {"status": "measured", "fields": [
+      {"name": "joint_position"},
+      {"name": "joint_velocity"},
+      {"name": "base_pose"},
+      {"name": "pose_source_stamp"},
+      {"name": "left_contact"},
+      {"name": "right_contact"},
+      {"name": "imu_orientation"},
+      {"name": "imu_linear_acceleration"},
+      {"name": "imu_angular_velocity"},
+      {"name": "controller_command"}
+    ]},
+    "ordinary_derived": {"status": "derived", "fields": [
+      {"name": "joint_acceleration"},
+      {"name": "base_velocity"},
+      {"name": "base_angular_velocity"},
+      {"name": "gait_phase"},
+      {"name": "desired_velocity"}
+    ]},
+    "option_a": {"status": "derived_pending_validation", "fields": [
+      {"name": "left_foot_pose", "type": "pose", "position": 3, "orientation": 4},
+      {"name": "right_foot_pose", "type": "pose", "position": 3, "orientation": 4},
+      {"name": "left_foot_velocity", "type": "vector", "length": 3},
+      {"name": "right_foot_velocity", "type": "vector", "length": 3},
+      {"name": "com_position", "type": "vector", "length": 3},
+      {"name": "com_velocity", "type": "vector", "length": 3},
+      {"name": "com_acceleration", "type": "vector", "length": 3},
+      {"name": "zmp_position", "type": "vector", "length": 2}
+    ]},
+    "option_b": {"status": "null_blocked", "fields": [
+      {"name": "left_contact_force", "type": "vector", "length": 3},
+      {"name": "right_contact_force", "type": "vector", "length": 3},
+      {"name": "left_contact_moment", "type": "vector", "length": 3},
+      {"name": "right_contact_moment", "type": "vector", "length": 3},
+      {"name": "cop_position", "type": "vector", "length": 2}
+    ]}
+  },
+  "provenance_fields": [
+    {"name": "theta", "required": true, "nullable": false, "type": "object"},
+    {"name": "theta_id", "required": true, "nullable": false, "type": "string"},
+    {"name": "theta_hash", "required": true, "nullable": false, "type": "sha256"},
+    {"name": "theta_list_hash", "required": true, "nullable": false, "type": "sha256"},
+    {"name": "git_commit", "required": true, "nullable": false, "type": "commit40"},
+    {"name": "config_hash", "required": true, "nullable": false, "type": "sha256"},
+    {"name": "cop_derivation_hash", "required": true, "nullable": true, "type": "sha256"},
+    {"name": "gazebo_seed", "required": true, "nullable": false, "type": "int"},
+    {"name": "robot_model_version", "required": true, "nullable": false, "type": "sha256"},
+    {"name": "world_model_version", "required": true, "nullable": false, "type": "sha256"},
+    {"name": "gz_sim_version", "required": true, "nullable": false, "type": "string"},
+    {"name": "stage1_rfc_hash", "required": true, "nullable": false, "type": "sha256"},
+    {"name": "acquisition_wallclock_utc", "required": true, "nullable": false, "type": "string"},
+    {"name": "ring", "required": true, "nullable": false, "type": "string"},
+    {"name": "frame_count", "required": true, "nullable": false, "type": "int_nonneg"},
+    {"name": "t_start", "required": true, "nullable": false, "type": "number_finite"},
+    {"name": "t_end", "required": true, "nullable": false, "type": "number_finite"},
+    {"name": "episode_integrity_hash", "required": true, "nullable": false, "type": "sha256"}
+  ],
+  "raw_structures": {
+    "contacts": {
+      "required_record_keys": ["stamp_s", "contacts"],
+      "optional_record_keys": ["n_contacts"],
+      "contact_required_keys": ["header", "collision1", "collision2", "position", "normal", "depth", "wrenches"],
+      "contact_optional_keys": ["world"],
+      "wrench_required_keys": ["body_1_name", "body_1_id", "body_2_name", "body_2_id", "body_1_wrench", "body_2_wrench"],
+      "wrench_member_required_keys": ["force", "torque", "force_offset"]
+    },
+    "pose_info": {
+      "required_record_keys": ["stamp_s", "entries"],
+      "entry_required_keys": ["name", "position", "orientation"],
+      "entry_optional_keys": ["id"]
+    },
+    "joint_command": {
+      "required_record_keys": ["stamp_s", "command"],
+      "command_length": 24
+    },
+    "joint_states": {
+      "required_record_keys": ["stamp_s", "name"],
+      "optional_record_keys": ["position", "velocity"]
+    },
+    "body_pose": {
+      "required_record_keys": ["stamp_s", "position"],
+      "optional_record_keys": ["orientation"]
+    }
+  },
+  "raw_categories": {
+    "contacts_left": "contacts",
+    "contacts_right": "contacts",
+    "pose_info": "pose_info",
+    "joint_command": "joint_command",
+    "joint_states": "joint_states",
+    "body_pose": "body_pose"
+  },
+  "required_raw_categories": ["contacts_left", "contacts_right", "pose_info", "joint_command"],
+  "frame_artifact": {
+    "type": "array_of_frames",
+    "count_must_equal": "frame_count",
+    "empty_episode_allowed": true
+  }
+}
+```
+
+Notes (binding semantics):
+
+- `optional_record_keys` / `contact_optional_keys` / `entry_optional_keys` declare fields that
+  **may** be present (validated only for basic type when present); `required_*` keys MUST be
+  present. **Unknown native/extension keys are always preserved and never rejected**
+  (lossless retention, § 3.6.1) — the checker enforces only the required structure.
+- Raw vector shapes (contact `position`/`normal` = vec3, `depth` = finite numbers, wrench
+  members = vec3, pose entry `position` = vec3 / `orientation` = quat4) are the checker's
+  structural interpretation of the gz message types; their **requiredness** comes from this
+  block.
+- The smoke frame artifact is an **array of frame records**; `frame_count` (provenance) must
+  equal the actual record count; an empty episode (`frame_count = 0`, `frames = []`) is valid
+  (R14/B4 — `frame_count` itself remains `int_nonneg`, never forced `> 0`).
+
 ---
 
 ## Document status
 
-**REV1.4-HARDENING — ACQUISITION-CONTRACT-READY (pending final independent audit).**
+**REV1.5-NORMATIVE-SCHEMA — ACQUISITION-CONTRACT-READY (pending final independent audit).**
 
 Revision history:
 
@@ -1002,6 +1153,27 @@ Revision history:
   `composition_status` remains `UNVERIFIED` and the wrench frame/reference remains
   undetermined — this revision makes those facts machine-actionable, it does not resolve
   them. **REV1.4 is pending final independent audit acceptance; no acquisition
+  authorization is claimed.**
+- **REV1.5-NORMATIVE-SCHEMA** (2026-10-08): R14 normative-schema binding + artifact
+  consistency for the four bypasses of the GPT-5.6 independent closure audit of R13
+  (Decision C — BLOCKED; correction task
+  `STAGE1_REV14_NORMATIVE_SCHEMA_BINDING_AND_ARTIFACT_CONSISTENCY_TASK`). **Adds Appendix D** —
+  the normative machine-readable JSON schema block (single machine source of truth; the
+  Collector Contract embeds an identical copy and the checker loads it at run time):
+  1. **B1 closure:** Option-A field shapes (pose position[3]/orientation[4], vec3, zmp vec2)
+     come from the normative block, not checker hardcoding — an RFC schema mutation makes old
+     artifacts fail `--smoke`;
+  2. **B2 closure:** explicit `required`/`nullable`/`type` semantics replace all
+     prose-keyword parsing ("non-null" can no longer be read as nullable; "may be omitted"
+     is an explicit `required: false`);
+  3. **B3 closure:** raw-retention requiredness is bound per the block (Contact `header`,
+     `body_1_id`/`body_2_id`, JointWrench members, raw pose `orientation`, contact-point
+     arrays, 24-vector command); unknown native keys remain preserved;
+  4. **B4 closure:** the smoke frame artifact is an array of frame records and
+     `frame_count` must equal the actual record count (empty episode `0/[]` is valid;
+     `frame_count` stays `int_nonneg`, never forced `> 0`).
+  No research-objective / R6–R10 / acquisition-requirement / raw-vs-derived scientific-meaning
+  change. **REV1.5 is pending final independent audit acceptance; no acquisition
   authorization is claimed.**
 
 **This document authorizes preparation and collector implementation (Levels 1–2, § 0.0) only.

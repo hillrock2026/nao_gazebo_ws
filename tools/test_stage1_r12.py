@@ -112,7 +112,7 @@ def literal_provenance():
         'stage1_rfc_hash': 'c' * 64,
         'acquisition_wallclock_utc': '2026-10-08T00:00:00+00:00',
         'ring': 'ring1',
-        'frame_count': 6000,
+        'frame_count': 1,
         't_start': 0.5,
         't_end': 60.5,
         'episode_integrity_hash': 'd' * 64,
@@ -157,13 +157,15 @@ def literal_raw():
     return [
         {'stream': 'contacts_left', 'stamp_s': 1.013, 'n_contacts': 1,
          'contacts': [{
+             'header': {'stamp_s': 1.013},
              'collision1': 'nao::l_ankle::l_ankle_collision',
              'collision2': 'ground_plane::link::collision',
              'position': [[0.1, 0.05, 0.0]],
              'normal': [[0.0, 0.0, 1.0]],
              'depth': [0.001],
              'wrenches': [{
-                 'body_1_name': '', 'body_2_name': '',
+                 'body_1_name': '', 'body_1_id': 0,
+                 'body_2_name': '', 'body_2_id': 0,
                  'body_1_wrench': {'force': [0.01, 0.02, 25.5],
                                    'torque': [0.0, 0.001, 0.0],
                                    'force_offset': [0.1, 0.05, 0.0]},
@@ -172,13 +174,15 @@ def literal_raw():
                                    'force_offset': [0.1, 0.05, 0.0]}}]}]},
         {'stream': 'contacts_right', 'stamp_s': 1.017, 'n_contacts': 1,
          'contacts': [{
+             'header': {'stamp_s': 1.017},
              'collision1': 'nao::r_ankle::r_ankle_collision',
              'collision2': 'ground_plane::link::collision',
              'position': [[0.1, -0.05, 0.0]],
              'normal': [[0.0, 0.0, 1.0]],
              'depth': [0.001],
              'wrenches': [{
-                 'body_1_name': '', 'body_2_name': '',
+                 'body_1_name': '', 'body_1_id': 0,
+                 'body_2_name': '', 'body_2_id': 0,
                  'body_1_wrench': {'force': [0.0, -0.01, 24.8],
                                    'torque': [0.0, 0.0, 0.0],
                                    'force_offset': [0.1, -0.05, 0.0]},
@@ -186,8 +190,10 @@ def literal_raw():
                                    'torque': [0.0, 0.0, 0.0],
                                    'force_offset': [0.1, -0.05, 0.0]}}]}]},
         {'stream': 'pose_info', 'stamp_s': 1.012,
-         'entries': [{'name': 'nao', 'position': [0.5, -0.28, 0.33]},
-                     {'name': 'l_ankle', 'position': [0.0, 0.05, -0.28]}]},
+         'entries': [{'name': 'nao', 'position': [0.5, -0.28, 0.33],
+                      'orientation': [0.0, 0.0, 0.0, 1.0]},
+                     {'name': 'l_ankle', 'position': [0.0, 0.05, -0.28],
+                      'orientation': [0.0, 0.0, 0.0, 1.0]}]},
         {'stream': 'joint_command', 'stamp_s': 1.010, 'command': [0.1] * 24},
     ]
 
@@ -531,7 +537,7 @@ class TestR12ACliSmoke(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             paths = write_fixture(tmp, manifest=literal_manifest(),
                                   provenance=literal_provenance(),
-                                  frame=literal_frame(),
+                                  frame=[literal_frame()],
                                   raw=literal_raw())
             proc = run_cli(paths)
             self.assertEqual(proc.returncode, 0, proc.stdout[-2000:])
@@ -545,7 +551,7 @@ class TestR12ACliSmoke(unittest.TestCase):
             m['field_status']['left_foot_velocity'] = 'derived'
             paths = write_fixture(tmp, manifest=m,
                                   provenance=literal_provenance(),
-                                  frame=literal_frame(),
+                                  frame=[literal_frame()],
                                   raw=literal_raw())
             proc = run_cli(paths)
             self.assertNotEqual(proc.returncode, 0)
@@ -560,7 +566,7 @@ class TestR12ACliSmoke(unittest.TestCase):
             f['cop_position'] = [0.31, -0.02]   # Option-B bypass attempt
             paths = write_fixture(tmp, manifest=literal_manifest(),
                                   provenance=literal_provenance(),
-                                  frame=f, raw=literal_raw())
+                                  frame=[f], raw=literal_raw())
             proc = run_cli(paths)
             self.assertNotEqual(proc.returncode, 0)
             payload = json.loads(proc.stdout)
@@ -571,7 +577,7 @@ class TestR12ACliSmoke(unittest.TestCase):
             p = literal_provenance()
             del p['theta_list_hash']
             paths = write_fixture(tmp, manifest=literal_manifest(),
-                                  provenance=p, frame=literal_frame(),
+                                  provenance=p, frame=[literal_frame()],
                                   raw=literal_raw())
             proc = run_cli(paths)
             self.assertNotEqual(proc.returncode, 0)
@@ -590,7 +596,7 @@ class TestR12ACliSmoke(unittest.TestCase):
     def test_missing_manifest_artifact_exit_nonzero(self):
         with tempfile.TemporaryDirectory() as tmp:
             paths = write_fixture(tmp, provenance=literal_provenance(),
-                                  frame=literal_frame(),
+                                  frame=[literal_frame()],
                                   raw=literal_raw())
             proc = run_cli(paths)   # no --manifest at all
             self.assertNotEqual(proc.returncode, 0)
@@ -603,7 +609,7 @@ class TestR12ACliSmoke(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             paths = write_fixture(tmp, manifest=literal_manifest(),
                                   provenance=literal_provenance(),
-                                  frame=literal_frame(),
+                                  frame=[literal_frame()],
                                   raw=[{'unrelated': 1}])
             proc = run_cli(paths)
             self.assertNotEqual(proc.returncode, 0)
@@ -616,7 +622,7 @@ class TestR12ACliSmoke(unittest.TestCase):
             mutate_rfc_add_field(c.RFC_PATH, mutated)
             paths = write_fixture(tmp, manifest=literal_manifest(),
                                   provenance=literal_provenance(),
-                                  frame=literal_frame(),
+                                  frame=[literal_frame()],
                                   raw=literal_raw())
             proc = run_cli(paths, extra=['--rfc', mutated])
             self.assertNotEqual(proc.returncode, 0)

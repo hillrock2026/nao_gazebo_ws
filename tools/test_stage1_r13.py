@@ -104,7 +104,7 @@ def literal_provenance():
         'stage1_rfc_hash': 'c' * 64,
         'acquisition_wallclock_utc': '2026-10-08T00:00:00+00:00',
         'ring': 'ring1',
-        'frame_count': 6000,
+        'frame_count': 1,
         't_start': 0.5,
         't_end': 60.5,
         'episode_integrity_hash': 'd' * 64,
@@ -138,13 +138,15 @@ def literal_raw():
     return [
         {'stream': 'contacts_left', 'stamp_s': 1.013, 'n_contacts': 1,
          'contacts': [{
+             'header': {'stamp_s': 1.013},
              'collision1': 'nao::l_ankle::l_ankle_collision',
              'collision2': 'ground_plane::link::collision',
              'position': [[0.1, 0.05, 0.0]],
              'normal': [[0.0, 0.0, 1.0]],
              'depth': [0.001],
              'wrenches': [{
-                 'body_1_name': '', 'body_2_name': '',
+                 'body_1_name': '', 'body_1_id': 0,
+                 'body_2_name': '', 'body_2_id': 0,
                  'body_1_wrench': {'force': [0.01, 0.02, 25.5],
                                    'torque': [0.0, 0.001, 0.0],
                                    'force_offset': [0.1, 0.05, 0.0]},
@@ -153,13 +155,15 @@ def literal_raw():
                                    'force_offset': [0.1, 0.05, 0.0]}}]}]},
         {'stream': 'contacts_right', 'stamp_s': 1.017, 'n_contacts': 1,
          'contacts': [{
+             'header': {'stamp_s': 1.017},
              'collision1': 'nao::r_ankle::r_ankle_collision',
              'collision2': 'ground_plane::link::collision',
              'position': [[0.1, -0.05, 0.0]],
              'normal': [[0.0, 0.0, 1.0]],
              'depth': [0.001],
              'wrenches': [{
-                 'body_1_name': '', 'body_2_name': '',
+                 'body_1_name': '', 'body_1_id': 0,
+                 'body_2_name': '', 'body_2_id': 0,
                  'body_1_wrench': {'force': [0.0, -0.01, 24.8],
                                    'torque': [0.0, 0.0, 0.0],
                                    'force_offset': [0.1, -0.05, 0.0]},
@@ -167,8 +171,10 @@ def literal_raw():
                                    'torque': [0.0, 0.0, 0.0],
                                    'force_offset': [0.1, -0.05, 0.0]}}]}]},
         {'stream': 'pose_info', 'stamp_s': 1.012,
-         'entries': [{'name': 'nao', 'position': [0.5, -0.28, 0.33]},
-                     {'name': 'l_ankle', 'position': [0.0, 0.05, -0.28]}]},
+         'entries': [{'name': 'nao', 'position': [0.5, -0.28, 0.33],
+                      'orientation': [0.0, 0.0, 0.0, 1.0]},
+                     {'name': 'l_ankle', 'position': [0.0, 0.05, -0.28],
+                      'orientation': [0.0, 0.0, 0.0, 1.0]}]},
         {'stream': 'joint_command', 'stamp_s': 1.010, 'command': [0.1] * 24},
     ]
 
@@ -269,52 +275,84 @@ def mutate_contract_remove_field(src):
 
 
 def mutate_rfc_nullable(src):
+    # R14: semantic mutations target the normative JSON block (Appendix D),
+    # not prose. cop_derivation_hash nullable true -> false.
     text = read(src)
-    # unique to the RFC § 3.10 cop_derivation_hash row (the same short
-    # phrase also appears in the § 3.6.2 field table, so the anchor must
-    # include the row-specific prefix)
-    old = 'first derivation**; `null` until then'
-    assert text.count(old) == 1, 'nullable anchor not unique'
+    old = ('{"name": "cop_derivation_hash", "required": true, '
+           '"nullable": true, "type": "sha256"}')
+    assert text.count(old) == 1, 'cop_derivation_hash block row not unique'
     return text.replace(
-        old, 'first derivation**; a concrete value must always be present',
-        1)
+        old, '{"name": "cop_derivation_hash", "required": true, '
+        '"nullable": false, "type": "sha256"}', 1)
 
 
 def mutate_contract_nullable(src):
+    # R14: same mutation in the Contract § 8.4 block copy.
     text = read(src)
-    old = '`null` 直至 first derivation 前固定（允许 null；field 必须存在）'
-    assert old in text, 'contract nullable anchor not found'
-    return text.replace(old, '固定前必须始终携带具体值（field 必须存在）', 1)
+    old = ('{"name": "cop_derivation_hash", "required": true, '
+           '"nullable": true, "type": "sha256"}')
+    assert text.count(old) == 1, 'cop_derivation_hash block row not unique'
+    return text.replace(
+        old, '{"name": "cop_derivation_hash", "required": true, '
+        '"nullable": false, "type": "sha256"}', 1)
 
 
 def mutate_rfc_type(src):
+    # R14: type mutation in the normative block (theta_hash sha256 -> string).
     text = read(src)
-    assert 'SHA-256 of the collector configuration' in text
-    return text.replace('SHA-256 of the collector configuration',
-                        'SHA-512 of the collector configuration', 1)
+    old = ('{"name": "theta_hash", "required": true, "nullable": false, '
+           '"type": "sha256"}')
+    assert text.count(old) == 1, 'theta_hash block row not unique'
+    return text.replace(
+        old, '{"name": "theta_hash", "required": true, "nullable": false, '
+        '"type": "string"}', 1)
+
+
+def mutate_rfc_type_removal(src):
+    # R14: removing a semantic key from the block makes the schema itself
+    # structurally invalid (fail-closed load failure).
+    text = read(src)
+    old = ('{"name": "theta_hash", "required": true, "nullable": false, '
+           '"type": "sha256"}')
+    assert text.count(old) == 1
+    return text.replace(
+        old, '{"name": "theta_hash", "required": true, "nullable": false}',
+        1)
 
 
 def mutate_contract_type(src):
+    # R14: type mutation in the Contract § 8.4 block copy (theta object ->
+    # string) -> block inequality.
     text = read(src)
-    old = '完整参数 dict（冻结 θ list 条目 verbatim）'
-    assert old in text, 'contract theta row not found'
-    return text.replace(old, '完整参数 list（冻结 θ list 条目 verbatim）', 1)
+    old = ('{"name": "theta", "required": true, "nullable": false, '
+           '"type": "object"}')
+    assert text.count(old) == 1, 'theta block row not unique'
+    return text.replace(
+        old, '{"name": "theta", "required": true, "nullable": false, '
+        '"type": "string"}', 1)
 
 
 def mutate_rfc_requiredness(src):
+    # R14: requiredness mutation in the block (ring required -> optional).
     text = read(src)
-    assert '| `ring` | sampling ring label (§ 4) |' in text
-    return text.replace('| `ring` | sampling ring label (§ 4) |',
-                        '| `ring` | sampling ring label (§ 4, optional) |',
-                        1)
+    old = ('{"name": "ring", "required": true, "nullable": false, '
+           '"type": "string"}')
+    assert text.count(old) == 1, 'ring block row not unique'
+    return text.replace(
+        old, '{"name": "ring", "required": false, "nullable": false, '
+        '"type": "string"}', 1)
 
 
 def mutate_contract_requiredness(src):
+    # R14: requiredness mutation in the Contract § 8.4 block copy
+    # (gazebo_seed required -> optional).
     text = read(src)
-    old = '| 14 | `ring` | sampling ring label（§4） |'
-    assert old in text, 'contract ring row not found'
+    old = ('{"name": "gazebo_seed", "required": true, "nullable": false, '
+           '"type": "int"}')
+    assert text.count(old) == 1, 'gazebo_seed block row not unique'
     return text.replace(
-        old, '| 14 | `ring` | sampling ring label（§4；optional） |', 1)
+        old, '{"name": "gazebo_seed", "required": false, "nullable": false, '
+        '"type": "int"}', 1)
 
 
 # ---------------------------------------------------------------------------
@@ -431,16 +469,16 @@ class TestR13BSemanticBinding(unittest.TestCase):
             self.assertFalse(rep['ok'], rep['errors'])
 
     def test_rfc_type_removal_fails(self):
-        # removing the type keyword entirely is also drift: the side that
-        # canonically carries the marker no longer does
+        # R14: removing a semantic key from the normative block makes the
+        # schema structurally invalid (fail-closed load failure)
         with tempfile.TemporaryDirectory() as tmp:
             p = os.path.join(tmp, 'rfc.md')
-            text = read(c.RFC_PATH).replace(
-                'SHA-256 of the collector configuration',
-                'checksum of the collector configuration', 1)
-            write_text(p, text)
+            write_text(p, mutate_rfc_type_removal(c.RFC_PATH))
             rep = c.check_semantic_binding(p, c.CONTRACT_PATH)
             self.assertFalse(rep['ok'])
+            schema, errs = c.load_normative_schema(p)
+            self.assertIsNone(schema)
+            self.assertTrue(errs)
 
     def test_contract_type_mutation_fails(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -464,19 +502,27 @@ class TestR13BSemanticBinding(unittest.TestCase):
             self.assertFalse(rep['ok'])
 
     def test_field_add_remove_mutations_fail(self):
+        # R14: prose field add/remove is caught by the NAME binding
+        # (prose table vs normative block), reported via the umbrella
+        # provenance_binding; block mutations are caught by the
+        # semantic binding.
         with tempfile.TemporaryDirectory() as tmp:
             p = os.path.join(tmp, 'rfc.md')
             write_text(p, mutate_rfc_add_field(c.RFC_PATH))
-            self.assertFalse(c.check_semantic_binding(p,
-                                                      c.CONTRACT_PATH)['ok'])
+            self.assertFalse(c.check_provenance_binding(p,
+                                                         c.CONTRACT_PATH)[
+                                                             'ok'])
             write_text(p, mutate_rfc_remove_field(c.RFC_PATH))
-            self.assertFalse(c.check_semantic_binding(p,
-                                                      c.CONTRACT_PATH)['ok'])
+            self.assertFalse(c.check_provenance_binding(p,
+                                                         c.CONTRACT_PATH)[
+                                                             'ok'])
             q = os.path.join(tmp, 'contract.md')
             write_text(q, mutate_contract_add_field(c.CONTRACT_PATH))
-            self.assertFalse(c.check_semantic_binding(c.RFC_PATH, q)['ok'])
+            self.assertFalse(c.check_provenance_binding(c.RFC_PATH, q)[
+                'ok'])
             write_text(q, mutate_contract_remove_field(c.CONTRACT_PATH))
-            self.assertFalse(c.check_semantic_binding(c.RFC_PATH, q)['ok'])
+            self.assertFalse(c.check_provenance_binding(c.RFC_PATH, q)[
+                'ok'])
 
 
 # ---------------------------------------------------------------------------
@@ -662,13 +708,15 @@ class TestR13DProvenanceAttacks(unittest.TestCase):
 
 class TestR6toR10Regression(unittest.TestCase):
 
-    def test_rfc_hash_unchanged(self):
+    def test_rfc_hash_pinned(self):
+        # R14: the RFC was modified exactly once (REV1.5, Appendix D
+        # normative schema block) — pinned to the R14-committed hash.
         import hashlib
         h = hashlib.sha256(
             open(c.RFC_PATH, 'rb').read()).hexdigest()
         self.assertEqual(
-            h, '195178f52ebe27efd696c9750f0a7164bdbc09790a1222d491d1120'
-               'eb2f02aac')
+            h, 'f8662d1673f1a30e9cfb2d8156214d7124eb45c08301087d85c4fae'
+               '1ca894efe')
 
     def test_r6_no_cadence_band_in_probe(self):
         text = read(PROBE)
@@ -707,6 +755,7 @@ class TestR13SmokeMatrixCLI(unittest.TestCase):
     def _run_case(self, name, manifest=None, provenance=None, frame=None,
                   raw=None, rfc_text=None, contract_text=None):
         with tempfile.TemporaryDirectory() as tmp:
+            # callers pass the frame artifact as an ARRAY of frames (R14)
             args = write_case(tmp, manifest=manifest, provenance=provenance,
                               frame=frame, raw=raw, rfc_text=rfc_text,
                               contract_text=contract_text)
@@ -716,7 +765,7 @@ class TestR13SmokeMatrixCLI(unittest.TestCase):
     def test_matrix_valid_passes_exit_0(self):
         proc = self._run_case('valid', manifest=literal_manifest(),
                               provenance=literal_provenance(),
-                              frame=literal_frame(), raw=literal_raw())
+                              frame=[literal_frame()], raw=literal_raw())
         self.assertEqual(proc.returncode, 0, proc.stdout[-3000:])
         payload = json.loads(proc.stdout)
         self.assertTrue(payload['smoke']['ok'])
@@ -725,17 +774,17 @@ class TestR13SmokeMatrixCLI(unittest.TestCase):
     def test_matrix_missing_artifacts_fail(self):
         for name, kwargs in (
                 ('missing manifest', dict(provenance=literal_provenance(),
-                                          frame=literal_frame(),
+                                          frame=[literal_frame()],
                                           raw=literal_raw())),
                 ('missing provenance', dict(manifest=literal_manifest(),
-                                            frame=literal_frame(),
+                                            frame=[literal_frame()],
                                             raw=literal_raw())),
                 ('missing frame', dict(manifest=literal_manifest(),
                                        provenance=literal_provenance(),
                                        raw=literal_raw())),
                 ('missing raw', dict(manifest=literal_manifest(),
                                      provenance=literal_provenance(),
-                                     frame=literal_frame()))):
+                                     frame=[literal_frame()]))):
             proc = self._run_case(name, **kwargs)
             expect_fail(name, proc)
 
@@ -759,7 +808,7 @@ class TestR13SmokeMatrixCLI(unittest.TestCase):
         for name, frame in cases.items():
             proc = self._run_case(name, manifest=literal_manifest(),
                                   provenance=literal_provenance(),
-                                  frame=frame, raw=literal_raw())
+                                  frame=[frame], raw=literal_raw())
             expect_fail(name, proc)
             payload = json.loads(proc.stdout)
             self.assertIn('frame_emission', payload['smoke']['failed_checks'])
@@ -769,7 +818,7 @@ class TestR13SmokeMatrixCLI(unittest.TestCase):
         m['field_status']['left_foot_velocity'] = 'derived'
         proc = self._run_case('wrong Option-A status', manifest=m,
                               provenance=literal_provenance(),
-                              frame=literal_frame(), raw=literal_raw())
+                              frame=[literal_frame()], raw=literal_raw())
         expect_fail('wrong Option-A status', proc)
 
     def test_matrix_unknown_status_fails(self):
@@ -777,7 +826,7 @@ class TestR13SmokeMatrixCLI(unittest.TestCase):
         m['field_status']['cop_position'] = 'UNRECOGNIZED_STATUS'
         proc = self._run_case('unknown status', manifest=m,
                               provenance=literal_provenance(),
-                              frame=literal_frame(), raw=literal_raw())
+                              frame=[literal_frame()], raw=literal_raw())
         expect_fail('unknown status', proc)
 
     def test_matrix_field_mutations_fail(self):
@@ -793,7 +842,7 @@ class TestR13SmokeMatrixCLI(unittest.TestCase):
                      c.CONTRACT_PATH)))):
             proc = self._run_case(name, manifest=literal_manifest(),
                                   provenance=literal_provenance(),
-                                  frame=literal_frame(), raw=literal_raw(),
+                                  frame=[literal_frame()], raw=literal_raw(),
                                   **kw)
             expect_fail(name, proc)
             payload = json.loads(proc.stdout)
@@ -819,7 +868,7 @@ class TestR13SmokeMatrixCLI(unittest.TestCase):
                      c.CONTRACT_PATH)))):
             proc = self._run_case(name, manifest=literal_manifest(),
                                   provenance=literal_provenance(),
-                                  frame=literal_frame(), raw=literal_raw(),
+                                  frame=[literal_frame()], raw=literal_raw(),
                                   **kw)
             expect_fail(name, proc)
             payload = json.loads(proc.stdout)
@@ -831,21 +880,21 @@ class TestR13SmokeMatrixCLI(unittest.TestCase):
         raw[0]['contacts'][0]['wrenches'] = ['not-a-wrench']
         proc = self._run_case('malformed wrench', manifest=literal_manifest(),
                               provenance=literal_provenance(),
-                              frame=literal_frame(), raw=raw)
+                              frame=[literal_frame()], raw=raw)
         expect_fail('malformed wrench', proc)
         raw = copy.deepcopy(literal_raw())
         raw[2]['entries'] = ['not-a-pose-entry']
         proc = self._run_case('malformed pose entry',
                               manifest=literal_manifest(),
                               provenance=literal_provenance(),
-                              frame=literal_frame(), raw=raw)
+                              frame=[literal_frame()], raw=raw)
         expect_fail('malformed pose entry', proc)
         raw = copy.deepcopy(literal_raw())
         raw[3]['command'] = [0.1] * 23
         proc = self._run_case('malformed joint command',
                               manifest=literal_manifest(),
                               provenance=literal_provenance(),
-                              frame=literal_frame(), raw=raw)
+                              frame=[literal_frame()], raw=raw)
         expect_fail('malformed joint command', proc)
 
     def test_matrix_provenance_corruption_fails(self):
@@ -861,7 +910,7 @@ class TestR13SmokeMatrixCLI(unittest.TestCase):
             rec = literal_provenance()
             mutate(rec)
             proc = self._run_case(name, manifest=literal_manifest(),
-                                  provenance=rec, frame=literal_frame(),
+                                  provenance=rec, frame=[literal_frame()],
                                   raw=literal_raw())
             expect_fail(name, proc)
             payload = json.loads(proc.stdout)

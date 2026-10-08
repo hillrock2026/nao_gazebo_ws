@@ -69,22 +69,27 @@ def complete_provenance():
 def raw_records():
     """Raw measured stream events (verbatim storage, non-propagation).
 
-    R12/R13 notes: the fixture satisfies the strengthened raw structural
-    contract (known stream categories, required keys, RFC-shaped nested
-    payloads, all required categories present)."""
+    R12/R13/R14 notes: the fixture satisfies the strengthened raw
+    structural contract (known stream categories, required keys incl.
+    per-contact header, body ids, pose orientation; RFC-shaped nested
+    payloads; all required categories present)."""
     return [
         {'stream': 'pose_info', 'stamp_s': 1.012,
-         'entries': [{'name': 'nao', 'position': [0.5, -0.28, 0.33]},
-                     {'name': 'l_ankle', 'position': [0.0, 0.05, -0.28]}]},
+         'entries': [{'name': 'nao', 'position': [0.5, -0.28, 0.33],
+                      'orientation': [0.0, 0.0, 0.0, 1.0]},
+                     {'name': 'l_ankle', 'position': [0.0, 0.05, -0.28],
+                      'orientation': [0.0, 0.0, 0.0, 1.0]}]},
         {'stream': 'contacts_left', 'stamp_s': 1.013, 'n_contacts': 1,
          'contacts': [{
+             'header': {'stamp_s': 1.013},
              'collision1': 'nao::l_ankle::l_ankle_collision',
              'collision2': 'ground_plane::link::collision',
              'position': [[0.1, 0.05, 0.0]],
              'normal': [[0.0, 0.0, 1.0]],
              'depth': [0.001],
              'wrenches': [{
-                 'body_1_name': '', 'body_2_name': '',
+                 'body_1_name': '', 'body_1_id': 0,
+                 'body_2_name': '', 'body_2_id': 0,
                  'body_1_wrench': {'force': [0.01, 0.02, 25.5],
                                    'torque': [0.0, 0.001, 0.0],
                                    'force_offset': [0.1, 0.05, 0.0]},
@@ -93,13 +98,15 @@ def raw_records():
                                    'force_offset': [0.1, 0.05, 0.0]}}]}]},
         {'stream': 'contacts_right', 'stamp_s': 1.017, 'n_contacts': 1,
          'contacts': [{
+             'header': {'stamp_s': 1.017},
              'collision1': 'nao::r_ankle::r_ankle_collision',
              'collision2': 'ground_plane::link::collision',
              'position': [[0.1, -0.05, 0.0]],
              'normal': [[0.0, 0.0, 1.0]],
              'depth': [0.001],
              'wrenches': [{
-                 'body_1_name': '', 'body_2_name': '',
+                 'body_1_name': '', 'body_1_id': 0,
+                 'body_2_name': '', 'body_2_id': 0,
                  'body_1_wrench': {'force': [0.0, -0.01, 24.8],
                                    'torque': [0.0, 0.0, 0.0],
                                    'force_offset': [0.1, -0.05, 0.0]},

@@ -1,49 +1,45 @@
 #!/usr/bin/env python3
-"""Stage 1 fail-closed contract enforcement checker (R11 + R12 + R13, REV1.4).
+"""Stage 1 fail-closed contract enforcement checker (R11-R14, REV1.5).
 
 Read-only contract instrumentation (Level 1/2 tooling): publishes nothing,
 subscribes to nothing, launches nothing, modifies no frozen component. It
 is NOT a new V-gate and does NOT change probe methodology; R6-R10 and the
 R11 rules are enforced, never redefined.
 
-R11 (machine-actionable contract):
-  R11-A pending-validation propagation (Option A: value retained +
-      derived_pending_validation; Option B: null + blocked).
-  R11-B provenance completeness (every RFC § 3.10 mandatory field).
+Normative schema source (R14): the checker OWNS NO INDEPENDENT SCHEMA.
+All field lists, statuses, shapes, provenance semantics, raw-retention
+requiredness, and the frame-artifact count rule are loaded at run time
+from the normative machine-readable JSON block embedded in the RFC
+(Appendix D); the Collector Contract embeds an identical copy (§ 8.4) and
+the checker requires the two blocks to be canonically equal. Prose
+keyword parsing has been removed entirely (R14/B2): semantics come from
+the explicit required/nullable/type declarations of the block, and the
+prose tables are checked for FIELD-NAME consistency only.
 
-R12 (fail-closed enforcement):
-  R12-A --smoke CLI over actual artifacts; missing artifact = FAIL.
-  R12-B allowlist-only statuses (unknown status / missing status FAIL).
-  R12-C RFC § 3.10 == Contract § 8 == checker list (field-set binding).
-  R12-D raw storage belongs to a known stream category.
+R14 closures (audit B1-B4):
+  B1 Option-A shapes (pose position[3]/orientation[4], vec3, zmp vec2)
+     come from the normative block — an RFC schema mutation makes
+     previously-valid artifacts fail --smoke.
+  B2 explicit required/nullable/type semantics; "non-null" prose can no
+     longer be misread as nullable; requiredness is an explicit flag.
+  B3 raw-retention requiredness fully bound per the block (Contact
+     header, body_1_id/body_2_id, JointWrench members incl. both body
+     sides with force/torque/force_offset, raw pose orientation,
+     contact-point arrays, 24-vector command). Unknown native keys are
+     preserved and never rejected (lossless retention).
+  B4 the smoke frame artifact is an ARRAY of frame records and
+     frame_count (provenance) must equal the actual record count; an
+     empty episode (frame_count=0, frames=[]) is valid; frame_count
+     stays int_nonneg, never forced > 0.
 
-R13 (fail-closed schema hardening — closes the R12 audit bypasses B1-B4):
-  B1 Option-A frame bypass: every composition-dependent field must be
-      PRESENT in the emitted frame with a non-null value of the RFC
-      shape (pose {position[3], orientation[4]}, vec3, zmp vec2) —
-      manifest declaration must match the actual emitted artifact.
-  B2 RFC <-> Contract semantic drift: per-field semantic markers
-      (nullable / optional / type) are extracted from BOTH documents'
-      provenance tables and must equal the canonical expectation
-      (PROVENANCE_SEMANTICS); any add/remove/substitute of a semantic
-      marker in either document FAILS the smoke path.
-  B3 raw nested bypass: nested payload structure per the RFC/Contract
-      retention contract (per-contact collision identity, contact-point
-      arrays, JointWrench with both body sides incl. force/torque/
-      force_offset; pose entries with name+position; 24-vector command);
-      "not-a-wrench" / "not-a-pose-entry" FAIL. Unknown/optional native
-      keys are preserved (lossless retention) and never rejected.
-  B4 provenance type/range bypass: int-not-bool (gazebo_seed,
-      frame_count), frame_count >= 0, finite t_start/t_end (no NaN/
-      Infinity), t_end >= t_start.
-
-CLI modes (R13 § 19):
-  --smoke  THE artifact enforcement entry point: actual RFC + actual
+CLI modes (R13 § 19 / R14):
+  --smoke  THE artifact enforcement entry point (actual RFC + actual
            Collector Contract + actual artifacts -> single fail-closed
-           chain -> PASS (exit 0) / FAIL (exit != 0). The acquisition
-           workflow MUST use --smoke; the default mode is informational
-           only and is NOT artifact enforcement.
-  default  informational: document bindings + status maps.
+           chain -> PASS exit 0 / FAIL exit != 0). The acquisition
+           workflow MUST use --smoke.
+  default  informational only — document bindings + status maps
+           (derived from the loaded normative schema); NOT artifact
+           enforcement.
 
 Exit codes: 0 = PASS; 1 = FAIL; 2 = CLI usage error (argparse).
 """
@@ -60,155 +56,165 @@ WS = os.path.dirname(TOOLS)
 RFC_PATH = os.path.join(WS, 'docs', 'STAGE1_DYNAMICS_DATASET_RFC.md')
 CONTRACT_PATH = os.path.join(WS, 'docs', 'STAGE1_COLLECTOR_CONTRACT.md')
 
-# --- R11-B/R12-C: mandatory provenance (MUST equal RFC § 3.10 AND Contract
-# --- § 8; both are parsed — see check_provenance_binding) -------------------
-MANDATORY_PROVENANCE_FIELDS = (
-    'theta', 'theta_id', 'theta_hash', 'theta_list_hash', 'git_commit',
-    'config_hash', 'cop_derivation_hash', 'gazebo_seed',
-    'robot_model_version', 'world_model_version', 'gz_sim_version',
-    'stage1_rfc_hash', 'acquisition_wallclock_utc', 'ring',
-    'frame_count', 't_start', 't_end', 'episode_integrity_hash',
-)
-
-NULLABLE_PROVENANCE_FIELDS = ('cop_derivation_hash',)
-
-# --- R13-B: canonical semantic expectations per provenance field -------------
-# type markers per document side, extracted with _TYPE_MARKER_RULES from the
-# CURRENT documents' own table text (None = the document carries no
-# machine-readable type marker for that field; multi-field rows carry no
-# per-field type). 'nullable': the row's rule text mentions null.
-# 'optional': False for every field (RFC § 3.10 "mandatory, no exceptions").
-# This constant is the checker's machine interpretation of the two documents;
-# check_semantic_binding verifies both documents still declare exactly this.
-PROVENANCE_SEMANTICS = {
-    'theta':                {'rfc_type': 'object',  'contract_type': 'object',      'nullable': False},
-    'theta_id':             {'rfc_type': None,      'contract_type': 'string',      'nullable': False},
-    'theta_hash':           {'rfc_type': None,      'contract_type': 'hash',        'nullable': False},
-    'theta_list_hash':      {'rfc_type': None,      'contract_type': None,          'nullable': False},
-    'git_commit':           {'rfc_type': 'commit',  'contract_type': 'commit',      'nullable': False},
-    'config_hash':          {'rfc_type': 'sha256',  'contract_type': None,          'nullable': False},
-    'cop_derivation_hash':  {'rfc_type': 'sha256',  'contract_type': None,          'nullable': True},
-    'gazebo_seed':          {'rfc_type': 'int',     'contract_type': 'int',         'nullable': False},
-    'robot_model_version':  {'rfc_type': 'sha256',  'contract_type': 'sha256',      'nullable': False},
-    'world_model_version':  {'rfc_type': 'sha256',  'contract_type': 'sha256',      'nullable': False},
-    'gz_sim_version':       {'rfc_type': None,      'contract_type': None,          'nullable': False},
-    'stage1_rfc_hash':      {'rfc_type': 'sha256',  'contract_type': 'sha256',      'nullable': False},
-    'acquisition_wallclock_utc': {'rfc_type': 'string', 'contract_type': 'string',  'nullable': False},
-    'ring':                 {'rfc_type': 'string',  'contract_type': 'string',      'nullable': False},
-    'frame_count':          {'rfc_type': None,      'contract_type': 'int_nonneg',  'nullable': False},
-    't_start':              {'rfc_type': None,      'contract_type': 'number',      'nullable': False},
-    't_end':                {'rfc_type': None,      'contract_type': 'number',      'nullable': False},
-    'episode_integrity_hash': {'rfc_type': 'sha256', 'contract_type': 'sha256',      'nullable': False},
-}
-
-# Type-marker extraction rules, ordered; applied to the rule/约束 cell of a
-# single-field row. Marker names mirror the artifact validation types
-# ('hash' = a canonical-JSON sha256 hash).
-_TYPE_MARKER_RULES = (
-    (re.compile(r'sha[-\s]?512', re.IGNORECASE), 'sha512'),
-    (re.compile(r'sha[-\s]?256', re.IGNORECASE), 'sha256'),
-    (re.compile(r'\bHEAD\b'), 'commit'),
-    (re.compile(r'wall[-\s]?clock|UTC', re.IGNORECASE), 'string'),
-    (re.compile(r'\bdict\b', re.IGNORECASE), 'object'),
-    (re.compile(r'\bseed\b', re.IGNORECASE), 'int'),
-    (re.compile('帧数'), 'int_nonneg'),
-    (re.compile(r'\blabel\b', re.IGNORECASE), 'string'),
-    (re.compile(r'\bid\b', re.IGNORECASE), 'string'),
-    (re.compile(r'sim[ _]time', re.IGNORECASE), 'number'),
-    (re.compile(r'\bhash\b', re.IGNORECASE), 'hash'),
-)
-
-# --- R13-D/R12: provenance artifact validation types (format/range only —
-# --- no hash computation rules are defined or changed here) ------------------
-PROVENANCE_SHA256_FIELDS = (
-    'theta_hash', 'theta_list_hash', 'config_hash', 'cop_derivation_hash',
-    'robot_model_version', 'world_model_version', 'stage1_rfc_hash',
-    'episode_integrity_hash',
-)
-PROVENANCE_STRING_FIELDS = (
-    'theta_id', 'gz_sim_version', 'acquisition_wallclock_utc', 'ring',
-)
-PROVENANCE_INT_FIELDS = ('gazebo_seed',)
-PROVENANCE_INT_NONNEG_FIELDS = ('frame_count',)
-PROVENANCE_NUMBER_FIELDS = ('t_start', 't_end')
-
 _SHA256_RE = re.compile(r'\A[0-9a-f]{64}\Z')
 _GIT_COMMIT_RE = re.compile(r'\A[0-9a-f]{40}\Z')
+_SCHEMA_VERSION_PREFIX = 'stage1-normative'
 
-# --- R11-A/R12-B: validation-status vocabulary (no new enums) ---------------
-STATUS_MEASURED = 'measured'
-STATUS_DERIVED = 'derived'
-STATUS_DERIVED_PENDING = 'derived_pending_validation'
 
-COMPOSITION_STATUS_UNVERIFIED = 'UNVERIFIED'
-WRENCH_FRAME_STATUS_UNKNOWN = 'UNKNOWN'
+# ---------------------------------------------------------------------------
+# R14: normative schema loading (the checker's ONLY schema source)
+# ---------------------------------------------------------------------------
 
-WRENCH_BLOCKED_STATUSES = ('null_blocked', 'blocked')
+def _find_normative_block(text):
+    """Return (schema_dict, None) or (None, error) for the fenced ```json
+    block carrying the stage1-normative schema_version."""
+    for m in re.finditer(r'```json\n(.*?)```', text, re.DOTALL):
+        try:
+            obj = json.loads(m.group(1))
+        except Exception:
+            continue
+        if isinstance(obj, dict) \
+                and str(obj.get('schema_version', '')).startswith(
+                    _SCHEMA_VERSION_PREFIX):
+            return obj, None
+    return None, ('normative schema block (%s…) not found or unparseable'
+                  % _SCHEMA_VERSION_PREFIX)
 
-MEASURED_FIELDS = (
-    'joint_position', 'joint_velocity', 'base_pose', 'pose_source_stamp',
-    'left_contact', 'right_contact', 'imu_orientation',
-    'imu_linear_acceleration', 'imu_angular_velocity', 'controller_command',
-)
 
-ORDINARY_DERIVED_FIELDS = (
-    'joint_acceleration', 'base_velocity', 'base_angular_velocity',
-    'gait_phase', 'desired_velocity',
-)
+def _validate_schema_shape(schema):
+    """Structural sanity of the normative block itself (fail-closed: any
+    error makes the schema unusable)."""
+    errors = []
+    for key in ('schema_version', 'status_semantics', 'frame_fields',
+                'provenance_fields', 'raw_structures', 'raw_categories',
+                'required_raw_categories', 'frame_artifact'):
+        if key not in schema:
+            errors.append('normative schema: %r section missing' % key)
+    if errors:
+        return errors
+    sem = schema['status_semantics']
+    for key in ('composition_status', 'wrench_frame_status',
+                'wrench_blocked_statuses', 'valid_field_statuses'):
+        if key not in sem:
+            errors.append('status_semantics.%s missing' % key)
+    names = []
+    for spec in schema['provenance_fields']:
+        if 'name' not in spec:
+            errors.append('provenance field without a name: %r' % (spec,))
+            continue
+        names.append(spec['name'])
+        for key in ('required', 'nullable', 'type'):
+            if key not in spec:
+                errors.append('provenance %s: %r missing (R14/B2 explicit '
+                              'semantics)' % (spec['name'], key))
+    if len(names) != len(set(names)):
+        errors.append('provenance field names are not unique')
+    for group in ('measured', 'ordinary_derived', 'option_a', 'option_b'):
+        g = schema['frame_fields'].get(group)
+        if not isinstance(g, dict) or 'status' not in g \
+                or not isinstance(g.get('fields'), list):
+            errors.append('frame_fields.%s malformed' % group)
+    for cat, struct in schema['raw_categories'].items():
+        if struct not in schema['raw_structures']:
+            errors.append('raw category %r references unknown structure %r'
+                          % (cat, struct))
+    return errors
 
-COMPOSITION_DEPENDENT_FIELDS = (
-    'left_foot_pose', 'right_foot_pose',
-    'left_foot_velocity', 'right_foot_velocity',
-    'com_position', 'com_velocity', 'com_acceleration', 'zmp_position',
-)
 
-WRENCH_FRAME_DEPENDENT_FIELDS = (
-    'left_contact_force', 'right_contact_force',
-    'left_contact_moment', 'right_contact_moment', 'cop_position',
-)
+def load_normative_schema(path):
+    """Load the normative machine-readable schema block from a document.
 
-VALID_FIELD_STATUSES = (STATUS_MEASURED, STATUS_DERIVED,
-                        STATUS_DERIVED_PENDING)
+    Returns (schema, errors); schema is None when the block is missing,
+    unparseable, or structurally invalid (fail-closed)."""
+    if not path or not os.path.isfile(path):
+        return None, ['%s: document not found — fail-closed (R14)' % (path,)]
+    with open(path, 'r', encoding='utf-8') as fh:
+        text = fh.read()
+    schema, err = _find_normative_block(text)
+    if err is not None:
+        return None, ['%s: %s' % (path, err)]
+    errors = _validate_schema_shape(schema)
+    if errors:
+        return None, errors
+    return schema, []
 
-# --- R13-A: Option-A frame shapes (RFC § 3.3-3.5, § 3.7) ---------------------
-# pose = {position: float[3], orientation: float[4] (xyzw)};
-# foot/com velocities, com position/velocity/acceleration = float[3];
-# zmp_position = float[2].
-OPTION_A_FIELD_SHAPES = {
-    'left_foot_pose': 'pose',
-    'right_foot_pose': 'pose',
-    'left_foot_velocity': 'vec3',
-    'right_foot_velocity': 'vec3',
-    'com_position': 'vec3',
-    'com_velocity': 'vec3',
-    'com_acceleration': 'vec3',
-    'zmp_position': 'vec2',
-}
 
-# --- R12-D/R13-C: raw storage structural contract ----------------------------
-# Categories bound to Collector Contract § 6.1/§ 6.3 tokens. Required record
-# keys; nested payloads are validated per the RFC retention contract
-# (§ 3.6.1 contacts, § 3.3-3.5 pose entries, § 3.9 command vector).
-# Unknown/optional native keys are preserved (lossless retention) and are
-# NEVER rejected — only the required structure is enforced (R13 § 15).
+_SCHEMA, _SCHEMA_ERRORS = load_normative_schema(RFC_PATH)
+if _SCHEMA is None:
+    raise RuntimeError('cannot load the normative schema from %s: %s'
+                       % (RFC_PATH, _SCHEMA_ERRORS))
+
+
+def _schema_or_default(schema):
+    return _SCHEMA if schema is None else schema
+
+
+# --- Constants DERIVED from the normative schema (no independent list) ------
+
+def _group_fields(schema, group):
+    return tuple(f['name'] for f in
+                 schema['frame_fields'][group]['fields'])
+
+
+MANDATORY_PROVENANCE_FIELDS = tuple(sorted(
+    f['name'] for f in _SCHEMA['provenance_fields']))
+NULLABLE_PROVENANCE_FIELDS = tuple(
+    f['name'] for f in _SCHEMA['provenance_fields'] if f.get('nullable'))
+PROVENANCE_SHA256_FIELDS = tuple(
+    f['name'] for f in _SCHEMA['provenance_fields']
+    if f.get('type') == 'sha256')
+PROVENANCE_STRING_FIELDS = tuple(
+    f['name'] for f in _SCHEMA['provenance_fields']
+    if f.get('type') == 'string')
+PROVENANCE_INT_FIELDS = tuple(
+    f['name'] for f in _SCHEMA['provenance_fields']
+    if f.get('type') == 'int')
+PROVENANCE_INT_NONNEG_FIELDS = tuple(
+    f['name'] for f in _SCHEMA['provenance_fields']
+    if f.get('type') == 'int_nonneg')
+PROVENANCE_NUMBER_FIELDS = tuple(
+    f['name'] for f in _SCHEMA['provenance_fields']
+    if f.get('type') == 'number_finite')
+
+STATUS_MEASURED = _SCHEMA['status_semantics']['valid_field_statuses'][0]
+STATUS_DERIVED = _SCHEMA['status_semantics']['valid_field_statuses'][1]
+STATUS_DERIVED_PENDING = \
+    _SCHEMA['status_semantics']['valid_field_statuses'][2]
+VALID_FIELD_STATUSES = tuple(
+    _SCHEMA['status_semantics']['valid_field_statuses'])
+
+COMPOSITION_STATUS_UNVERIFIED = \
+    _SCHEMA['status_semantics']['composition_status']
+WRENCH_FRAME_STATUS_UNKNOWN = \
+    _SCHEMA['status_semantics']['wrench_frame_status']
+WRENCH_BLOCKED_STATUSES = tuple(
+    _SCHEMA['status_semantics']['wrench_blocked_statuses'])
+
+MEASURED_FIELDS = _group_fields(_SCHEMA, 'measured')
+ORDINARY_DERIVED_FIELDS = _group_fields(_SCHEMA, 'ordinary_derived')
+COMPOSITION_DEPENDENT_FIELDS = _group_fields(_SCHEMA, 'option_a')
+WRENCH_FRAME_DEPENDENT_FIELDS = _group_fields(_SCHEMA, 'option_b')
+OPTION_A_FIELD_SHAPES = {f['name']: f
+                         for f in _SCHEMA['frame_fields']['option_a'][
+                             'fields']}
+
 RAW_STREAM_STRUCT = {
-    'contacts_left': ('stamp_s', 'contacts'),
-    'contacts_right': ('stamp_s', 'contacts'),
-    'pose_info': ('stamp_s', 'entries'),
-    'joint_command': ('stamp_s', 'command'),
-    'joint_states': ('stamp_s', 'name'),
-    'body_pose': ('stamp_s', 'position'),
-}
-REQUIRED_RAW_CATEGORIES = ('contacts_left', 'contacts_right', 'pose_info',
-                           'joint_command')
+    cat: tuple(
+        _SCHEMA['raw_structures'][struct]['required_record_keys'])
+    for cat, struct in _SCHEMA['raw_categories'].items()}
+REQUIRED_RAW_CATEGORIES = tuple(
+    _SCHEMA['required_raw_categories'])
+COMMAND_VECTOR_DIM = _SCHEMA['raw_structures']['joint_command'][
+    'command_length']
+
+# R12-D legacy binding: required raw categories bound to Collector
+# Contract § 6 text tokens (name-level binding, not schema semantics).
 RAW_CATEGORY_CONTRACT_TOKENS = {
     'contacts_left': '/nao/left_foot_contact_raw',
     'contacts_right': '/nao/right_foot_contact_raw',
     'pose_info': '/world/nao_world/pose/info',
     'joint_command': 'controller_command',
 }
-# RFC § 3.9: the command vector is float[24] (canonical JOINT_ORDER).
-COMMAND_VECTOR_DIM = 24
 
 
 # ---------------------------------------------------------------------------
@@ -238,7 +244,7 @@ def _vec_errors(value, n, label):
     return []
 
 
-def _pose_errors(value, label):
+def _pose_errors(value, pos_n, ori_n, label):
     if not isinstance(value, dict):
         return ['%s: pose must be an object {position, orientation} (got %s)'
                 % (label, type(value).__name__)]
@@ -246,27 +252,30 @@ def _pose_errors(value, label):
     if 'position' not in value:
         errs.append('%s: position missing' % label)
     else:
-        errs.extend(_vec_errors(value['position'], 3, label + '.position'))
+        errs.extend(_vec_errors(value['position'], pos_n,
+                                label + '.position'))
     if 'orientation' not in value:
         errs.append('%s: orientation missing' % label)
     else:
-        errs.extend(_vec_errors(value['orientation'], 4,
+        errs.extend(_vec_errors(value['orientation'], ori_n,
                                 label + '.orientation'))
     return errs
 
 
-def _shape_errors(value, shape, label):
-    if shape == 'pose':
-        return _pose_errors(value, label)
-    if shape == 'vec3':
-        return _vec_errors(value, 3, label)
-    if shape == 'vec2':
-        return _vec_errors(value, 2, label)
-    return ['%s: unknown shape %r' % (label, shape)]
+def _spec_shape_errors(value, spec, label):
+    """Shape validation driven by a normative Option-A field spec."""
+    ftype = spec.get('type')
+    if ftype == 'pose':
+        return _pose_errors(value, spec.get('position', 3),
+                            spec.get('orientation', 4), label)
+    if ftype == 'vector':
+        return _vec_errors(value, spec.get('length', 3), label)
+    return ['%s: unknown normative type %r' % (label, ftype)]
 
 
 # ---------------------------------------------------------------------------
-# R12-C/R13-B: document parsing (field sets + semantic markers)
+# Provenance-table NAME parsing (prose, name-level only — R14/B2: semantics
+# are NEVER parsed from prose; they come from the normative block)
 # ---------------------------------------------------------------------------
 
 def _read_provenance_rows(doc_path, doc_kind):
@@ -327,7 +336,7 @@ def _read_provenance_rows(doc_path, doc_kind):
 
 
 def parse_rfc_provenance_fields(rfc_path=RFC_PATH):
-    """Parse the field names of the RFC § 3.10 provenance table."""
+    """Field names of the RFC § 3.10 prose table (name-level only)."""
     fields = []
     for row_fields, _rule in _read_provenance_rows(rfc_path, 'rfc'):
         fields.extend(row_fields)
@@ -335,146 +344,168 @@ def parse_rfc_provenance_fields(rfc_path=RFC_PATH):
 
 
 def parse_contract_provenance_fields(contract_path=CONTRACT_PATH):
-    """Parse the field names of the Collector Contract § 8 checklist table."""
+    """Field names of the Collector Contract § 8 prose checklist table."""
     fields = []
-    for row_fields, _rule in _read_provenance_rows(contract_path, 'contract'):
+    for row_fields, _rule in _read_provenance_rows(contract_path,
+                                                    'contract'):
         fields.extend(row_fields)
     return tuple(sorted(set(fields)))
 
 
-def extract_doc_provenance_semantics(doc_path, doc_kind):
-    """R13-B: extract per-field semantic markers from a provenance table.
-
-    Per row: nullable = the rule text mentions 'null'; optional = the rule
-    text mentions 'optional'/'可选'; type = the first _TYPE_MARKER_RULES
-    match in the rule text — ONLY for single-field rows (multi-field rows
-    carry no per-field type in the current documents)."""
-    semantics = {}
-    for fields, rule in _read_provenance_rows(doc_path, doc_kind):
-        nullable = 'null' in rule.lower()
-        optional = bool(re.search(r'optional|可选', rule, re.IGNORECASE))
-        type_marker = None
-        if len(fields) == 1:
-            for pattern, marker in _TYPE_MARKER_RULES:
-                if pattern.search(rule):
-                    type_marker = marker
-                    break
-        for f in fields:
-            semantics[f] = {'nullable': nullable, 'optional': optional,
-                            'type': type_marker}
-    return semantics
-
+# ---------------------------------------------------------------------------
+# R12-C/R13-B/R14 bindings
+# ---------------------------------------------------------------------------
 
 def check_rfc_binding(rfc_path=RFC_PATH):
-    """R11-B/R12-C: checker list == RFC § 3.10 table."""
-    parsed = parse_rfc_provenance_fields(rfc_path)
-    declared = tuple(sorted(MANDATORY_PROVENANCE_FIELDS))
+    """RFC internal consistency: § 3.10 prose table field names == the RFC's
+    normative block provenance field names."""
+    schema, errs = load_normative_schema(rfc_path)
+    if schema is None:
+        return {
+            'ok': False,
+            'check': 'RFC § 3.10 prose names == RFC Appendix D '
+                     'provenance names',
+            'rfc_path': rfc_path,
+            'declared': [],
+            'parsed_from_rfc': [],
+            'missing_in_checker': [],
+            'extra_in_checker': [],
+            'errors': errs,
+        }
+    block_names = tuple(sorted(f['name'] for f in
+                               schema['provenance_fields']))
+    try:
+        prose_names = parse_rfc_provenance_fields(rfc_path)
+    except Exception as exc:  # noqa: BLE001 — reported
+        return {
+            'ok': False, 'check': 'RFC § 3.10 prose names == RFC Appendix D '
+                                  'provenance names', 'rfc_path': rfc_path,
+            'declared': list(block_names), 'parsed_from_rfc': [],
+            'missing_in_checker': [], 'extra_in_checker': [],
+            'errors': ['%s: %s' % (type(exc).__name__, exc)],
+        }
     return {
-        'ok': parsed == declared,
-        'check': 'MANDATORY_PROVENANCE_FIELDS == RFC § 3.10 table',
+        'ok': prose_names == block_names,
+        'check': 'RFC § 3.10 prose names == RFC Appendix D provenance '
+                 'names (name-level; semantics live in Appendix D)',
         'rfc_path': rfc_path,
-        'declared': declared,
-        'parsed_from_rfc': parsed,
-        'missing_in_checker': sorted(set(parsed) - set(declared)),
-        'extra_in_checker': sorted(set(declared) - set(parsed)),
+        'declared': list(block_names),
+        'parsed_from_rfc': list(prose_names),
+        'missing_in_checker': sorted(set(prose_names) - set(block_names)),
+        'extra_in_checker': sorted(set(block_names) - set(prose_names)),
     }
 
 
 def check_contract_binding(contract_path=CONTRACT_PATH):
-    """R12-C: checker list == Collector Contract § 8 checklist table."""
-    parsed = parse_contract_provenance_fields(contract_path)
-    declared = tuple(sorted(MANDATORY_PROVENANCE_FIELDS))
+    """Contract internal consistency: § 8 prose checklist names == the
+    Contract's normative block provenance field names."""
+    schema, errs = load_normative_schema(contract_path)
+    if schema is None:
+        return {
+            'ok': False,
+            'check': 'Contract § 8 prose names == Contract § 8.4 normative '
+                     'block names',
+            'contract_path': contract_path,
+            'declared': [], 'parsed_from_contract': [],
+            'missing_in_checker': [], 'extra_in_checker': [],
+            'errors': errs,
+        }
+    block_names = tuple(sorted(f['name'] for f in
+                               schema['provenance_fields']))
+    try:
+        prose_names = parse_contract_provenance_fields(contract_path)
+    except Exception as exc:  # noqa: BLE001 — reported
+        return {
+            'ok': False, 'check': 'Contract § 8 prose names == Contract '
+                                  '§ 8.4 block names',
+            'contract_path': contract_path, 'declared': list(block_names),
+            'parsed_from_contract': [], 'missing_in_checker': [],
+            'extra_in_checker': [],
+            'errors': ['%s: %s' % (type(exc).__name__, exc)],
+        }
     return {
-        'ok': parsed == declared,
-        'check': 'MANDATORY_PROVENANCE_FIELDS == Collector Contract § 8 '
-                 'checklist table',
+        'ok': prose_names == block_names,
+        'check': 'Contract § 8 prose names == Contract § 8.4 normative '
+                 'block names (name-level)',
         'contract_path': contract_path,
-        'declared': declared,
-        'parsed_from_contract': parsed,
-        'missing_in_checker': sorted(set(parsed) - set(declared)),
-        'extra_in_checker': sorted(set(declared) - set(parsed)),
+        'declared': list(block_names),
+        'parsed_from_contract': list(prose_names),
+        'missing_in_checker': sorted(set(prose_names) - set(block_names)),
+        'extra_in_checker': sorted(set(block_names) - set(prose_names)),
     }
 
 
 def check_semantic_binding(rfc_path=RFC_PATH, contract_path=CONTRACT_PATH):
-    """R13-B (closes audit B2): RFC § 3.10 <-> Contract § 8 SEMANTIC binding.
-
-    For every mandatory field, the (nullable, optional, type-marker) tuple
-    extracted from EACH document's table must equal the canonical
-    expectation in PROVENANCE_SEMANTICS — a nullable, type, or
-    required/optional mutation in either document (add, remove, or
-    substitute) FAILS. Field-set drift is also reported here (and enforced
-    by the R12-C name binding)."""
-    rfc_sem = extract_doc_provenance_semantics(rfc_path, 'rfc')
-    contract_sem = extract_doc_provenance_semantics(contract_path,
-                                                    'contract')
-    errors = []
-    for field in MANDATORY_PROVENANCE_FIELDS:
-        expected = PROVENANCE_SEMANTICS.get(field)
-        if expected is None:
-            errors.append('%s: no canonical semantic expectation '
-                          '(checker constant drift)' % field)
-            continue
-        for side, sem in (('rfc', rfc_sem), ('contract', contract_sem)):
-            got = sem.get(field)
-            if got is None:
-                errors.append('%s: %s document no longer carries the field '
-                              '(field-set drift)' % (field, side))
-                continue
-            type_key = side + '_type'
-            if got['type'] != expected[type_key]:
-                errors.append(
-                    '%s: %s type marker %r != expected %r (semantic drift)'
-                    % (field, side, got['type'], expected[type_key]))
-            if got['nullable'] != expected['nullable']:
-                errors.append(
-                    '%s: %s nullable %r != expected %r (semantic drift)'
-                    % (field, side, got['nullable'], expected['nullable']))
-            if got['optional'] != bool(expected.get('optional', False)):
-                errors.append(
-                    '%s: %s optional %r != expected %r (required/optional '
-                    'drift — RFC § 3.10 is mandatory, no exceptions)'
-                    % (field, side, got['optional'],
-                       bool(expected.get('optional', False))))
-    for side, sem in (('rfc', rfc_sem), ('contract', contract_sem)):
-        for f in sorted(set(sem) - set(MANDATORY_PROVENANCE_FIELDS)):
-            errors.append('%s: %s document carries a field outside the '
-                          'mandatory set (field-set drift)' % (f, side))
+    """R14/B2 (replaces R13 prose-keyword binding): the RFC's Appendix D
+    normative block and the Collector Contract's § 8.4 block must be
+    CANONICALLY EQUAL. Any schema/semantic mutation (field add/remove,
+    nullable, required/optional, type, shape, raw requiredness, count
+    rule) in EITHER document is a validation failure. No prose is parsed
+    for semantics."""
+    rfc_schema, rfc_errs = load_normative_schema(rfc_path)
+    contract_schema, contract_errs = load_normative_schema(contract_path)
+    errors = list(rfc_errs) + list(contract_errs)
+    if rfc_schema is None or contract_schema is None:
+        return {
+            'ok': False,
+            'check': 'R14/B2: RFC Appendix D block == Contract § 8.4 block '
+                     '(canonical equality; explicit machine semantics)',
+            'errors': errors or ['normative schema block missing'],
+        }
+    rfc_canon = json.dumps(rfc_schema, sort_keys=True)
+    contract_canon = json.dumps(contract_schema, sort_keys=True)
+    if rfc_canon != contract_canon:
+        errors.append('RFC Appendix D normative block != Collector Contract '
+                      '§ 8.4 block (schema/semantic drift)')
+        drift = {}
+        for key in sorted(set(rfc_schema) | set(contract_schema)):
+            r = json.dumps(rfc_schema.get(key), sort_keys=True)
+            c = json.dumps(contract_schema.get(key), sort_keys=True)
+            if r != c:
+                drift[key] = {'rfc': rfc_schema.get(key),
+                              'contract': contract_schema.get(key)}
+        return {
+            'ok': False,
+            'check': 'R14/B2: RFC Appendix D block == Contract § 8.4 block '
+                     '(canonical equality; explicit machine semantics)',
+            'errors': errors,
+            'drifting_sections': drift,
+        }
     return {
-        'ok': not errors,
-        'check': 'R13-B semantic binding: RFC § 3.10 <-> Contract § 8 <-> '
-                 'canonical (nullable / optional / type markers)',
-        'errors': errors,
-        'extracted': {'rfc': rfc_sem, 'contract': contract_sem},
+        'ok': True,
+        'check': 'R14/B2: RFC Appendix D block == Contract § 8.4 block '
+                 '(canonical equality; explicit machine semantics)',
+        'errors': [],
     }
 
 
 def check_provenance_binding(rfc_path=RFC_PATH, contract_path=CONTRACT_PATH):
-    """R12-C + R13-B: field-set binding + semantic binding."""
+    """R12-C + R14: prose name bindings + normative block equality."""
     rfc = check_rfc_binding(rfc_path)
     contract = check_contract_binding(contract_path)
     semantic = check_semantic_binding(rfc_path, contract_path)
-    equal = rfc['parsed_from_rfc'] == contract['parsed_from_contract']
     return {
-        'ok': rfc['ok'] and contract['ok'] and equal and semantic['ok'],
-        'check': 'RFC § 3.10 == Collector Contract § 8 == checker list '
-                 '(field set) + semantic markers (R12-C/R13-B)',
+        'ok': rfc['ok'] and contract['ok'] and semantic['ok'],
+        'check': 'RFC § 3.10 == Contract § 8 == normative block '
+                 '(names) + RFC Appendix D == Contract § 8.4 (semantics, '
+                 'R14)',
         'rfc_binding': rfc,
         'contract_binding': contract,
         'semantic_binding': semantic,
         'rfc_vs_contract': {
-            'equal': equal,
+            'equal': rfc['parsed_from_rfc'] == contract[
+                'parsed_from_contract'],
             'in_rfc_not_contract': sorted(set(rfc['parsed_from_rfc'])
                                           - set(contract[
                                               'parsed_from_contract'])),
-            'in_contract_not_rfc': sorted(set(contract['parsed_from_contract'])
-                                          - set(rfc['parsed_from_rfc'])),
+            'in_contract_not_rfc': sorted(set(contract[
+                'parsed_from_contract']) - set(rfc['parsed_from_rfc'])),
         },
     }
 
 
 def check_raw_category_binding(contract_path=CONTRACT_PATH):
-    """R12-D/R12-C: every required raw category's contract token must exist."""
+    """R12-D: every required raw category's contract token must exist."""
     with open(contract_path, 'r', encoding='utf-8') as fh:
         text = fh.read()
     start = text.find('## 6.')
@@ -495,87 +526,81 @@ def check_raw_category_binding(contract_path=CONTRACT_PATH):
 
 
 # ---------------------------------------------------------------------------
-# R11-B/R12/R13-D: provenance completeness + type/range (fail-closed)
+# R11-B/R12/R13-D/R14: provenance completeness + type/range (fail-closed)
 # ---------------------------------------------------------------------------
 
-def check_provenance(episode_record):
-    """R11-B/R12/R13-D: every RFC § 3.10 mandatory field present, non-null
-    (except cop_derivation_hash), and type/range-valid per the Collector
-    Contract § 8 constraints. R13-D closes the B4 bypass: booleans are not
-    integers (gazebo_seed = true FAILS), frame_count >= 0, t_start/t_end
-    are finite numbers (NaN/Infinity FAIL), and t_end >= t_start."""
+def check_provenance(episode_record, schema=None):
+    """R11-B/R12/R13-D/R14: every normative provenance field present,
+    nullability per the block, and type/range-valid. Semantics are read
+    from the normative schema (R14/B2 — no prose parsing)."""
+    schema = _schema_or_default(schema)
     if not isinstance(episode_record, dict):
         return {
             'ok': False,
-            'check': 'RFC § 3.10 mandatory provenance completeness '
-                     '(R11-B/R13-D)',
+            'check': 'normative provenance completeness (R11-B/R14)',
             'missing': list(MANDATORY_PROVENANCE_FIELDS),
             'invalid_nonnull': [],
             'format_errors': ['provenance record is not a JSON object'],
             'note_unknown_fields_ignored': [],
         }
-    missing = [f for f in MANDATORY_PROVENANCE_FIELDS
-               if f not in episode_record]
+    missing = []
     invalid = []
-    for f in MANDATORY_PROVENANCE_FIELDS:
-        if f in episode_record and f not in NULLABLE_PROVENANCE_FIELDS:
-            v = episode_record[f]
-            if v is None or v == '' or v == {}:
-                invalid.append(f)
     errors = []
-    for f in PROVENANCE_SHA256_FIELDS:
-        if f not in episode_record:
+    for spec in schema['provenance_fields']:
+        name = spec['name']
+        required = bool(spec.get('required', True))
+        nullable = bool(spec.get('nullable', False))
+        ftype = spec.get('type')
+        if name not in episode_record:
+            if required:
+                missing.append(name)
             continue
-        v = episode_record[f]
-        if v is None and f in NULLABLE_PROVENANCE_FIELDS:
+        v = episode_record[name]
+        if v is None:
+            if not nullable:
+                invalid.append(name)
             continue
-        if not isinstance(v, str) or not _SHA256_RE.fullmatch(v):
-            errors.append('%s: %r is not a 64-hex lowercase sha256 string'
-                          % (f, v))
-    if 'git_commit' in episode_record:
-        v = episode_record['git_commit']
-        if not isinstance(v, str) or not _GIT_COMMIT_RE.fullmatch(v):
-            errors.append('git_commit: %r is not a 40-hex commit string'
-                          % (v,))
-    if 'theta' in episode_record \
-            and not isinstance(episode_record.get('theta'), dict):
-        errors.append('theta: %r is not an object'
-                      % (episode_record.get('theta'),))
-    for f in PROVENANCE_STRING_FIELDS:
-        if f in episode_record:
-            v = episode_record[f]
+        if ftype == 'object':
+            if not isinstance(v, dict) or not v:
+                errors.append('%s: %r is not a non-empty object'
+                              % (name, v))
+        elif ftype == 'string':
             if not isinstance(v, str) or not v.strip():
-                errors.append('%s: %r is not a non-empty string' % (f, v))
-    # R13-D: booleans are NOT integers (bool is an int subclass in Python).
-    for f in PROVENANCE_INT_FIELDS:
-        if f in episode_record and not _is_int_not_bool(episode_record[f]):
-            errors.append('%s: %r is not an integer (booleans rejected, '
-                          'R13-D)' % (f, episode_record[f]))
-    for f in PROVENANCE_INT_NONNEG_FIELDS:
-        if f not in episode_record:
-            continue
-        v = episode_record[f]
-        if not _is_int_not_bool(v):
-            errors.append('%s: %r is not an integer (booleans rejected, '
-                          'R13-D)' % (f, v))
-        elif v < 0:
-            errors.append('%s: %r is negative (R13-D)' % (f, v))
-    for f in PROVENANCE_NUMBER_FIELDS:
-        if f in episode_record:
-            v = episode_record[f]
+                errors.append('%s: %r is not a non-empty string' % (name, v))
+        elif ftype == 'sha256':
+            if not isinstance(v, str) or not _SHA256_RE.fullmatch(v):
+                errors.append('%s: %r is not a 64-hex lowercase sha256 '
+                              'string' % (name, v))
+        elif ftype == 'commit40':
+            if not isinstance(v, str) or not _GIT_COMMIT_RE.fullmatch(v):
+                errors.append('%s: %r is not a 40-hex commit string'
+                              % (name, v))
+        elif ftype == 'int':
+            if not _is_int_not_bool(v):
+                errors.append('%s: %r is not an integer (booleans '
+                              'rejected, R13-D)' % (name, v))
+        elif ftype == 'int_nonneg':
+            if not _is_int_not_bool(v):
+                errors.append('%s: %r is not an integer (booleans '
+                              'rejected, R13-D)' % (name, v))
+            elif v < 0:
+                errors.append('%s: %r is negative (R13-D)' % (name, v))
+        elif ftype == 'number_finite':
             if not _is_finite_number(v):
                 errors.append('%s: %r is not a finite number (NaN/Infinity '
-                              'rejected, R13-D)' % (f, v))
-    if 't_start' in episode_record and 't_end' in episode_record:
-        ts, te = episode_record['t_start'], episode_record['t_end']
-        if _is_finite_number(ts) and _is_finite_number(te) and te < ts:
-            errors.append('t_end %r < t_start %r (episode extents are '
-                          'ordered, R13-D)' % (te, ts))
+                              'rejected, R13-D)' % (name, v))
+        else:
+            errors.append('%s: unknown normative type %r' % (name, ftype))
+    # Cross-field extent rule (episode extents are ordered).
+    ts, te = episode_record.get('t_start'), episode_record.get('t_end')
+    if _is_finite_number(ts) and _is_finite_number(te) and te < ts:
+        errors.append('t_end %r < t_start %r (episode extents are ordered, '
+                      'R13-D)' % (te, ts))
     unknown = sorted(set(episode_record) - set(MANDATORY_PROVENANCE_FIELDS))
     return {
         'ok': not missing and not invalid and not errors,
-        'check': 'RFC § 3.10 mandatory provenance completeness + type/range '
-                 '(R11-B/R12/R13-D)',
+        'check': 'normative provenance completeness + type/range '
+                 '(R11-B/R12/R13-D/R14; semantics from Appendix D)',
         'missing': missing,
         'invalid_nonnull': invalid,
         'format_errors': errors,
@@ -588,71 +613,88 @@ def check_provenance(episode_record):
 # ---------------------------------------------------------------------------
 
 def check_pending_propagation(manifest,
-                              composition_status=COMPOSITION_STATUS_UNVERIFIED,
-                              wrench_frame_status=WRENCH_FRAME_STATUS_UNKNOWN):
-    """R11-A rule + R12-B fail-closed allowlists on a field-status manifest."""
+                              composition_status=None,
+                              wrench_frame_status=None,
+                              schema=None):
+    """R11-A rule + R12-B allowlists; groups and statuses from the
+    normative schema."""
+    schema = _schema_or_default(schema)
+    sem = schema['status_semantics']
+    if composition_status is None:
+        composition_status = sem['composition_status']
+    if wrench_frame_status is None:
+        wrench_frame_status = sem['wrench_frame_status']
+    groups = schema['frame_fields']
     errors = []
-    if composition_status != COMPOSITION_STATUS_UNVERIFIED:
+    if composition_status != sem['composition_status']:
         return {
             'ok': None,
             'check': 'R11-A pending-validation propagation',
             'errors': ['composition_status %r is not the current contract '
-                       'state (UNVERIFIED); this checker does not certify '
-                       'any other state' % composition_status],
+                       'state (%r); this checker does not certify any other '
+                       'state' % (composition_status,
+                                  sem['composition_status'])],
         }
-    for f in COMPOSITION_DEPENDENT_FIELDS:
+    option_a_status = groups['option_a']['status']
+    for f in _group_fields(schema, 'option_a'):
         status = manifest.get(f)
         if status is None:
             errors.append('%s: status missing/not emitted '
                           '(composition-dependent field) — fail-closed, '
                           'not "nothing to check" (R12-B)' % f)
-        elif status != STATUS_DERIVED_PENDING:
+        elif status != option_a_status:
             errors.append(
                 '%s: status %r is not %r while composition_status is '
                 'UNVERIFIED — a field depending on unverified composition '
                 'cannot be emitted as validated/ordinary derived data (R11-A)'
-                % (f, status, STATUS_DERIVED_PENDING))
-    if wrench_frame_status == WRENCH_FRAME_STATUS_UNKNOWN:
-        for f in WRENCH_FRAME_DEPENDENT_FIELDS:
+                % (f, status, option_a_status))
+    if wrench_frame_status == sem['wrench_frame_status']:
+        blocked = tuple(sem['wrench_blocked_statuses'])
+        for f in _group_fields(schema, 'option_b'):
             status = manifest.get(f)
             if status is None:
                 errors.append('%s: status missing/not emitted '
                               '(wrench-frame-dependent field) — fail-closed, '
                               'not "nothing to check" (R12-B)' % f)
-            elif status not in WRENCH_BLOCKED_STATUSES:
+            elif status not in blocked:
                 errors.append(
                     '%s: status %r is not an explicit blocked status (%s) '
                     'while the wrench frame/reference is UNKNOWN — unknown '
                     'or unrecognized statuses FAIL (R12-B Option-B bypass '
-                    'closed)' % (f, status,
-                                 ' / '.join(WRENCH_BLOCKED_STATUSES)))
-    for f in MEASURED_FIELDS:
+                    'closed)' % (f, status, ' / '.join(blocked)))
+    for f in _group_fields(schema, 'measured'):
         status = manifest.get(f)
         if status is None:
             errors.append('%s: status missing/not emitted (measured field) '
                           '— fail-closed (R12-B)' % f)
-        elif status != STATUS_MEASURED:
+        elif status != groups['measured']['status']:
             errors.append('%s: measured field status %r != %r'
-                          % (f, status, STATUS_MEASURED))
-    for f in ORDINARY_DERIVED_FIELDS:
+                          % (f, status, groups['measured']['status']))
+    ordinary_ok = (sem['valid_field_statuses'][1],
+                   sem['valid_field_statuses'][2])
+    for f in _group_fields(schema, 'ordinary_derived'):
         status = manifest.get(f)
         if status is None:
             errors.append('%s: status missing/not emitted (ordinary derived '
                           'field) — fail-closed (R12-B)' % f)
-        elif status not in (STATUS_DERIVED, STATUS_DERIVED_PENDING):
+        elif status not in ordinary_ok:
             errors.append('%s: ordinary derived field status %r invalid'
                           % (f, status))
     return {
         'ok': not errors,
         'check': 'R11-A pending-validation propagation + R12-B allowlists '
-                 '(composition_status=%s, wrench_frame=%s)'
+                 '(composition_status=%s, wrench_frame=%s; groups from '
+                 'Appendix D)'
                  % (composition_status, wrench_frame_status),
         'errors': errors,
     }
 
 
-def check_status_manifest(artifact):
-    """R12-B: validate a structured status-manifest artifact."""
+def check_status_manifest(artifact, schema=None):
+    """R12-B: validate a structured status-manifest artifact (schema-driven
+    groups, statuses, and root declarations)."""
+    schema = _schema_or_default(schema)
+    sem = schema['status_semantics']
     errors = []
     if not isinstance(artifact, dict):
         return {
@@ -664,69 +706,77 @@ def check_status_manifest(artifact):
     if comp is None:
         errors.append('manifest: composition_status root declaration '
                       'missing — fail-closed (R12-B)')
-    elif comp != COMPOSITION_STATUS_UNVERIFIED:
+    elif comp != sem['composition_status']:
         errors.append('manifest: composition_status %r is not %r; this '
                       'checker certifies no other state (R12-B)'
-                      % (comp, COMPOSITION_STATUS_UNVERIFIED))
+                      % (comp, sem['composition_status']))
     wfs = artifact.get('wrench_frame_status')
     if wfs is None:
         errors.append('manifest: wrench_frame_status root declaration '
                       'missing — fail-closed (R12-B)')
-    elif wfs != WRENCH_FRAME_STATUS_UNKNOWN:
+    elif wfs != sem['wrench_frame_status']:
         errors.append('manifest: wrench_frame_status %r is not %r; this '
                       'checker certifies no other state (R12-B)'
-                      % (wfs, WRENCH_FRAME_STATUS_UNKNOWN))
+                      % (wfs, sem['wrench_frame_status']))
     field_status = artifact.get('field_status')
     if not isinstance(field_status, dict):
         errors.append('manifest: field_status map missing or not an object '
                       '— fail-closed (R12-B)')
         field_status = {}
-    known = (MEASURED_FIELDS + ORDINARY_DERIVED_FIELDS
-             + COMPOSITION_DEPENDENT_FIELDS + WRENCH_FRAME_DEPENDENT_FIELDS)
+    known = set()
+    for group in ('measured', 'ordinary_derived', 'option_a', 'option_b'):
+        known.update(_group_fields(schema, group))
+    allowed_statuses = tuple(sem['valid_field_statuses']) + tuple(
+        sem['wrench_blocked_statuses'])
     for key in sorted(field_status):
         if key not in known:
             errors.append('manifest field_status: unknown field %r — the '
                           'manifest is a status map over the schema fields '
                           '(R12-B fail-closed)' % key)
-        elif field_status[key] not in VALID_FIELD_STATUSES + \
-                WRENCH_BLOCKED_STATUSES:
+        elif field_status[key] not in allowed_statuses:
             errors.append('manifest field_status[%s]: unrecognized status '
                           '%r (R12-B fail-closed)' % (key, field_status[key]))
-    prop = check_pending_propagation(field_status)
+    prop = check_pending_propagation(field_status, schema=schema)
     if prop['ok'] is not True:
         errors.extend(prop['errors'])
     return {
         'ok': not errors,
         'check': 'R12-B status manifest artifact (roots + field_status '
-                 'allowlists)',
+                 'allowlists; groups from Appendix D)',
         'errors': errors,
     }
 
 
 # ---------------------------------------------------------------------------
-# R13-A/R12-B: frame emission (Option-A value/schema + Option-B nulls)
+# R13-A/R14: frame emission (Option-A schema + Option-B nulls)
 # ---------------------------------------------------------------------------
 
 def check_frame_emission(frame, manifest=None,
-                         composition_status=COMPOSITION_STATUS_UNVERIFIED,
-                         wrench_frame_status=WRENCH_FRAME_STATUS_UNKNOWN):
-    """R11-A/R12-B/R13-A emission check on one emitted sample frame.
+                         composition_status=None,
+                         wrench_frame_status=None,
+                         schema=None):
+    """R11-A/R12-B/R13-A/R14 emission check on ONE frame record.
 
-    Option-A (composition-dependent) fields — R13-A closes audit B1: each
-    field must be PRESENT with a NON-NULL value of the RFC shape (pose
-    {position[3], orientation[4]}; vec3; zmp vec2). A manifest declaring
-    derived_pending_validation while the frame is missing/null/malformed
-    is a status/value mismatch and FAILS. Option-B fields must be PRESENT
-    and null while the wrench frame/reference is UNKNOWN."""
+    Option-A fields: present, non-null, shape per the NORMATIVE spec
+    (R14/B1: shapes come from Appendix D, not checker hardcoding).
+    Option-B fields: present and null while the wrench frame/reference is
+    UNKNOWN."""
+    schema = _schema_or_default(schema)
+    sem = schema['status_semantics']
+    if composition_status is None:
+        composition_status = sem['composition_status']
+    if wrench_frame_status is None:
+        wrench_frame_status = sem['wrench_frame_status']
     errors = []
     if not isinstance(frame, dict):
         return {
             'ok': False,
-            'check': 'R13-A frame emission (Option-A schema + Option-B '
-                     'nulls)',
-            'errors': ['frame artifact is not a JSON object'],
+            'check': 'R13-A/R14 frame emission (Option-A schema + '
+                     'Option-B nulls)',
+            'errors': ['frame record is not a JSON object'],
         }
-    for f, shape in sorted(OPTION_A_FIELD_SHAPES.items()):
+    for spec in schema['frame_fields']['option_a']['fields']:
+        f = spec['name']
         if f not in frame:
             errors.append(
                 '%s: Option-A field missing from the frame — the manifest '
@@ -739,9 +789,9 @@ def check_frame_emission(frame, manifest=None,
                 '%s: Option-A value is null — Option A retains the value '
                 'while composition_status is UNVERIFIED (R13-A)' % f)
             continue
-        errors.extend(_shape_errors(v, shape, '%s (Option-A)' % f))
-    if wrench_frame_status == WRENCH_FRAME_STATUS_UNKNOWN:
-        for f in WRENCH_FRAME_DEPENDENT_FIELDS:
+        errors.extend(_spec_shape_errors(v, spec, '%s (Option-A)' % f))
+    if wrench_frame_status == sem['wrench_frame_status']:
+        for f in _group_fields(schema, 'option_b'):
             if f not in frame:
                 errors.append(
                     '%s: not emitted — Option-B field must be PRESENT and '
@@ -755,23 +805,25 @@ def check_frame_emission(frame, manifest=None,
     if manifest is not None:
         prop = check_pending_propagation(
             manifest, composition_status=composition_status,
-            wrench_frame_status=wrench_frame_status)
+            wrench_frame_status=wrench_frame_status, schema=schema)
         if prop['ok'] is not True:
             errors.extend(prop['errors'])
     return {
         'ok': not errors,
-        'check': 'R13-A frame emission (Option-A presence/type/shape + '
-                 'Option-B nulls; composition_status=%s, wrench_frame=%s)'
+        'check': 'R13-A/R14 frame emission (Option-A presence/type/shape '
+                 'from Appendix D + Option-B nulls; composition_status=%s, '
+                 'wrench_frame=%s)'
                  % (composition_status, wrench_frame_status),
         'errors': errors,
     }
 
 
 # ---------------------------------------------------------------------------
-# R12-D/R13-C: raw storage structural contract (nested, fail-closed)
+# R12-D/R13-C/R14: raw storage structural contract (schema-driven)
 # ---------------------------------------------------------------------------
 
-def _validate_contacts_record(rec, idx, stream, errors):
+def _validate_contacts_record(rec, idx, stream, errors, schema):
+    struct = schema['raw_structures']['contacts']
     contacts = rec.get('contacts')
     if not isinstance(contacts, list):
         errors.append('raw_records[%d] (%s): contacts must be a list (an '
@@ -793,30 +845,40 @@ def _validate_contacts_record(rec, idx, stream, errors):
             errors.append('%s: contact entry must be an object (R13-C)'
                           % label)
             continue
+        for key in struct['contact_required_keys']:
+            if key not in contact:
+                errors.append('%s.%s missing (required raw-retention key, '
+                              'R14/B3 — RFC § 3.6.1)' % (label, key))
         for key in ('collision1', 'collision2'):
             v = contact.get(key)
-            if not isinstance(v, str) or not v.strip():
+            if key in contact and (not isinstance(v, str) or not v.strip()):
                 errors.append('%s.%s must be a non-empty string (collision '
                               'identity, RFC § 3.6.1)' % (label, key))
+        header = contact.get('header')
+        if 'header' in contact and not isinstance(header, dict):
+            errors.append('%s.header must be an object (per-contact header '
+                          'verbatim, RFC § 3.6.1)' % label)
         arrays = {}
         for key in ('position', 'normal'):
             arr = contact.get(key)
             arrays[key] = arr
-            if not isinstance(arr, list) or not arr:
-                errors.append('%s.%s must be a non-empty list of contact '
-                              'points (RFC § 3.6.1)' % (label, key))
-                continue
-            for k, pt in enumerate(arr):
-                errors.extend(_vec_errors(pt, 3, '%s.%s[%d]'
-                                          % (label, key, k)))
+            if key in contact:
+                if not isinstance(arr, list) or not arr:
+                    errors.append('%s.%s must be a non-empty list of '
+                                  'contact points (RFC § 3.6.1)'
+                                  % (label, key))
+                    continue
+                for k, pt in enumerate(arr):
+                    errors.extend(_vec_errors(pt, 3, '%s.%s[%d]'
+                                              % (label, key, k)))
         depths = contact.get('depth')
-        if not isinstance(depths, list) or not depths \
-                or not all(_is_finite_number(d) for d in depths):
-            errors.append('%s.depth must be a non-empty list of finite '
-                          'numbers (RFC § 3.6.1)' % label)
-            arrays['depth'] = None
-        else:
-            arrays['depth'] = depths
+        arrays['depth'] = depths
+        if 'depth' in contact:
+            if not isinstance(depths, list) or not depths \
+                    or not all(_is_finite_number(d) for d in depths):
+                errors.append('%s.depth must be a non-empty list of finite '
+                              'numbers (RFC § 3.6.1)' % label)
+                arrays['depth'] = None
         if all(isinstance(arrays.get(k), list) and arrays[k]
                for k in ('position', 'normal', 'depth')):
             if not (len(arrays['position']) == len(arrays['normal'])
@@ -824,41 +886,52 @@ def _validate_contacts_record(rec, idx, stream, errors):
                 errors.append('%s: position/normal/depth per-contact-point '
                               'array lengths differ (R13-C shape)' % label)
         wrenches = contact.get('wrenches')
-        if not isinstance(wrenches, list) or not wrenches:
-            errors.append('%s.wrenches must be a non-empty list of '
-                          'JointWrench objects (RFC § 3.6.1)' % label)
-            continue
-        for k, w in enumerate(wrenches):
-            wlabel = '%s.wrenches[%d]' % (label, k)
-            if not isinstance(w, dict):
-                errors.append('%s: must be an object, not %r (a '
-                              '"not-a-wrench" entry is rejected, R13-C)'
-                              % (wlabel, w))
+        if 'wrenches' in contact:
+            if not isinstance(wrenches, list) or not wrenches:
+                errors.append('%s.wrenches must be a non-empty list of '
+                              'JointWrench objects (RFC § 3.6.1)' % label)
                 continue
-            for key in ('body_1_name', 'body_2_name'):
-                if key not in w:
-                    errors.append('%s.%s missing (body identity, RFC '
-                                  '§ 3.6.1; verbatim — an empty string is '
-                                  'a valid measured value)' % (wlabel, key))
-                elif not isinstance(w[key], str):
-                    errors.append('%s.%s must be a string' % (wlabel, key))
-            for side in ('body_1_wrench', 'body_2_wrench'):
-                wr = w.get(side)
-                if not isinstance(wr, dict):
-                    errors.append('%s.%s missing or not an object (both '
-                                  'body sides are mandatory, RFC § 3.6.1)'
-                                  % (wlabel, side))
+            for k, w in enumerate(wrenches):
+                wlabel = '%s.wrenches[%d]' % (label, k)
+                if not isinstance(w, dict):
+                    errors.append('%s: must be an object, not %r (a '
+                                  '"not-a-wrench" entry is rejected, R13-C)'
+                                  % (wlabel, w))
                     continue
-                for key in ('force', 'torque', 'force_offset'):
-                    if key not in wr:
-                        errors.append('%s.%s.%s missing (RFC § 3.6.1)'
-                                      % (wlabel, side, key))
-                    else:
-                        errors.extend(_vec_errors(
-                            wr[key], 3, '%s.%s.%s' % (wlabel, side, key)))
+                for key in struct['wrench_required_keys']:
+                    if key not in w:
+                        errors.append('%s.%s missing (required JointWrench '
+                                      'member, R14/B3 — RFC § 3.6.1)'
+                                      % (wlabel, key))
+                for key in ('body_1_name', 'body_2_name'):
+                    if key in w and not isinstance(w[key], str):
+                        errors.append('%s.%s must be a string (verbatim — '
+                                      'an empty string is a valid measured '
+                                      'value)' % (wlabel, key))
+                for key in ('body_1_id', 'body_2_id'):
+                    if key in w and not _is_int_not_bool(w[key]):
+                        errors.append('%s.%s must be an integer (entity id)'
+                                      % (wlabel, key))
+                for side in ('body_1_wrench', 'body_2_wrench'):
+                    wr = w.get(side)
+                    if not isinstance(wr, dict):
+                        if side in w:
+                            errors.append('%s.%s must be an object (both '
+                                          'body sides, RFC § 3.6.1)'
+                                          % (wlabel, side))
+                        continue
+                    for key in struct['wrench_member_required_keys']:
+                        if key not in wr:
+                            errors.append('%s.%s.%s missing (R14/B3 — RFC '
+                                          '§ 3.6.1)' % (wlabel, side, key))
+                        else:
+                            errors.extend(_vec_errors(
+                                wr[key], 3, '%s.%s.%s' % (wlabel, side,
+                                                          key)))
 
 
-def _validate_pose_record(rec, idx, stream, errors):
+def _validate_pose_record(rec, idx, stream, errors, schema):
+    struct = schema['raw_structures']['pose_info']
     entries = rec.get('entries')
     if not isinstance(entries, list) or not entries:
         errors.append('raw_records[%d] (%s): entries must be a non-empty '
@@ -870,13 +943,16 @@ def _validate_pose_record(rec, idx, stream, errors):
             errors.append('%s: pose entry must be an object (a '
                           '"not-a-pose-entry" is rejected, R13-C)' % label)
             continue
+        for key in struct['entry_required_keys']:
+            if key not in ent:
+                errors.append('%s.%s missing (required raw pose key, '
+                              'R14/B3 — raw pose events retain the verbatim '
+                              'Pose_V entry)' % (label, key))
         name = ent.get('name')
-        if not isinstance(name, str) or not name.strip():
+        if 'name' in ent and (not isinstance(name, str) or not name.strip()):
             errors.append('%s.name must be a non-empty string (entry '
                           'identity)' % label)
-        if 'position' not in ent:
-            errors.append('%s.position missing (pose fields)' % label)
-        else:
+        if 'position' in ent:
             errors.extend(_vec_errors(ent['position'], 3,
                                       label + '.position'))
         if 'orientation' in ent:
@@ -886,16 +962,17 @@ def _validate_pose_record(rec, idx, stream, errors):
             errors.append('%s.id must be an integer' % label)
 
 
-def _validate_joint_command_record(rec, idx, stream, errors):
+def _validate_joint_command_record(rec, idx, stream, errors, schema):
     label = 'raw_records[%d] (%s)' % (idx, stream)
     cmd = rec.get('command')
     if not isinstance(cmd, list):
         errors.append('%s.command must be a list (R13-C)' % label)
         return
-    if len(cmd) != COMMAND_VECTOR_DIM:
+    dim = schema['raw_structures']['joint_command']['command_length']
+    if len(cmd) != dim:
         errors.append('%s.command must have exactly %d elements (got %d) '
-                      '— the NAO command vector is float[24] (RFC § 3.9)'
-                      % (label, COMMAND_VECTOR_DIM, len(cmd)))
+                      '— the NAO command vector is float[%d] (RFC § 3.9 / '
+                      'Appendix D)' % (label, dim, len(cmd), dim))
         return
     for j, v in enumerate(cmd):
         if not _is_finite_number(v):
@@ -904,7 +981,7 @@ def _validate_joint_command_record(rec, idx, stream, errors):
             break
 
 
-def _validate_joint_states_record(rec, idx, stream, errors):
+def _validate_joint_states_record(rec, idx, stream, errors, schema):
     label = 'raw_records[%d] (%s)' % (idx, stream)
     names = rec.get('name')
     if not isinstance(names, list) or not names \
@@ -924,7 +1001,7 @@ def _validate_joint_states_record(rec, idx, stream, errors):
                               % (label, key, len(arr), len(names)))
 
 
-def _validate_body_pose_record(rec, idx, stream, errors):
+def _validate_body_pose_record(rec, idx, stream, errors, schema):
     label = 'raw_records[%d] (%s)' % (idx, stream)
     if 'position' not in rec:
         errors.append('%s.position missing' % label)
@@ -935,71 +1012,74 @@ def _validate_body_pose_record(rec, idx, stream, errors):
                                   label + '.orientation'))
 
 
-_RAW_RECORD_VALIDATORS = {
-    'contacts_left': _validate_contacts_record,
-    'contacts_right': _validate_contacts_record,
-    'pose_info': _validate_pose_record,
-    'joint_command': _validate_joint_command_record,
-    'joint_states': _validate_joint_states_record,
-    'body_pose': _validate_body_pose_record,
-}
-
-
-def check_raw_storage(raw_records, composition_status=COMPOSITION_STATUS_UNVERIFIED,
-                      required_categories=REQUIRED_RAW_CATEGORIES):
-    """R12-D + R13-C: raw records must belong to a KNOWN raw stream category,
-    carry the category's required keys, and satisfy the RFC/Contract nested
-    retention structure (per-contact collision identity + contact-point
-    arrays + both-side JointWrenches with force/torque/force_offset; pose
-    entries with name+position; 24-vector command). Arbitrary unrelated
-    JSON objects, "not-a-wrench"/"not-a-pose-entry" entries, and missing
-    required streams FAIL. Unknown/optional native keys are preserved
-    (lossless retention, R13 § 15) and never rejected. Structural validity
-    only — no physics sanity checks (R13 § 14)."""
+def check_raw_storage(raw_records, composition_status=None,
+                      required_categories=None, schema=None):
+    """R12-D + R13-C + R14/B3: raw records must belong to a KNOWN raw
+    stream category (from Appendix D), carry the structure's required keys,
+    and satisfy the nested retention structure. Required-ness comes from
+    the normative block (Contact header, body ids, JointWrench members,
+    raw pose orientation, ...); unknown/optional native keys are preserved
+    and never rejected (lossless retention). Structural validity only —
+    no physics sanity checks."""
+    schema = _schema_or_default(schema)
+    sem = schema['status_semantics']
+    if composition_status is None:
+        composition_status = sem['composition_status']
+    if required_categories is None:
+        required_categories = tuple(schema['required_raw_categories'])
     errors = []
     if not isinstance(raw_records, list):
         return {
             'ok': False,
-            'check': 'R12-D/R13-C raw storage structural contract',
+            'check': 'R12-D/R13-C/R14 raw storage structural contract',
             'n_records': 0,
             'errors': ['raw artifact is not a JSON array'],
             'present_categories': [],
         }
     present = set()
+    validators = {
+        'contacts': _validate_contacts_record,
+        'pose_info': _validate_pose_record,
+        'joint_command': _validate_joint_command_record,
+        'joint_states': _validate_joint_states_record,
+        'body_pose': _validate_body_pose_record,
+    }
     for i, rec in enumerate(raw_records):
         if not isinstance(rec, dict):
             errors.append('raw_records[%d]: not an object' % i)
             continue
         stream = rec.get('stream')
-        if stream not in RAW_STREAM_STRUCT:
+        if stream not in schema['raw_categories']:
             errors.append(
                 'raw_records[%d]: unknown raw stream category %r — known '
                 'categories: %s (arbitrary unrelated records are NOT raw '
-                'storage, R12-D)' % (i, stream,
-                                     ', '.join(sorted(RAW_STREAM_STRUCT))))
+                'storage, R12-D)' % (i, stream, ', '.join(sorted(
+                    schema['raw_categories']))))
             continue
         present.add(stream)
-        for key in RAW_STREAM_STRUCT[stream]:
+        struct_name = schema['raw_categories'][stream]
+        struct = schema['raw_structures'][struct_name]
+        for key in struct['required_record_keys']:
             if key not in rec:
                 errors.append('raw_records[%d] (%s): required key %r '
-                              'missing (R12-D structural contract)'
+                              'missing (R12-D/R14 structural contract)'
                               % (i, stream, key))
         stamp = rec.get('stamp_s')
         if not _is_finite_number(stamp):
             errors.append('raw_records[%d] (%s): stamp_s %r is not a finite '
                           'number' % (i, stream, stamp))
-        validator = _RAW_RECORD_VALIDATORS.get(stream)
+        validator = validators.get(struct_name)
         if validator is not None:
-            validator(rec, i, stream, errors)
+            validator(rec, i, stream, errors, schema)
     for category in required_categories:
         if category not in present:
             errors.append('required raw stream category %r missing from the '
                           'raw artifact (R12-D)' % category)
     return {
         'ok': not errors,
-        'check': 'R12-D/R13-C raw storage structural contract '
+        'check': 'R12-D/R13-C/R14 raw storage structural contract '
                  '(composition_status=%s; raw data unaffected per R11-A; '
-                 'structural validity only, no physics checks)'
+                 'requiredness from Appendix D; structural validity only)'
                  % composition_status,
         'n_records': len(raw_records),
         'present_categories': sorted(present),
@@ -1009,7 +1089,7 @@ def check_raw_storage(raw_records, composition_status=COMPOSITION_STATUS_UNVERIF
 
 
 # ---------------------------------------------------------------------------
-# R12-A/R13: the smoke path (actual artifacts -> all checks -> PASS/FAIL)
+# R12-A/R14: the smoke path (actual artifacts -> all checks -> PASS/FAIL)
 # ---------------------------------------------------------------------------
 
 def load_json_artifact(path, label):
@@ -1029,18 +1109,103 @@ def load_json_artifact(path, label):
                       % (label, path, type(exc).__name__, exc)]
 
 
+def check_frame_artifact(frames, provenance, manifest=None, schema=None,
+                          composition_status=None,
+                          wrench_frame_status=None):
+    """R14/B4: the frame artifact is an ARRAY of frame records. Every
+    record passes the R13-A/R14 emission check, and the provenance
+    `frame_count` must equal the ACTUAL record count (an empty episode
+    `frame_count=0` + `frames=[]` is valid — frame_count is never forced
+    > 0). The count rule is read from the normative block."""
+    schema = _schema_or_default(schema)
+    errors = []
+    if not isinstance(frames, list):
+        return {
+            'ok': False,
+            'check': 'R14/B4 frame artifact (array of frames + count '
+                     'consistency)',
+            'errors': ['frame artifact must be a JSON ARRAY of frame '
+                       'records (R14/B4), got %s'
+                       % type(frames).__name__],
+        }
+    field_status = manifest if isinstance(manifest, dict) else None
+    for i, frame in enumerate(frames):
+        rep = check_frame_emission(
+            frame, manifest=field_status, schema=schema,
+            composition_status=composition_status,
+            wrench_frame_status=wrench_frame_status)
+        for err in rep['errors']:
+            errors.append('frame[%d]: %s' % (i, err))
+    count_rule = schema.get('frame_artifact', {}).get('count_must_equal')
+    if count_rule == 'frame_count':
+        fc = provenance.get('frame_count') \
+            if isinstance(provenance, dict) else None
+        if not _is_int_not_bool(fc):
+            errors.append('frame_count not available/valid in the '
+                          'provenance artifact for the R14/B4 consistency '
+                          'check (the provenance check reports details)')
+        elif len(frames) != fc:
+            errors.append('frame_count %d != actual frame record count %d '
+                          '(R14/B4 artifact consistency)' % (fc, len(frames)))
+    return {
+        'ok': not errors,
+        'check': 'R14/B4 frame artifact (array of frames; each frame per '
+                 'R13-A/R14 emission rules; frame_count == record count '
+                 'per Appendix D; empty episode allowed)',
+        'n_frames': len(frames),
+        'errors': errors,
+    }
+
+
 def run_smoke(rfc_path=RFC_PATH, contract_path=CONTRACT_PATH,
               manifest_path=None, provenance_path=None, frame_path=None,
               raw_path=None):
-    """R12-A/R13: the single fail-closed smoke validation path.
+    """R12-A/R13/R14: the single fail-closed smoke validation path.
 
-    Chain: field-set binding -> semantic binding (R13-B) -> raw-category
-    binding -> provenance completeness/type/range (R13-D) -> status
-    manifest (R12-B) -> frame emission (R13-A Option-A schema + Option-B
-    nulls) -> raw storage nested structure (R13-C) -> overall PASS/FAIL.
-    Any failure (or any missing artifact) => ok=False; the caller exits
-    non-zero."""
+    Chain: normative schema load (from the given RFC) -> bindings (prose
+    names + block equality) -> raw-category binding -> provenance ->
+    status manifest -> frame artifact (array + count consistency) -> raw
+    storage. Any failure (or any missing artifact/schema) => ok=False;
+    the caller exits non-zero. If the normative schema cannot be loaded
+    from the given RFC, every schema-driven check FAILS (fail-closed —
+    never a silent fallback to the default schema)."""
     checks = {}
+    schema, schema_errs = load_normative_schema(rfc_path)
+    if schema is None:
+        checks['normative_schema'] = {
+            'ok': False,
+            'check': 'R14 normative schema load (RFC Appendix D)',
+            'errors': schema_errs,
+        }
+        unavailable = ['normative schema unavailable from %r — fail-closed '
+                       '(R14); no checks may silently pass' % rfc_path]
+        for name in ('provenance_binding', 'raw_category_binding',
+                     'provenance', 'status_manifest', 'frame_emission',
+                     'raw_storage'):
+            checks[name] = {'ok': False,
+                            'check': name + ' (schema unavailable)',
+                            'errors': list(unavailable)}
+        failed = [name for name, rep in checks.items()
+                  if rep.get('ok') is not True]
+        return {
+            'smoke': {
+                'ok': False,
+                'mode': 'R12-A/R13/R14 fail-closed smoke over actual '
+                        'artifacts',
+                'inputs': {'rfc': rfc_path, 'contract': contract_path,
+                           'manifest': manifest_path,
+                           'provenance': provenance_path,
+                           'frame': frame_path, 'raw': raw_path},
+                'chain': ['normative_schema (RFC Appendix D load)'],
+                'checks': checks,
+                'failed_checks': failed,
+            },
+        }
+    checks['normative_schema'] = {
+        'ok': True,
+        'check': 'R14 normative schema load (RFC Appendix D)',
+        'schema_version': schema.get('schema_version'),
+    }
     load_errors = []
 
     checks['provenance_binding'] = check_provenance_binding(
@@ -1054,7 +1219,8 @@ def run_smoke(rfc_path=RFC_PATH, contract_path=CONTRACT_PATH,
                                      'R12-B status manifest artifact',
                                      'errors': errs}
     else:
-        checks['status_manifest'] = check_status_manifest(manifest)
+        checks['status_manifest'] = check_status_manifest(manifest,
+                                                           schema=schema)
 
     provenance, errs = load_json_artifact(provenance_path, 'provenance')
     if errs:
@@ -1063,59 +1229,52 @@ def run_smoke(rfc_path=RFC_PATH, contract_path=CONTRACT_PATH,
                                 'R11-B provenance completeness', 'errors':
                                 errs}
     else:
-        checks['provenance'] = check_provenance(provenance)
+        checks['provenance'] = check_provenance(provenance, schema=schema)
 
     frame, errs = load_json_artifact(frame_path, 'frame')
     if errs:
         load_errors.extend(errs)
         checks['frame_emission'] = {'ok': False, 'check':
-                                    'R13-A frame emission', 'errors': errs}
+                                    'R13-A/R14 frame artifact', 'errors':
+                                    errs}
     else:
         field_status = {}
         if isinstance(manifest, dict) \
                 and isinstance(manifest.get('field_status'), dict):
             field_status = manifest['field_status']
-        comp = manifest.get('composition_status') \
-            if isinstance(manifest, dict) else None
-        wfs = manifest.get('wrench_frame_status') \
-            if isinstance(manifest, dict) else None
-        checks['frame_emission'] = check_frame_emission(
-            frame, manifest=field_status,
-            composition_status=comp if comp is not None
-            else COMPOSITION_STATUS_UNVERIFIED,
-            wrench_frame_status=wfs if wfs is not None
-            else WRENCH_FRAME_STATUS_UNKNOWN)
+        checks['frame_emission'] = check_frame_artifact(
+            frame, provenance, manifest=field_status, schema=schema)
 
     raw, errs = load_json_artifact(raw_path, 'raw')
     if errs:
         load_errors.extend(errs)
         checks['raw_storage'] = {'ok': False, 'check':
-                                 'R12-D/R13-C raw storage structural '
+                                 'R12-D/R13-C/R14 raw storage structural '
                                  'contract', 'errors': errs}
     else:
-        checks['raw_storage'] = check_raw_storage(raw)
+        checks['raw_storage'] = check_raw_storage(raw, schema=schema)
 
     failed_checks = [name for name, rep in checks.items()
                      if rep.get('ok') is not True]
     return {
         'smoke': {
             'ok': not failed_checks and not load_errors,
-            'mode': 'R12-A/R13 fail-closed smoke over actual artifacts',
+            'mode': 'R12-A/R13/R14 fail-closed smoke over actual artifacts',
             'inputs': {
                 'rfc': rfc_path, 'contract': contract_path,
                 'manifest': manifest_path, 'provenance': provenance_path,
                 'frame': frame_path, 'raw': raw_path,
             },
-            'chain': ['provenance_binding (RFC § 3.10 == Contract § 8 == '
-                      'checker, field set)',
-                      'semantic_binding (R13-B: nullable/type/optional '
-                      'markers, both documents)',
+            'chain': ['normative_schema (RFC Appendix D load)',
+                      'provenance_binding (prose names + RFC block == '
+                      'Contract block, R14)',
                       'raw_category_binding (Contract § 6 tokens)',
-                      'provenance completeness + type/range (R13-D)',
-                      'status manifest (R11-A/R12-B allowlists)',
-                      'frame emission (R13-A Option-A schema + Option-B '
-                      'nulls)',
-                      'raw storage nested structure (R13-C)'],
+                      'provenance completeness + type/range (schema-driven)',
+                      'status manifest (schema-driven allowlists)',
+                      'frame artifact (array; per-frame Option-A schema; '
+                      'frame_count == record count, R14/B4)',
+                      'raw storage nested structure (requiredness from '
+                      'Appendix D, R14/B3)'],
             'checks': checks,
             'failed_checks': failed_checks,
         },
@@ -1125,53 +1284,59 @@ def run_smoke(rfc_path=RFC_PATH, contract_path=CONTRACT_PATH,
 def main(argv=None):
     parser = argparse.ArgumentParser(
         description='Stage 1 fail-closed contract enforcement checker '
-                    '(R11 + R12 + R13). Modes: --smoke is THE artifact '
-                    'enforcement entry point (actual RFC + actual Collector '
-                    'Contract + actual artifacts -> single fail-closed '
-                    'chain -> exit 0 only on PASS; the acquisition workflow '
-                    'MUST use --smoke). The default mode (no --smoke) is '
-                    'INFORMATIONAL ONLY — document bindings and status '
-                    'maps; it is NOT artifact enforcement.',
+                    '(R11-R14). Modes: --smoke is THE artifact enforcement '
+                    'entry point (actual RFC + actual Collector Contract + '
+                    'actual artifacts -> single fail-closed chain -> exit 0 '
+                    'only on PASS; the acquisition workflow MUST use '
+                    '--smoke). The default mode (no --smoke) is '
+                    'INFORMATIONAL ONLY — document bindings and the '
+                    'normative-schema-derived status maps; it is NOT '
+                    'artifact enforcement.',
         epilog='Acquisition workflow note: only a --smoke PASS (exit 0) '
                'constitutes contract enforcement; the informational mode '
-               'never validates artifacts.')
+               'never validates artifacts. The frame artifact is a JSON '
+               'array of frame records; frame_count must equal the record '
+               'count (R14/B4).')
     parser.add_argument('--smoke', action='store_true',
-                        help='R12-A/R13: run the full fail-closed smoke '
-                             'chain over actual artifacts; exit 0 only on '
-                             'PASS. THE enforcement entry point.')
+                        help='R12-A/R13/R14: run the full fail-closed '
+                             'smoke chain over actual artifacts; exit 0 '
+                             'only on PASS. THE enforcement entry point.')
     parser.add_argument('--rfc', default=RFC_PATH,
                         help='path to STAGE1_DYNAMICS_DATASET_RFC.md '
-                             '(default: the repository RFC)')
+                             '(default: the repository RFC; the normative '
+                             'schema is loaded from its Appendix D)')
     parser.add_argument('--contract', default=CONTRACT_PATH,
                         help='path to STAGE1_COLLECTOR_CONTRACT.md '
-                             '(default: the repository contract)')
+                             '(default: the repository contract; its § 8.4 '
+                             'block must equal the RFC block)')
     parser.add_argument('--manifest', default=None,
                         help='status manifest artifact JSON (required for '
                              '--smoke): {composition_status, '
                              'wrench_frame_status, field_status}')
     parser.add_argument('--provenance', default=None,
                         help='episode provenance artifact JSON (required '
-                             'for --smoke): every RFC § 3.10 field')
+                             'for --smoke): every normative provenance '
+                             'field; frame_count must equal the frame '
+                             'artifact record count (R14/B4)')
     parser.add_argument('--frame', default=None,
-                        help='sample frame artifact JSON (required for '
-                             '--smoke): every Option-A field present with '
-                             'its RFC shape; Option-B fields present and '
-                             'null')
+                        help='frame artifact JSON (required for --smoke): '
+                             'a JSON ARRAY of frame records, each with '
+                             'every Option-A field present in its '
+                             'Appendix-D shape and Option-B fields present '
+                             'and null')
     parser.add_argument('--raw', default=None,
                         help='raw records artifact JSON (required for '
                              '--smoke): [{stream, stamp_s, ...}, ...] with '
-                             'RFC-shaped nested payloads')
+                             'the Appendix-D nested retention structure')
     parser.add_argument('--check-rfc-binding', action='store_true',
-                        help='informational: verify MANDATORY_PROVENANCE_'
-                             'FIELDS equals the RFC § 3.10 table')
+                        help='informational: RFC § 3.10 prose names == RFC '
+                             'Appendix D provenance names')
     parser.add_argument('--check-contract-binding', action='store_true',
-                        help='informational: verify MANDATORY_PROVENANCE_'
-                             'FIELDS equals the Collector Contract § 8 '
-                             'table')
+                        help='informational: Contract § 8 prose names == '
+                             'Contract § 8.4 block names')
     parser.add_argument('--check-semantic-binding', action='store_true',
-                        help='informational: verify the RFC § 3.10 <-> '
-                             'Contract § 8 semantic markers (R13-B: '
-                             'nullable/type/optional)')
+                        help='informational: RFC Appendix D block == '
+                             'Contract § 8.4 block (R14 canonical equality)')
     parser.add_argument('--json', action='store_true',
                         help='emit machine-readable JSON (default output '
                              'is JSON)')
@@ -1204,6 +1369,11 @@ def main(argv=None):
         binding_failed = binding_failed or not out[
             'provenance_binding']['ok']
     out['mode'] = 'informational (NOT artifact enforcement — use --smoke)'
+    out['normative_schema'] = {
+        'source': RFC_PATH + ' Appendix D',
+        'schema_version': _SCHEMA.get('schema_version'),
+        'load_errors': _SCHEMA_ERRORS,
+    }
     out['status_maps'] = {
         'measured': list(MEASURED_FIELDS),
         'ordinary_derived': list(ORDINARY_DERIVED_FIELDS),
@@ -1211,8 +1381,10 @@ def main(argv=None):
             COMPOSITION_DEPENDENT_FIELDS),
         'wrench_frame_dependent_null_blocked': list(
             WRENCH_FRAME_DEPENDENT_FIELDS),
+        'option_a_field_specs': {
+            f['name']: {k: v for k, v in f.items() if k != 'name'}
+            for f in _SCHEMA['frame_fields']['option_a']['fields']},
         'wrench_blocked_statuses': list(WRENCH_BLOCKED_STATUSES),
-        'option_a_field_shapes': dict(OPTION_A_FIELD_SHAPES),
         'required_raw_categories': list(REQUIRED_RAW_CATEGORIES),
         'command_vector_dim': COMMAND_VECTOR_DIM,
         'composition_status': COMPOSITION_STATUS_UNVERIFIED,
