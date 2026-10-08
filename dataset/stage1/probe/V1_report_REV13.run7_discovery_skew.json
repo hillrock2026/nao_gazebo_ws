@@ -1,0 +1,1532 @@
+{
+  "schema_version": "stage1-probe/1.3",
+  "probe": "V-1",
+  "wallclock_utc": "2026-10-08T05:36:09.920733+00:00",
+  "argv": [
+    "tools/stage1_probe.py",
+    "--probe",
+    "both",
+    "--duration",
+    "20.0",
+    "--warmup-sec",
+    "30.0",
+    "--ros-domain-id",
+    "88",
+    "--gz-partition",
+    "stage1probe7",
+    "--report-suffix",
+    "REV13"
+  ],
+  "environment": {
+    "wallclock_utc": "2026-10-08T05:35:44.054439+00:00",
+    "python_version": "3.12.3",
+    "ROS_DISTRO": "jazzy",
+    "RMW_IMPLEMENTATION": null,
+    "ROS_DOMAIN_ID": {
+      "effective": "88",
+      "cli": "88"
+    },
+    "GZ_PARTITION": {
+      "effective": "stage1probe7",
+      "cli": "stage1probe7"
+    }
+  },
+  "provenance": {
+    "git_commit": "fe606f2c2cd4e5eb71ca6bdc3deef1424fcfb0bc",
+    "rfc": {
+      "path": "/home/liu/workspace/Nao_Program/nao_gazebo_ws/docs/STAGE1_DYNAMICS_DATASET_RFC.md",
+      "sha256": "037d6ff5d0aa92d8ad42dd1b7cff52107f37d272dba0d038f37ac4eab88d94c7"
+    },
+    "sdf": {
+      "path": "/home/liu/workspace/Nao_Program/nao_gazebo_ws/src/nao/nao_description/urdf/nao_simple.sdf",
+      "sha256": "44ed828509db9e869bfa701b491233862dcd1448183bb2ec0a1c3b497aa46400"
+    },
+    "sdf_mass": {
+      "sdf_path": "/home/liu/workspace/Nao_Program/nao_gazebo_ws/src/nao/nao_description/urdf/nao_simple.sdf",
+      "n_mass_elements": 25,
+      "total_mass_kg": 5.305366,
+      "m_g_newtons": [
+        51.9926,
+        52.0456
+      ]
+    },
+    "mode": {
+      "read_only": true,
+      "level": "Level 1 preparation instrumentation (RFC \u00a7 0.0)",
+      "published_topics": [],
+      "frozen_components_modified": "none",
+      "outputs": "dataset/stage1/probe/V1_report[_suffix].json, V2_report[_suffix].json (--report-suffix)"
+    }
+  },
+  "config": {
+    "probe": "both",
+    "duration_s": 20.0,
+    "warmup_sec": 30.0,
+    "contact_window_sec": 0.05,
+    "pose_window_sec": 0.02,
+    "max_samples": 2,
+    "report_suffix": "REV13",
+    "ros_qos": "BEST_EFFORT / KEEP_LAST(50) / VOLATILE",
+    "gz_transport": "gz-transport native subscribe (default QoS)"
+  },
+  "config_sha256": "b1847e153c5f4d06c7dd91f0000738777153638354ee3013330c94589898e621",
+  "measurement": {
+    "streams": {
+      "gz_left": {
+        "transport": "gz",
+        "topic": "/nao/left_foot_contact_raw",
+        "subscribe_ok": true,
+        "first_msg_after_s": 0.49,
+        "wall_span_s": 24.647,
+        "n_messages": 2582,
+        "n_valid_stamp": 2582,
+        "empty_after_warmup": false
+      },
+      "gz_right": {
+        "transport": "gz",
+        "topic": "/nao/right_foot_contact_raw",
+        "subscribe_ok": true,
+        "first_msg_after_s": 1.165,
+        "wall_span_s": 24.526,
+        "n_messages": 2632,
+        "n_valid_stamp": 2632,
+        "empty_after_warmup": false
+      },
+      "ros_left": {
+        "transport": "ros",
+        "topic": "/nao/left_foot_contact_raw",
+        "subscribe_ok": true,
+        "first_msg_after_s": 4.556,
+        "wall_span_s": 20.582,
+        "n_messages": 2285,
+        "n_valid_stamp": 2285,
+        "empty_after_warmup": false
+      },
+      "ros_right": {
+        "transport": "ros",
+        "topic": "/nao/right_foot_contact_raw",
+        "subscribe_ok": true,
+        "first_msg_after_s": 5.379,
+        "wall_span_s": 20.313,
+        "n_messages": 2516,
+        "n_valid_stamp": 2516,
+        "empty_after_warmup": false
+      },
+      "joint_states": {
+        "transport": "ros",
+        "topic": "/joint_states",
+        "subscribe_ok": true,
+        "first_msg_after_s": 4.493,
+        "wall_span_s": 21.197,
+        "n_messages": 1955,
+        "n_valid_stamp": 1955,
+        "empty_after_warmup": false
+      }
+    },
+    "session_errors": [],
+    "callback_errors": []
+  },
+  "analysis": {
+    "criteria": [
+      {
+        "id": "contact_publication_events",
+        "title": "Event-aware contact publication validation (REV1.3/R6, replaces the absolute effective-frequency band): active_contact_event_rate, median / p95 / max event dt within bursts, burst duration, silence interval counts \u2014 only intervals containing contact messages are evaluated; silence intervals are not cadence failures (silence semantics remain UNKNOWN_NO_MESSAGE)",
+        "blocking": true,
+        "status": "confirmed",
+        "evidence": {
+          "/nao/left_foot_contact_raw": {
+            "gz_n_messages": 2582,
+            "ros_n_messages": 2285,
+            "native_path_canonical": true,
+            "event_publication": {
+              "gap_threshold_s": 0.05,
+              "n_messages": 2582,
+              "n_bursts": 26,
+              "burst_duration_s": {
+                "min": 0.0,
+                "median": 0.1525,
+                "p95": 0.243,
+                "max": 0.244
+              },
+              "silence_intervals": {
+                "n": 25,
+                "total_s": 19.149,
+                "max_s": 1.114
+              },
+              "n_event_dt_samples": 2556,
+              "median_event_dt_s": 0.001,
+              "p95_event_dt_s": 0.003,
+              "max_event_dt_s": 0.046,
+              "active_contact_event_rate_hz": 718.020022,
+              "semantics": "event-aware (REV1.3/R6): only intervals containing contact messages are evaluated; silence intervals are not cadence failures; silence frames remain UNKNOWN_NO_MESSAGE (REV1.3/R7)"
+            },
+            "gz_sim_span_s": 22.745,
+            "gz_wall_span_s": 24.647,
+            "gz_sim_over_wall_rate": 0.92283
+          },
+          "/nao/right_foot_contact_raw": {
+            "gz_n_messages": 2632,
+            "ros_n_messages": 2516,
+            "native_path_canonical": true,
+            "event_publication": {
+              "gap_threshold_s": 0.05,
+              "n_messages": 2632,
+              "n_bursts": 22,
+              "burst_duration_s": {
+                "min": 0.006,
+                "median": 0.2175,
+                "p95": 0.245,
+                "max": 0.248
+              },
+              "silence_intervals": {
+                "n": 21,
+                "total_s": 19.179,
+                "max_s": 2.358
+              },
+              "n_event_dt_samples": 2610,
+              "median_event_dt_s": 0.001,
+              "p95_event_dt_s": 0.002,
+              "max_event_dt_s": 0.033,
+              "active_contact_event_rate_hz": 761.794501,
+              "semantics": "event-aware (REV1.3/R6): only intervals containing contact messages are evaluated; silence intervals are not cadence failures; silence frames remain UNKNOWN_NO_MESSAGE (REV1.3/R7)"
+            },
+            "gz_sim_span_s": 22.634,
+            "gz_wall_span_s": 24.526,
+            "gz_sim_over_wall_rate": 0.922857
+          }
+        },
+        "notes": ""
+      },
+      {
+        "id": "body_identity",
+        "title": "Verbatim collision / body entity names map to the expected ankle/ground pair, left/right distinguishable, no cross contamination",
+        "blocking": true,
+        "status": "confirmed",
+        "evidence": {
+          "/nao/left_foot_contact_raw": {
+            "expected_foot_collision_local": "l_ankle_collision",
+            "n_nonempty_contacts": 2582,
+            "fraction_expected_pair": 1.0,
+            "n_cross_contamination": 0,
+            "collision_pairs_top": [
+              {
+                "pair": "nao::l_ankle::l_ankle_collision | ground_plane::link::collision",
+                "count": 2582
+              }
+            ],
+            "wrench_body_names_top": [
+              {
+                "name": "",
+                "count": 5484
+              }
+            ]
+          },
+          "/nao/right_foot_contact_raw": {
+            "expected_foot_collision_local": "r_ankle_collision",
+            "n_nonempty_contacts": 2632,
+            "fraction_expected_pair": 1.0,
+            "n_cross_contamination": 0,
+            "collision_pairs_top": [
+              {
+                "pair": "nao::r_ankle::r_ankle_collision | ground_plane::link::collision",
+                "count": 2632
+              }
+            ],
+            "wrench_body_names_top": [
+              {
+                "name": "",
+                "count": 5510
+              }
+            ]
+          }
+        },
+        "notes": ""
+      },
+      {
+        "id": "publication_mode",
+        "title": "Which payload fields are populated per non-empty contact (positions, normals, depths, wrenches, world, force_offset) and whether publication is periodic or event-only \u2014 publication mode is a determined fact under the REV1.3/R7 two-state contract: event-only publication is contract-consistent (silence is recorded as UNKNOWN_NO_MESSAGE), not a blocking failure",
+        "blocking": true,
+        "status": "confirmed",
+        "evidence": {
+          "/nao/left_foot_contact_raw": {
+            "n_messages": 2582,
+            "n_empty_messages": 0,
+            "n_nonempty_contacts": 2582,
+            "n_wrenches": 2742,
+            "fraction_positions_populated": 1.0,
+            "fraction_normals_populated": 1.0,
+            "fraction_depths_populated": 1.0,
+            "fraction_world_populated": 1.0,
+            "fraction_wrenches_present": 1.0,
+            "fraction_body1_force_populated": 1.0,
+            "fraction_body2_force_populated": 1.0,
+            "fraction_body1_force_offset_populated": 1.0,
+            "fraction_body2_force_offset_populated": 1.0,
+            "dt_jitter_fraction": 9.55965,
+            "publication_mode": "irregular_or_event_only",
+            "no_contact_observability": "not_observable",
+            "two_state_contract": {
+              "contract": "VALID_CONTACT / UNKNOWN_NO_MESSAGE (REV1.3/R7)",
+              "event_only_publication_consistent": true,
+              "silence_semantics": "UNKNOWN_NO_MESSAGE \u2014 no zero wrench from silence, no fabricated flight labels, no fabricated no-contact state",
+              "valid_no_contact": "future extension only \u2014 NOT required for Stage 1 acquisition (REV1.3/R7); would require an explicit empty contact message or an independent validated no-contact source"
+            }
+          },
+          "/nao/right_foot_contact_raw": {
+            "n_messages": 2632,
+            "n_empty_messages": 0,
+            "n_nonempty_contacts": 2632,
+            "n_wrenches": 2755,
+            "fraction_positions_populated": 1.0,
+            "fraction_normals_populated": 1.0,
+            "fraction_depths_populated": 1.0,
+            "fraction_world_populated": 1.0,
+            "fraction_wrenches_present": 1.0,
+            "fraction_body1_force_populated": 1.0,
+            "fraction_body2_force_populated": 1.0,
+            "fraction_body1_force_offset_populated": 1.0,
+            "fraction_body2_force_offset_populated": 1.0,
+            "dt_jitter_fraction": 10.884894,
+            "publication_mode": "irregular_or_event_only",
+            "no_contact_observability": "not_observable",
+            "two_state_contract": {
+              "contract": "VALID_CONTACT / UNKNOWN_NO_MESSAGE (REV1.3/R7)",
+              "event_only_publication_consistent": true,
+              "silence_semantics": "UNKNOWN_NO_MESSAGE \u2014 no zero wrench from silence, no fabricated flight labels, no fabricated no-contact state",
+              "valid_no_contact": "future extension only \u2014 NOT required for Stage 1 acquisition (REV1.3/R7); would require an explicit empty contact message or an independent validated no-contact source"
+            }
+          }
+        },
+        "notes": ""
+      },
+      {
+        "id": "timestamp_association_compatibility",
+        "title": "Timestamp association compatibility (REV1.3/R10, formerly timestamp semantics): source stamps are associable to the /joint_states grid \u2014 nearest-neighbor statistics (median / p95 / max), monotonicity, measured dt, and exact-stamp preservation across the ROS bridge. The evidence proves association compatibility; it does NOT prove universal clock identity. Callback arrival time is not valid measurement time and subscriber capture-window envelope overlap is not a criterion",
+        "blocking": true,
+        "status": "contradicted",
+        "evidence": {
+          "joint_states": {
+            "n_messages": 1955,
+            "n_valid_stamp": 1955,
+            "dt": {
+              "n_dt": 1954,
+              "dt_min_s": 0.01,
+              "dt_max_s": 0.01,
+              "dt_mean_s": 0.01,
+              "dt_median_s": 0.01,
+              "dt_stdev_s": 0.0,
+              "mean_rate_hz": 100.0,
+              "n_nonpositive_dt": 0
+            },
+            "backwards": 0,
+            "duplicates": 0
+          },
+          "/nao/left_foot_contact_raw": {
+            "gz_n_valid_stamp": 2582,
+            "gz_backwards": 0,
+            "gz_duplicates": 0,
+            "ros_n_valid_stamp": 2285,
+            "ros_backwards": 0,
+            "ros_duplicates": 0,
+            "fraction_ros_stamps_exact_in_gz": 1.0,
+            "nearest_joint_stamp_dt": {
+              "n_samples": 2582,
+              "median_s": 0.003,
+              "p95_s": 3.495,
+              "max_s": 3.728,
+              "direction": "contact stamp -> nearest /joint_states stamp"
+            },
+            "association_compatibility_check": {
+              "method": "p95 of |contact source stamp - nearest /joint_states source stamp| <= contact association window (REV1.2/R2 source stamps only; REV1.3/R10 association compatibility \u2014 NOT a universal clock identity claim)",
+              "threshold_s": 0.05,
+              "statistic_s": 3.495,
+              "association_compatible": false
+            }
+          },
+          "/nao/right_foot_contact_raw": {
+            "gz_n_valid_stamp": 2632,
+            "gz_backwards": 0,
+            "gz_duplicates": 0,
+            "ros_n_valid_stamp": 2516,
+            "ros_backwards": 0,
+            "ros_duplicates": 0,
+            "fraction_ros_stamps_exact_in_gz": 1.0,
+            "nearest_joint_stamp_dt": {
+              "n_samples": 2632,
+              "median_s": 0.003,
+              "p95_s": 0.005,
+              "max_s": 3.093,
+              "direction": "contact stamp -> nearest /joint_states stamp"
+            },
+            "association_compatibility_check": {
+              "method": "p95 of |contact source stamp - nearest /joint_states source stamp| <= contact association window (REV1.2/R2 source stamps only; REV1.3/R10 association compatibility \u2014 NOT a universal clock identity claim)",
+              "threshold_s": 0.05,
+              "statistic_s": 0.005,
+              "association_compatible": true
+            }
+          }
+        },
+        "notes": "/nao/left_foot_contact_raw: p95 nearest-stamp difference 3.495 s > 0.05 s \u2014 contact source stamps are not associable to the /joint_states grid within the declared windows"
+      },
+      {
+        "id": "frame_reference",
+        "title": "Frame/reference interpretation of the contact wrench (N3L / standing equilibrium \u2014 plausibility only)",
+        "blocking": false,
+        "status": "unknown",
+        "evidence": {
+          "n_left_ankle_wrench_samples": 0,
+          "n_right_ankle_wrench_samples": 0,
+          "n_matched_pairs": 0,
+          "pair_match_window_s": 0.02,
+          "left_body_names": [],
+          "right_body_names": [],
+          "median_fz_left_newtons": null,
+          "median_fz_right_newtons": null
+        },
+        "notes": "N3L and standing load are plausibility checks only (GPT-5.6 correction 3): this criterion is never confirmable by this probe; CoP/derived-moment derivation stays blocked until a common-frame/common-origin comparison is performed."
+      }
+    ],
+    "determined_facts": [
+      {
+        "fact": "contact publication mode per topic (gz native path)",
+        "value": {
+          "/nao/left_foot_contact_raw": "irregular_or_event_only",
+          "/nao/right_foot_contact_raw": "irregular_or_event_only"
+        },
+        "consequence": "Stage 1 operates the two-state contract VALID_CONTACT / UNKNOWN_NO_MESSAGE (REV1.3/R7): event-only publication is contract-consistent \u2014 the collector emits UNKNOWN_NO_MESSAGE during silence (no zero wrench from silence, no fabricated flight labels, no fabricated no-contact state); empty-message behavior is recorded for the future VALID_NO_CONTACT extension only"
+      },
+      {
+        "fact": "no-contact observability within the collection window",
+        "value": {
+          "/nao/left_foot_contact_raw": "not_observable",
+          "/nao/right_foot_contact_raw": "not_observable"
+        },
+        "consequence": "VALID_NO_CONTACT is a future extension, NOT required for Stage 1 acquisition (REV1.3/R7); the collector emits UNKNOWN_NO_MESSAGE on silence (two-state, fail-closed)"
+      },
+      {
+        "fact": "event-aware contact publication statistics (REV1.3/R6)",
+        "value": {
+          "/nao/left_foot_contact_raw": {
+            "active_contact_event_rate_hz": 718.020022,
+            "median_event_dt_s": 0.001,
+            "p95_event_dt_s": 0.003,
+            "max_event_dt_s": 0.046,
+            "burst_duration_s": {
+              "min": 0.0,
+              "median": 0.1525,
+              "p95": 0.243,
+              "max": 0.244
+            }
+          },
+          "/nao/right_foot_contact_raw": {
+            "active_contact_event_rate_hz": 761.794501,
+            "median_event_dt_s": 0.001,
+            "p95_event_dt_s": 0.002,
+            "max_event_dt_s": 0.033,
+            "burst_duration_s": {
+              "min": 0.006,
+              "median": 0.2175,
+              "p95": 0.245,
+              "max": 0.248
+            }
+          }
+        },
+        "consequence": "cadence is validated by event semantics only (no absolute effective-frequency band); silence intervals are not failures"
+      },
+      {
+        "fact": "verbatim collision entity names per topic",
+        "value": {
+          "/nao/left_foot_contact_raw": [
+            "nao::l_ankle::l_ankle_collision | ground_plane::link::collision"
+          ],
+          "/nao/right_foot_contact_raw": [
+            "nao::r_ankle::r_ankle_collision | ground_plane::link::collision"
+          ]
+        },
+        "consequence": "collector association filters use these verbatim names, not the scoped-name guess"
+      },
+      {
+        "fact": "wrench body entity names per topic",
+        "value": {
+          "/nao/left_foot_contact_raw": [
+            ""
+          ],
+          "/nao/right_foot_contact_raw": [
+            ""
+          ]
+        },
+        "consequence": "ankle-side identification for CoP uses the body name containing \"ankle\""
+      },
+      {
+        "fact": "ROS bridge exact-stamp preservation fraction",
+        "value": {
+          "/nao/left_foot_contact_raw": 1.0,
+          "/nao/right_foot_contact_raw": 1.0
+        },
+        "consequence": "the optional derived bridge stream preserves the gz source sim-time stamps when this fraction is high"
+      },
+      {
+        "fact": "contact/joint stamp association compatibility (nearest-neighbor source-stamp statistics, REV1.3/R10)",
+        "value": {
+          "/nao/left_foot_contact_raw": {
+            "median_s": 0.003,
+            "p95_s": 3.495,
+            "max_s": 3.728
+          },
+          "/nao/right_foot_contact_raw": {
+            "median_s": 0.003,
+            "p95_s": 0.005,
+            "max_s": 3.093
+          }
+        },
+        "consequence": "millisecond-scale nearest-stamp distances prove the source stamps are ASSOCIABLE within the declared windows \u2014 this is association compatibility, NOT a universal clock identity claim (REV1.3/R10); the collector aligns on source stamps only, never on callback arrival time"
+      }
+    ],
+    "verdict": {
+      "probe": "V-1",
+      "status": "FAIL",
+      "blocking_failures": [
+        "timestamp_association_compatibility"
+      ],
+      "non_blocking_statuses": {
+        "frame_reference": "unknown"
+      },
+      "consequences": [
+        "acquisition blocked until the RFC is revised (RFC App. B V-1 failure conditions)",
+        "frame/reference determination stays at plausibility level; CoP/derived-moment derivation remains blocked pending a common-frame comparison (RFC App. B V-1)"
+      ]
+    }
+  },
+  "samples": {
+    "gz_left": {
+      "n_available": 2582,
+      "first_message": {
+        "stamp_s": 5.283,
+        "n_contacts": 1,
+        "contacts": [
+          {
+            "collision1": {
+              "id": 38,
+              "name": "nao::l_ankle::l_ankle_collision",
+              "type": "0"
+            },
+            "collision2": {
+              "id": 7,
+              "name": "ground_plane::link::collision",
+              "type": "0"
+            },
+            "world": {
+              "id": 0,
+              "name": "",
+              "type": "0"
+            },
+            "contact_stamp_s": 5.283,
+            "n_positions": 1,
+            "first_position": [
+              0.130338897873,
+              0.098565762314,
+              -1.5160081e-05
+            ],
+            "n_normals": 1,
+            "first_normal": [
+              0.0,
+              0.0,
+              1.0
+            ],
+            "depths": [
+              1.5160081e-05
+            ],
+            "wrenches": [
+              {
+                "body_1_name": "",
+                "body_1_id": 0,
+                "body_1_force": [
+                  -29.705496928693,
+                  -25.881911082723,
+                  47.079764039114
+                ],
+                "body_1_torque": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "body_1_force_offset": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "body_2_name": "",
+                "body_2_id": 0,
+                "body_2_force": [
+                  29.705496928693,
+                  25.881911082723,
+                  -47.079764039114
+                ],
+                "body_2_torque": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "body_2_force_offset": [
+                  0.0,
+                  0.0,
+                  0.0
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "first_nonempty_message": {
+        "stamp_s": 5.283,
+        "n_contacts": 1,
+        "contacts": [
+          {
+            "collision1": {
+              "id": 38,
+              "name": "nao::l_ankle::l_ankle_collision",
+              "type": "0"
+            },
+            "collision2": {
+              "id": 7,
+              "name": "ground_plane::link::collision",
+              "type": "0"
+            },
+            "world": {
+              "id": 0,
+              "name": "",
+              "type": "0"
+            },
+            "contact_stamp_s": 5.283,
+            "n_positions": 1,
+            "first_position": [
+              0.130338897873,
+              0.098565762314,
+              -1.5160081e-05
+            ],
+            "n_normals": 1,
+            "first_normal": [
+              0.0,
+              0.0,
+              1.0
+            ],
+            "depths": [
+              1.5160081e-05
+            ],
+            "wrenches": [
+              {
+                "body_1_name": "",
+                "body_1_id": 0,
+                "body_1_force": [
+                  -29.705496928693,
+                  -25.881911082723,
+                  47.079764039114
+                ],
+                "body_1_torque": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "body_1_force_offset": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "body_2_name": "",
+                "body_2_id": 0,
+                "body_2_force": [
+                  29.705496928693,
+                  25.881911082723,
+                  -47.079764039114
+                ],
+                "body_2_torque": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "body_2_force_offset": [
+                  0.0,
+                  0.0,
+                  0.0
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "gz_right": {
+      "n_available": 2632,
+      "first_message": {
+        "stamp_s": 5.918,
+        "n_contacts": 1,
+        "contacts": [
+          {
+            "collision1": {
+              "id": 75,
+              "name": "nao::r_ankle::r_ankle_collision",
+              "type": "0"
+            },
+            "collision2": {
+              "id": 7,
+              "name": "ground_plane::link::collision",
+              "type": "0"
+            },
+            "world": {
+              "id": 0,
+              "name": "",
+              "type": "0"
+            },
+            "contact_stamp_s": 5.918,
+            "n_positions": 1,
+            "first_position": [
+              0.141614160774,
+              -0.093092347543,
+              -3.60049e-06
+            ],
+            "n_normals": 1,
+            "first_normal": [
+              0.0,
+              0.0,
+              1.0
+            ],
+            "depths": [
+              3.60049e-06
+            ],
+            "wrenches": [
+              {
+                "body_1_name": "",
+                "body_1_id": 0,
+                "body_1_force": [
+                  -14.041013810196,
+                  19.144950525122,
+                  37.675011506848
+                ],
+                "body_1_torque": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "body_1_force_offset": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "body_2_name": "",
+                "body_2_id": 0,
+                "body_2_force": [
+                  14.041013810196,
+                  -19.144950525122,
+                  -37.675011506848
+                ],
+                "body_2_torque": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "body_2_force_offset": [
+                  0.0,
+                  0.0,
+                  0.0
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "first_nonempty_message": {
+        "stamp_s": 5.918,
+        "n_contacts": 1,
+        "contacts": [
+          {
+            "collision1": {
+              "id": 75,
+              "name": "nao::r_ankle::r_ankle_collision",
+              "type": "0"
+            },
+            "collision2": {
+              "id": 7,
+              "name": "ground_plane::link::collision",
+              "type": "0"
+            },
+            "world": {
+              "id": 0,
+              "name": "",
+              "type": "0"
+            },
+            "contact_stamp_s": 5.918,
+            "n_positions": 1,
+            "first_position": [
+              0.141614160774,
+              -0.093092347543,
+              -3.60049e-06
+            ],
+            "n_normals": 1,
+            "first_normal": [
+              0.0,
+              0.0,
+              1.0
+            ],
+            "depths": [
+              3.60049e-06
+            ],
+            "wrenches": [
+              {
+                "body_1_name": "",
+                "body_1_id": 0,
+                "body_1_force": [
+                  -14.041013810196,
+                  19.144950525122,
+                  37.675011506848
+                ],
+                "body_1_torque": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "body_1_force_offset": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "body_2_name": "",
+                "body_2_id": 0,
+                "body_2_force": [
+                  14.041013810196,
+                  -19.144950525122,
+                  -37.675011506848
+                ],
+                "body_2_torque": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "body_2_force_offset": [
+                  0.0,
+                  0.0,
+                  0.0
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "joint_states": {
+      "n_available": 1955,
+      "first_message": {
+        "stamp_s": 9.011,
+        "n_name": 24,
+        "n_position": 24,
+        "n_velocity": 24,
+        "n_effort": 0
+      }
+    },
+    "ros_left": {
+      "n_available": 2285,
+      "first_message": {
+        "stamp_s": 9.07,
+        "n_contacts": 1,
+        "contacts": [
+          {
+            "collision1": {
+              "id": 38,
+              "name": "nao::l_ankle::l_ankle_collision",
+              "type": "0"
+            },
+            "collision2": {
+              "id": 7,
+              "name": "ground_plane::link::collision",
+              "type": "0"
+            },
+            "contact_stamp_s": null,
+            "n_positions": 1,
+            "first_position": [
+              0.159942437046,
+              0.020543582688,
+              -3.2181147e-05
+            ],
+            "n_normals": 1,
+            "first_normal": [
+              0.0,
+              0.0,
+              1.0
+            ],
+            "depths": [
+              3.2181147e-05
+            ],
+            "wrenches": [
+              {
+                "body_1_name": "",
+                "body_1_id": 0,
+                "body_1_force": [
+                  -34.916679776128,
+                  -14.720737651291,
+                  52.111407401145
+                ],
+                "body_1_torque": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "body_2_name": "",
+                "body_2_id": 0,
+                "body_2_force": [
+                  34.916679776128,
+                  14.720737651291,
+                  -52.111407401145
+                ],
+                "body_2_torque": [
+                  0.0,
+                  0.0,
+                  0.0
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "first_nonempty_message": {
+        "stamp_s": 9.07,
+        "n_contacts": 1,
+        "contacts": [
+          {
+            "collision1": {
+              "id": 38,
+              "name": "nao::l_ankle::l_ankle_collision",
+              "type": "0"
+            },
+            "collision2": {
+              "id": 7,
+              "name": "ground_plane::link::collision",
+              "type": "0"
+            },
+            "contact_stamp_s": null,
+            "n_positions": 1,
+            "first_position": [
+              0.159942437046,
+              0.020543582688,
+              -3.2181147e-05
+            ],
+            "n_normals": 1,
+            "first_normal": [
+              0.0,
+              0.0,
+              1.0
+            ],
+            "depths": [
+              3.2181147e-05
+            ],
+            "wrenches": [
+              {
+                "body_1_name": "",
+                "body_1_id": 0,
+                "body_1_force": [
+                  -34.916679776128,
+                  -14.720737651291,
+                  52.111407401145
+                ],
+                "body_1_torque": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "body_2_name": "",
+                "body_2_id": 0,
+                "body_2_force": [
+                  34.916679776128,
+                  14.720737651291,
+                  -52.111407401145
+                ],
+                "body_2_torque": [
+                  0.0,
+                  0.0,
+                  0.0
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "ros_right": {
+      "n_available": 2516,
+      "first_message": {
+        "stamp_s": 9.842,
+        "n_contacts": 1,
+        "contacts": [
+          {
+            "collision1": {
+              "id": 75,
+              "name": "nao::r_ankle::r_ankle_collision",
+              "type": "0"
+            },
+            "collision2": {
+              "id": 7,
+              "name": "ground_plane::link::collision",
+              "type": "0"
+            },
+            "contact_stamp_s": null,
+            "n_positions": 1,
+            "first_position": [
+              0.191860520922,
+              -0.08555636456,
+              -3.9352721e-05
+            ],
+            "n_normals": 1,
+            "first_normal": [
+              0.0,
+              0.0,
+              1.0
+            ],
+            "depths": [
+              3.9352721e-05
+            ],
+            "wrenches": [
+              {
+                "body_1_name": "",
+                "body_1_id": 0,
+                "body_1_force": [
+                  -40.415783504271,
+                  39.561008103175,
+                  57.269256656482
+                ],
+                "body_1_torque": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "body_2_name": "",
+                "body_2_id": 0,
+                "body_2_force": [
+                  40.415783504271,
+                  -39.561008103175,
+                  -57.269256656482
+                ],
+                "body_2_torque": [
+                  0.0,
+                  0.0,
+                  0.0
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "first_nonempty_message": {
+        "stamp_s": 9.842,
+        "n_contacts": 1,
+        "contacts": [
+          {
+            "collision1": {
+              "id": 75,
+              "name": "nao::r_ankle::r_ankle_collision",
+              "type": "0"
+            },
+            "collision2": {
+              "id": 7,
+              "name": "ground_plane::link::collision",
+              "type": "0"
+            },
+            "contact_stamp_s": null,
+            "n_positions": 1,
+            "first_position": [
+              0.191860520922,
+              -0.08555636456,
+              -3.9352721e-05
+            ],
+            "n_normals": 1,
+            "first_normal": [
+              0.0,
+              0.0,
+              1.0
+            ],
+            "depths": [
+              3.9352721e-05
+            ],
+            "wrenches": [
+              {
+                "body_1_name": "",
+                "body_1_id": 0,
+                "body_1_force": [
+                  -40.415783504271,
+                  39.561008103175,
+                  57.269256656482
+                ],
+                "body_1_torque": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "body_2_name": "",
+                "body_2_id": 0,
+                "body_2_force": [
+                  40.415783504271,
+                  -39.561008103175,
+                  -57.269256656482
+                ],
+                "body_2_torque": [
+                  0.0,
+                  0.0,
+                  0.0
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "message_schemas": {
+    "gz.msgs.Contacts": {
+      "contact": {
+        "collision1": {
+          "header": {
+            "data": "repeated message",
+            "stamp": "message"
+          },
+          "id": "uint64",
+          "name": "string",
+          "type": "enum"
+        },
+        "collision2": {
+          "header": {
+            "data": "repeated message",
+            "stamp": "message"
+          },
+          "id": "uint64",
+          "name": "string",
+          "type": "enum"
+        },
+        "depth": "repeated double",
+        "header": {
+          "data": {
+            "key": "string",
+            "value": "repeated string"
+          },
+          "stamp": {
+            "nsec": "int32",
+            "sec": "int64"
+          }
+        },
+        "normal": {
+          "header": {
+            "data": "repeated message",
+            "stamp": "message"
+          },
+          "x": "double",
+          "y": "double",
+          "z": "double"
+        },
+        "position": {
+          "header": {
+            "data": "repeated message",
+            "stamp": "message"
+          },
+          "x": "double",
+          "y": "double",
+          "z": "double"
+        },
+        "world": {
+          "header": {
+            "data": "repeated message",
+            "stamp": "message"
+          },
+          "id": "uint64",
+          "name": "string",
+          "type": "enum"
+        },
+        "wrench": {
+          "body_1_id": "uint32",
+          "body_1_name": "string",
+          "body_1_wrench": {
+            "force": "message",
+            "force_offset": "message",
+            "header": "message",
+            "torque": "message"
+          },
+          "body_2_id": "uint32",
+          "body_2_name": "string",
+          "body_2_wrench": {
+            "force": "message",
+            "force_offset": "message",
+            "header": "message",
+            "torque": "message"
+          },
+          "header": {
+            "data": "repeated message",
+            "stamp": "message"
+          }
+        }
+      },
+      "header": {
+        "data": {
+          "key": "string",
+          "value": "repeated string"
+        },
+        "stamp": {
+          "nsec": "int32",
+          "sec": "int64"
+        }
+      }
+    },
+    "gz.msgs.Contact": {
+      "collision1": {
+        "header": {
+          "data": "repeated message",
+          "stamp": "message"
+        },
+        "id": "uint64",
+        "name": "string",
+        "type": "enum"
+      },
+      "collision2": {
+        "header": {
+          "data": "repeated message",
+          "stamp": "message"
+        },
+        "id": "uint64",
+        "name": "string",
+        "type": "enum"
+      },
+      "depth": "repeated double",
+      "header": {
+        "data": {
+          "key": "string",
+          "value": "repeated string"
+        },
+        "stamp": {
+          "nsec": "int32",
+          "sec": "int64"
+        }
+      },
+      "normal": {
+        "header": {
+          "data": "repeated message",
+          "stamp": "message"
+        },
+        "x": "double",
+        "y": "double",
+        "z": "double"
+      },
+      "position": {
+        "header": {
+          "data": "repeated message",
+          "stamp": "message"
+        },
+        "x": "double",
+        "y": "double",
+        "z": "double"
+      },
+      "world": {
+        "header": {
+          "data": "repeated message",
+          "stamp": "message"
+        },
+        "id": "uint64",
+        "name": "string",
+        "type": "enum"
+      },
+      "wrench": {
+        "body_1_id": "uint32",
+        "body_1_name": "string",
+        "body_1_wrench": {
+          "force": "message",
+          "force_offset": "message",
+          "header": "message",
+          "torque": "message"
+        },
+        "body_2_id": "uint32",
+        "body_2_name": "string",
+        "body_2_wrench": {
+          "force": "message",
+          "force_offset": "message",
+          "header": "message",
+          "torque": "message"
+        },
+        "header": {
+          "data": "repeated message",
+          "stamp": "message"
+        }
+      }
+    },
+    "gz.msgs.Entity": {
+      "header": {
+        "data": "repeated message",
+        "stamp": "message"
+      },
+      "id": "uint64",
+      "name": "string",
+      "type": "enum"
+    },
+    "gz.msgs.JointWrench": {
+      "body_1_id": "uint32",
+      "body_1_name": "string",
+      "body_1_wrench": {
+        "force": {
+          "header": "message",
+          "x": "double",
+          "y": "double",
+          "z": "double"
+        },
+        "force_offset": {
+          "header": "message",
+          "x": "double",
+          "y": "double",
+          "z": "double"
+        },
+        "header": {
+          "data": "repeated message",
+          "stamp": "message"
+        },
+        "torque": {
+          "header": "message",
+          "x": "double",
+          "y": "double",
+          "z": "double"
+        }
+      },
+      "body_2_id": "uint32",
+      "body_2_name": "string",
+      "body_2_wrench": {
+        "force": {
+          "header": "message",
+          "x": "double",
+          "y": "double",
+          "z": "double"
+        },
+        "force_offset": {
+          "header": "message",
+          "x": "double",
+          "y": "double",
+          "z": "double"
+        },
+        "header": {
+          "data": "repeated message",
+          "stamp": "message"
+        },
+        "torque": {
+          "header": "message",
+          "x": "double",
+          "y": "double",
+          "z": "double"
+        }
+      },
+      "header": {
+        "data": {
+          "key": "string",
+          "value": "repeated string"
+        },
+        "stamp": {
+          "nsec": "int32",
+          "sec": "int64"
+        }
+      }
+    },
+    "gz.msgs.Wrench": {
+      "force": {
+        "header": "message",
+        "x": "double",
+        "y": "double",
+        "z": "double"
+      },
+      "force_offset": {
+        "header": "message",
+        "x": "double",
+        "y": "double",
+        "z": "double"
+      },
+      "header": {
+        "data": "repeated message",
+        "stamp": "message"
+      },
+      "torque": {
+        "header": "message",
+        "x": "double",
+        "y": "double",
+        "z": "double"
+      }
+    },
+    "gz.msgs.Vector3d": {
+      "header": {
+        "data": "repeated message",
+        "stamp": "message"
+      },
+      "x": "double",
+      "y": "double",
+      "z": "double"
+    },
+    "gz.msgs.Pose_V": {
+      "header": {
+        "data": {
+          "key": "string",
+          "value": "repeated string"
+        },
+        "stamp": {
+          "nsec": "int32",
+          "sec": "int64"
+        }
+      },
+      "pose": {
+        "header": {
+          "data": {
+            "key": "string",
+            "value": "repeated string"
+          },
+          "stamp": {
+            "nsec": "int32",
+            "sec": "int64"
+          }
+        },
+        "id": "uint32",
+        "name": "string",
+        "orientation": {
+          "header": {
+            "data": "repeated message",
+            "stamp": "message"
+          },
+          "w": "double",
+          "x": "double",
+          "y": "double",
+          "z": "double"
+        },
+        "position": {
+          "header": {
+            "data": "repeated message",
+            "stamp": "message"
+          },
+          "x": "double",
+          "y": "double",
+          "z": "double"
+        }
+      }
+    },
+    "gz.msgs.Pose": {
+      "header": {
+        "data": {
+          "key": "string",
+          "value": "repeated string"
+        },
+        "stamp": {
+          "nsec": "int32",
+          "sec": "int64"
+        }
+      },
+      "id": "uint32",
+      "name": "string",
+      "orientation": {
+        "header": {
+          "data": "repeated message",
+          "stamp": "message"
+        },
+        "w": "double",
+        "x": "double",
+        "y": "double",
+        "z": "double"
+      },
+      "position": {
+        "header": {
+          "data": "repeated message",
+          "stamp": "message"
+        },
+        "x": "double",
+        "y": "double",
+        "z": "double"
+      }
+    },
+    "ros_gz_interfaces/msg/Contacts": {
+      "header": "std_msgs/Header",
+      "contacts": "sequence<ros_gz_interfaces/Contact>"
+    },
+    "ros_gz_interfaces/msg/Contact": {
+      "collision1": "ros_gz_interfaces/Entity",
+      "collision2": "ros_gz_interfaces/Entity",
+      "positions": "sequence<geometry_msgs/Vector3>",
+      "normals": "sequence<geometry_msgs/Vector3>",
+      "depths": "sequence<double>",
+      "wrenches": "sequence<ros_gz_interfaces/JointWrench>"
+    },
+    "ros_gz_interfaces/msg/JointWrench": {
+      "header": "std_msgs/Header",
+      "body_1_name": "std_msgs/String",
+      "body_1_id": "std_msgs/UInt32",
+      "body_2_name": "std_msgs/String",
+      "body_2_id": "std_msgs/UInt32",
+      "body_1_wrench": "geometry_msgs/Wrench",
+      "body_2_wrench": "geometry_msgs/Wrench"
+    },
+    "sensor_msgs/msg/JointState": {
+      "header": "std_msgs/Header",
+      "name": "sequence<string>",
+      "position": "sequence<double>",
+      "velocity": "sequence<double>",
+      "effort": "sequence<double>"
+    },
+    "geometry_msgs/msg/PoseStamped": {
+      "header": "std_msgs/Header",
+      "pose": "geometry_msgs/Pose"
+    }
+  },
+  "bridge_field_loss": {
+    "Contact": {
+      "gz_fields": [
+        "collision1",
+        "collision2",
+        "depth",
+        "header",
+        "normal",
+        "position",
+        "world",
+        "wrench"
+      ],
+      "mapped_ros_fields": [
+        "collision1",
+        "collision2",
+        "depths",
+        "normals",
+        "positions",
+        "wrenches"
+      ],
+      "gz_only_unmapped": [
+        "header",
+        "world"
+      ],
+      "ros_schema_cross_checked": true
+    },
+    "JointWrench": {
+      "gz_fields": [
+        "body_1_id",
+        "body_1_name",
+        "body_1_wrench",
+        "body_2_id",
+        "body_2_name",
+        "body_2_wrench"
+      ],
+      "mapped_ros_fields": [
+        "body_1_id",
+        "body_1_name",
+        "body_1_wrench",
+        "body_2_id",
+        "body_2_name",
+        "body_2_wrench"
+      ],
+      "gz_only_unmapped": [],
+      "ros_schema_cross_checked": true
+    },
+    "Wrench": {
+      "gz_fields": [
+        "force",
+        "force_offset",
+        "torque"
+      ],
+      "mapped_ros_fields": [
+        "force",
+        "torque"
+      ],
+      "gz_only_unmapped": [
+        "force_offset"
+      ],
+      "ros_schema_cross_checked": false
+    }
+  }
+}

@@ -35,10 +35,13 @@ V-1 determines (never assumes) the contact raw-path facts:
   4. timestamp association compatibility (REV1.3/R10 — formerly
      "timestamp semantics"): source-stamp evidence that contact stamps are
      ASSOCIABLE to the /joint_states grid — nearest-neighbor statistics
-     (median / p95 / max), monotonicity, measured dt, exact-stamp
-     preservation across the ROS bridge. The evidence proves association
-     compatibility; it does NOT prove universal clock identity. Callback
-     arrival time is never used as measurement time;
+     (median / p95 / max) evaluated on the COMMON subscription window
+     (contact stamps received before the /joint_states subscription became
+     live — subscriber discovery skew, a documented instrumentation
+     boundary — are excluded and reported), monotonicity, measured dt,
+     exact-stamp preservation across the ROS bridge. The evidence proves
+     association compatibility; it does NOT prove universal clock identity.
+     Callback arrival time is never used as measurement time;
   5. frame/reference interpretation — N3L / standing equilibrium is used ONLY
      as a plausibility check (GPT-5.6 correction 3). It never substitutes for
      a common-frame/common-origin comparison, so it can never mark this
@@ -1257,40 +1260,74 @@ def analyze_v1(collected, args, provenance):
             'fraction_ros_stamps_exact_in_gz': round(match, 6)
             if match is not None else None,
         }
-        # Nearest-neighbor statistics on source stamps: for every contact
-        # message stamp, |stamp - nearest /joint_states stamp|. Association
-        # compatibility (REV1.3/R10): p95 <= contact association window
-        # proves the stamps are associable within the declared windows; it
-        # does NOT prove universal clock identity (a domain offset beyond
-        # the measured windows cannot be excluded by this evidence).
+        # Nearest-neighbor statistics on source stamps, evaluated on the
+        # COMMON subscription window (REV1.3): contact stamps received
+        # before the /joint_states subscription became live (rclpy/DDS
+        # discovery skew — documented instrumentation limitation, collector
+        # contract § 5.3) are excluded from the statistics and reported as
+        # boundary-excluded samples. The criterion measures association
+        # compatibility where both streams were live — not discovery skew,
+        # and not universal clock identity (REV1.3/R10).
         if jstamps and arr:
-            dists = sorted(nearest_dist(jstamps, s) for s in arr)
-            nn = {
-                'n_samples': len(dists),
-                'median_s': round(statistics.median(dists), 9),
-                'p95_s': round(percentile(dists, 0.95), 9),
-                'max_s': round(dists[-1], 9),
-                'direction': 'contact stamp -> nearest /joint_states stamp',
-            }
+            j_lo, j_hi = jstamps[0], jstamps[-1]
+            in_window = [s for s in arr if j_lo <= s <= j_hi]
+            n_excluded = len(arr) - len(in_window)
+            if in_window:
+                dists = sorted(nearest_dist(jstamps, s) for s in in_window)
+                nn = {
+                    'n_samples_total': len(arr),
+                    'n_samples_evaluated': len(in_window),
+                    'n_excluded_outside_joint_window': n_excluded,
+                    'exclusion_reason': 'contact stamps outside the '
+                                        '/joint_states live subscription '
+                                        'window (subscriber discovery skew '
+                                        '— instrumentation boundary, not '
+                                        'stamp-domain evidence; collector '
+                                        'contract § 5.3 common-window '
+                                        'trimming)',
+                    'median_s': round(statistics.median(dists), 9),
+                    'p95_s': round(percentile(dists, 0.95), 9),
+                    'max_s': round(dists[-1], 9),
+                    'direction': 'contact stamp -> nearest /joint_states '
+                                 'stamp (common subscription window)',
+                }
+            else:
+                nn = {
+                    'n_samples_total': len(arr),
+                    'n_samples_evaluated': 0,
+                    'n_excluded_outside_joint_window': n_excluded,
+                    'median_s': None,
+                    'p95_s': None,
+                    'max_s': None,
+                }
             ev['nearest_joint_stamp_dt'] = nn
-            associable = nn['p95_s'] <= args.contact_window_sec
-            ev['association_compatibility_check'] = {
-                'method': 'p95 of |contact source stamp - nearest '
-                          '/joint_states source stamp| <= contact '
-                          'association window (REV1.2/R2 source stamps '
-                          'only; REV1.3/R10 association compatibility — '
-                          'NOT a universal clock identity claim)',
-                'threshold_s': args.contact_window_sec,
-                'statistic_s': nn['p95_s'],
-                'association_compatible': associable,
-            }
-            if not associable:
-                ts_status = 'contradicted'
+            if nn.get('n_samples_evaluated', 0) < MIN_MESSAGES_FOR_CADENCE:
+                if ts_status == 'confirmed':
+                    ts_status = 'unknown'
                 ts_problems.append(
-                    '%s: p95 nearest-stamp difference %s s > %s s — contact '
-                    'source stamps are not associable to the /joint_states '
-                    'grid within the declared windows' % (
-                        topic, nn['p95_s'], args.contact_window_sec))
+                    '%s: only %d contact stamps within the joint '
+                    'subscription window — association compatibility not '
+                    'measurable' % (topic, nn.get('n_samples_evaluated', 0)))
+            else:
+                associable = nn['p95_s'] <= args.contact_window_sec
+                ev['association_compatibility_check'] = {
+                    'method': 'p95 of |contact source stamp - nearest '
+                              '/joint_states source stamp| <= contact '
+                              'association window, evaluated on the common '
+                              'subscription window (REV1.2/R2 source stamps '
+                              'only; REV1.3/R10 association compatibility — '
+                              'NOT a universal clock identity claim)',
+                    'threshold_s': args.contact_window_sec,
+                    'statistic_s': nn['p95_s'],
+                    'association_compatible': associable,
+                }
+                if not associable:
+                    ts_status = 'contradicted'
+                    ts_problems.append(
+                        '%s: p95 nearest-stamp difference %s s > %s s — '
+                        'contact source stamps are not associable to the '
+                        '/joint_states grid within the declared windows'
+                        % (topic, nn['p95_s'], args.contact_window_sec))
         else:
             ev['nearest_joint_stamp_dt'] = None
             ev['association_compatibility_check'] = {

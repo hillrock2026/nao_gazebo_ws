@@ -734,7 +734,11 @@ All sources exist in the current pipeline; the collector adds subscriptions only
      **associable** to the `/joint_states` grid: **nearest-neighbor statistics** — for every
      contact message source stamp, the absolute difference to the nearest `/joint_states`
      source stamp, reported as **median, p95, and max**; plus monotonicity and measured dt of
-     the source stamps. Source stamps are preserved verbatim. **The evidence proves association
+     the source stamps. The statistics are **evaluated on the common subscription window**:
+     contact stamps received before the `/joint_states` subscription became live (rclpy/DDS
+     discovery skew — the documented instrumentation boundary, collector contract § 5.3) are
+     excluded from the statistics and reported as boundary-excluded samples, never silently
+     dropped. Source stamps are preserved verbatim. **The evidence proves association
      compatibility; it does NOT prove universal clock identity.** **Callback arrival time is
      not valid measurement time.** Envelope-overlap of subscriber capture windows is explicitly
      **not** a criterion (the REV1.1 envelope-fraction check is deleted: it measured subscriber
