@@ -127,7 +127,7 @@ Only synthetic fixtures (under `/tmp`), temporary mutation copies, and contract 
 
 ## 16. Git Commit
 
-- R13 commit (single, recommended message): `STAGE1: fail-closed schema hardening R13` — created immediately after this report; HEAD SHA recorded below at finalization.
+- R13 commit (single, recommended message): `STAGE1: fail-closed schema hardening R13` — HEAD SHA: `04ffebbd260ef0ac4dcf75b21b87442e4f835c06` (this § 16 hash reference was finalized in the immediately following report-finalization commit).
 - `git status` after commit: clean except the pre-existing untracked `docs/task4_phase4b_evidence/` (out of Stage 1 scope, untouched). **Not pushed** (remote publication is an owner/process action).
 
 ## 17. Final Implementation Recommendation
