@@ -6,10 +6,10 @@ residual-learning preparation.
 
 | Field | Value |
 |---|---|
-| Revision | REV1.2-CORRECTED |
-| Status | **CORRECTED ACQUISITION CONTRACT** — semantic corrections per the GPT-5.6 independent audit of the REV1.1 preparation artifacts; **pending re-audit** (not self-re-frozen); three-tier authorization, see § 0.0 |
-| Author | Implementation Agent (DeepSeek / Qoder role); REV1.2 corrections: Implementation Agent (GLM-5.3) |
-| Date | 2026-10-08 (REV1.1: 2026-10-07) |
+| Revision | REV1.3-MINIMAL-HARDENING |
+| Status | **ACQUISITION-CONTRACT-READY** — minimal hardening per the GPT-5.6 independent re-audit of REV1.2; **pending final independent audit** (not self-accepted); three-tier authorization, see § 0.0 |
+| Author | Implementation Agent (DeepSeek / Qoder role); REV1.2 corrections: Implementation Agent (GLM-5.3); REV1.3 hardening: Implementation Agent (GLM-5.3) |
+| Date | 2026-10-08 (REV1.1: 2026-10-07; REV1.2/1.3: 2026-10-08) |
 | Roadmap position | Baseline Dataset (Stage 0, frozen) → **Dynamics Dataset (this RFC)** → LIPM Prior → Residual Network → Optimization → Sim2Real |
 
 ## 0. Scope declaration (read first)
@@ -19,14 +19,21 @@ REV1.1 turned this document from a draft into the **frozen acquisition contract*
 change to population, seeds, rings, schema, formulas, or validity rules requires a REV increment
 (§ 4.4). It does **not** mean the program, the analysis, or any downstream stage is finalized.
 
-**REV1.2 (this revision) applies the five semantic corrections (R1–R5) identified by the
-GPT-5.6 independent audit of the REV1.1 preparation artifacts** (2026-10-08): raw contact
+**REV1.2 (superseded by this revision) applied the five semantic corrections (R1–R5) identified
+by the GPT-5.6 independent audit of the REV1.1 preparation artifacts** (2026-10-08): raw contact
 source (R1), V-1 timestamp validation method (R2), contact validity semantics naming (R3),
-V-2 pose frame semantics (R4), and composition validation wording (R5). The corrections are
-**semantic only** — population, seeds, rings, schema shape, formulas, and all frozen pins of
-§ 0.1 are unchanged. REV1.2 is **pending re-audit**: it does not re-freeze itself, does not
-declare any acceptance criterion satisfied, and leaves the Level 3 gate conditions of § 0.0
-unchanged.
+V-2 pose frame semantics (R4), and composition validation wording (R5).
+
+**REV1.3 (this revision) applies the five minimal-hardening corrections (R6–R10) identified by
+the GPT-5.6 independent re-audit of REV1.2** (2026-10-08): event-aware contact publication
+validation replacing the absolute effective-frequency band (R6), Stage 1 two-state contact
+validity (R7), V-2 composition evidence with an explicit status (R8), measured/derived label
+correction (R9), and timestamp association-compatibility wording (R10). These are hardening
+corrections only — no new V-gate, no schema change, no population/seeds/rings change, no
+controller/gait/Stage 0 change, no optimization. **REV1.3 is pending final independent
+audit:** a V-1/V-2 probe PASS under REV1.3 criteria does not by itself authorize Level 3 —
+audit acceptance of this revision and the owner publication actions of § 0.0 remain
+prerequisites. No acceptance criterion is claimed satisfied by this revision.
 
 ### 0.0 Authorization levels (three-tier, explicit — REV1.1)
 
@@ -34,7 +41,7 @@ unchanged.
 |---|---|---|
 | 1 — Preparation | Completion of this RFC revision; read-only V-1/V-2 probes (`tools/stage1_probe.py`, new file); collector contract specification (`docs/STAGE1_COLLECTOR_CONTRACT.md`, new file) | **authorized** |
 | 2 — Collector implementation | Implementing the collector per `docs/STAGE1_COLLECTOR_CONTRACT.md` as a **read-only instrumentation process**: new subscribers, a new writer process, storage under `dataset/stage1/` only — no modification to any frozen component (runner, controller/gait generator, converters, model, world, physics, launch files) | **authorized within the § 7 boundary** |
-| 3 — Bulk raw acquisition | The 96 pre-registered episodes (§ 4.1) | **NOT authorized by this document alone.** Requires: V-1 pass **and** V-2 pass, probe results pinned (Appendix B), and remote publication of the Stage 0 closure commit and this contract (owner action, GPT-5.6 correction 8). |
+| 3 — Bulk raw acquisition | The 96 pre-registered episodes (§ 4.1) | **NOT authorized by this document alone.** Requires: acceptance of this revision by the **final independent audit** (REV1.3 is pending), V-1 pass **and** V-2 pass, probe results pinned (Appendix B), and remote publication of the Stage 0 closure commit and this contract (owner action, GPT-5.6 correction 8). |
 
 Analysis, LIPM fitting, residual learning, training, and optimization are **never** authorized by
 this document and require separate authorization (§ 7).
@@ -162,6 +169,12 @@ provenance, integrity), never gait performance.
 - Every field below carries, in its definition table: name, type/shape, unit, source, alignment
   rule, and **measurement class** — `measured` (from a topic) or `derived` (deterministic
   post-processing with a pinned rule). Derived fields must never be presented as sensor data.
+- **Classification summary (REV1.3/R9):** `measured` = raw gz pose messages (`Pose_V` link
+  entries + the model pose), raw `Contacts` messages, joint states (plus IMU, command Bool
+  streams). `derived` = foot pose (composition), CoM, CoP, ZMP, velocities/accelerations
+  (finite differences), and transforms (composition). Composed foot/CoM fields additionally
+  carry **`derived_pending_validation`** status until V-2 composition evidence exists (§ 3.3
+  note, Appendix B V-2, REV1.3/R8).
 
 ## 3.1 Time
 
@@ -222,6 +235,12 @@ T_world_link = T_world_model · T_model_link
   selected non-identity links** (e.g. `l_ankle` / `r_ankle`) before composed poses are treated
   as validated world poses; identity-link agreement alone is a consistency check, not a
   validation.
+- **R8 (REV1.3):** gate V-2 reports explicit **composition evidence** for at least two
+  non-identity links (`l_ankle`, `r_ankle`) and a **`composition_status`** — `UNVERIFIED`
+  while no independent non-identity-link world-pose source is available. Validation is never
+  claimed from the composition inputs themselves. While `composition_status` is `UNVERIFIED`,
+  composed foot/CoM fields remain **`derived_pending_validation`**; the collector may still
+  store the raw `Pose_V` entries and the model pose.
 - All pose fields of this contract (§ 3.3–3.5) are world poses obtained through this
   composition; the raw model-relative entries and the model entry are retained verbatim in the
   raw capture (Appendix C).
@@ -244,7 +263,7 @@ note), association causal last-not-after, tolerance `0.02 s`, and
 
 | Field | Type | Unit | Source / rule | Class |
 |---|---|---|---|---|
-| `com_position` | float[3] | m | formula above | derived (from measured poses + pinned constants) |
+| `com_position` | float[3] | m | formula above (REV1.3/R9: **derived** — inputs are composed world poses, `derived_pending_validation` while V-2 composition_status is UNVERIFIED, plus pinned constants) | derived |
 | `com_velocity` | float[3] | m/s | central finite difference of `com_position` | derived |
 | `com_acceleration` | float[3] | m/s² | second finite difference of `com_position` (pinned stencil) | derived |
 
@@ -257,8 +276,8 @@ hash would change).
 
 | Field | Type | Unit | Source / rule | Class |
 |---|---|---|---|---|
-| `left_foot_pose` | {`position`: float[3], `orientation`: float[4]} | m, – | composed world pose of `l_ankle` (REV1.2, R4: model entry · `l_ankle` entry, same `Pose_V` message, § 3.3 pose frame semantics; the raw `l_ankle` entry is model-relative, never a world pose), causal last-not-after ≤ `0.02 s` | derived (composition of measured pose/info entries) |
-| `right_foot_pose` | {`position`: float[3], `orientation`: float[4]} | m, – | `r_ankle` entry, same rule | measured |
+| `left_foot_pose` | {`position`: float[3], `orientation`: float[4]} | m, – | composed world pose of `l_ankle` (REV1.2, R4: model entry · `l_ankle` entry, same `Pose_V` message, § 3.3 pose frame semantics; the raw `l_ankle` entry is model-relative, never a world pose), causal last-not-after ≤ `0.02 s` | derived (composition of measured pose/info entries; **derived_pending_validation** while V-2 composition_status is UNVERIFIED — R8/R9) |
+| `right_foot_pose` | {`position`: float[3], `orientation`: float[4]} | m, – | composed world pose of `r_ankle` (REV1.3/R9 correction: model entry · `r_ankle` entry, same `Pose_V` message, same rule as `left_foot_pose`; the raw `r_ankle` entry is model-relative, never a world pose), causal last-not-after ≤ `0.02 s` | derived (composition of measured pose/info entries; **derived_pending_validation** while V-2 composition_status is UNVERIFIED — R8/R9) |
 | `left_foot_velocity` | float[3] | m/s | central finite difference of `left_foot_pose.position` | derived |
 | `right_foot_velocity` | float[3] | m/s | central finite difference of `right_foot_pose.position` | derived |
 
@@ -319,14 +338,16 @@ For each `Contacts` message, the collector retains, without reduction:
 | `right_contact_force` | float[3] ∪ null | N | same, right sensor | derived (from raw) |
 | `left_contact_moment` | float[3] ∪ null | N·m | net moment about the **left foot (ankle) frame origin** — same V-1 precondition (moment reference point must be determined, not assumed); `null` until then | derived (from raw) |
 | `right_contact_moment` | float[3] ∪ null | N·m | same, right foot frame origin | derived (from raw) |
-| `left_contact_wrench_state` | `VALID_CONTACT` ∪ `VALID_NO_CONTACT` ∪ `UNKNOWN_NO_MESSAGE` | – | see § 3.6.4 (REV1.2/R3) | meta |
-| `right_contact_wrench_state` | `VALID_CONTACT` ∪ `VALID_NO_CONTACT` ∪ `UNKNOWN_NO_MESSAGE` | – | see § 3.6.4 (REV1.2/R3) | meta |
+| `left_contact_wrench_state` | `VALID_CONTACT` ∪ `UNKNOWN_NO_MESSAGE` | – | Stage 1 two-state contract (REV1.3/R7); `VALID_NO_CONTACT` is a **future extension only**, not part of the Stage 1 acquisition contract — see § 3.6.4 | meta |
+| `right_contact_wrench_state` | `VALID_CONTACT` ∪ `UNKNOWN_NO_MESSAGE` | – | Stage 1 two-state contract (REV1.3/R7); see § 3.6.4 | meta |
 
 The frozen `Bool` topics (`/left_foot/contact`, `/right_foot/contact`) are **kept** so the boolean
 definition remains byte-identical to Stage 0 (cross-stage comparability). The Bool is produced by
 `contact_converter` from the **same underlying contact stream**; it is therefore **not
-independent evidence** of no-contact and never suffices, alone, to upgrade `UNKNOWN_NO_MESSAGE`
-to `VALID_NO_CONTACT` (GPT-5.6 correction 4; REV1.2/R3).
+independent evidence** of no-contact and can never upgrade a silence frame — under the
+REV1.3/R7 two-state contract it is not used for wrench validity at all (silence is
+`UNKNOWN_NO_MESSAGE`; a future `VALID_NO_CONTACT` extension would require an independent
+validated source, GPT-5.6 correction 4).
 
 ### 3.6.3 Frame association of contact messages
 
@@ -336,29 +357,31 @@ left/right-topic messages with stamp in `(sim_time_sec[t] − 0.05 s, sim_time_s
 last-not-after; `0.05 s` = Stage 0 freshness value, pre-registered). The association (which raw
 messages, at what stamps) is recorded per frame. No interpolation, no hold, no zero-fill across
 frames. A frame with no associated message records an empty association set and wrench state
-`UNKNOWN_NO_MESSAGE` (§ 3.6.4) unless the no-contact evidence rule of § 3.6.4 applies. Streams are
+`UNKNOWN_NO_MESSAGE` (§ 3.6.4; the Stage 1 contract has no other silence state). Streams are
 never aligned by callback arrival time; callback arrival time is not valid measurement time
 (REV1.2/R2).
 
-### 3.6.4 Wrench validity semantics — three states (REV1.2/R3; replaces the REV1.0 two-state rule)
+### 3.6.4 Wrench validity semantics — Stage 1 two-state contract (REV1.3/R7)
 
 **REV1.0's rule "`contact = false` and no message → force = `[0,0,0]`, `valid = true`" is
 deleted.** For an event-only or lossy stream, silence is uninterpretable, and a Bool derived from
-the same stream is not independent evidence that a zero wrench was observed. The replacement
-(fail-closed rule kept; REV1.2/R3 renames the silence state `UNKNOWN` → `UNKNOWN_NO_MESSAGE`):
+the same stream is not independent evidence that a zero wrench was observed. The Stage 1
+acquisition contract therefore operates in exactly **two states** (fail-closed):
 
 - `VALID_CONTACT` — at least one associated raw message within the window with relevant fields
   populated; the wrench evidence is observed.
-- `VALID_NO_CONTACT` — a **reliable observation of no contact** exists, in one of exactly two
-  pre-registered forms: (a) an **explicit empty contact message** — an associated `Contacts`
-  message within the window whose contact list is **empty** (the sensor actively reported
-  no-contact) — or (b) an **independent validated no-contact source** (a pre-registered signal
-  from a different code path, verified by a probe gate). Only such a frame may record a measured
-  zero wrench.
 - `UNKNOWN_NO_MESSAGE` — **no contact message** within the window (event-only stream, dropped
-  delivery, or no update). **No zero wrench is generated from silence.** Derived force/moment
-  are `null`; **no interpolation, no hold, no zero-fill, never a fabricated measured zero.**
-  Downstream analyses must treat these frames as missing contact evidence.
+  delivery, or no update). **No message never equals a zero wrench.** Derived force/moment are
+  `null`; **no interpolation, no hold, no zero-fill; no fabricated flight labels; no fabricated
+  no-contact state.** The frame records missing contact evidence, nothing else. Downstream
+  analyses must treat these frames as missing contact evidence.
+
+**`VALID_NO_CONTACT` — future extension only, NOT part of the Stage 1 acquisition contract
+(REV1.3/R7).** If ever activated by a future RFC revision, it would require exactly one of:
+(a) an **explicit empty contact message** — an associated `Contacts` message within the window
+whose contact list is empty — or (b) an **independent validated no-contact source** (a
+pre-registered signal from a different code path, verified by a probe gate). Nothing in Stage 1
+may emit it; a same-stream-derived Bool never suffices.
 
 - Wrenches are never averaged, extrapolated, or gap-filled across frames.
 - **Frame/reference interpretation status:** whether body-side wrench force/torque are expressed
@@ -655,7 +678,7 @@ authorized by an accepted RFC revision is out of scope):
 
 | # | Criterion |
 |---|---|
-| D1 | All 96 pre-registered episodes acquired under gates V-1/V-2 passed **and probe results pinned**; a V-1 failure on wrench population / body identity / publication mode blocks acquisition (no partial pivot); an unresolved frame/reference interpretation blocks derived moment/CoP fields but not raw acquisition (§ 3.6.4) |
+| D1 | All 96 pre-registered episodes acquired under gates V-1/V-2 passed **and probe results pinned**; a V-1 failure on wrench population / body identity / contact-event observation blocks acquisition (no partial pivot; event-only publication itself is two-state-consistent, REV1.3/R7); an unresolved frame/reference interpretation blocks derived moment/CoP fields but not raw acquisition (§ 3.6.4) |
 | D2 | Provenance fields present for 100 % of episodes; `theta_list_hash` fail-closed checks all passed |
 | D3 | Per-frame validity flags present for 100 % of frames; degraded episodes marked, none discarded |
 | D4 | Corpus index self-verification (content_hash) passes; commit scope decided by owner at implementation time |
@@ -686,28 +709,36 @@ All sources exist in the current pipeline; the collector adds subscriptions only
 - **V-1 (blocking): contact wrench availability and semantics.** Executed by the read-only probe
   `tools/stage1_probe.py` (subscribes to both `*_foot_contact_raw` topics — on the gz-transport
   **native** path (canonical, R1) and on the ROS bridge path (derived, field-loss documentation)
-  — and `/joint_states`; report contract: `dataset/stage1/probe/V1_report_REV12.json`, REV1.2
-  re-run; the REV1.1 run-3 report `V1_report.json` and the archived fallen-run reports are
-  retained as prior evidence). The probe must **determine** (never
-  assume; report each finding as `confirmed` / `plausible` / `unknown`):
-  1. **Runtime population** — the `JointWrench` fields of both topics are actually populated at
-     runtime with per-contact, per-body-side force, torque, and `force_offset` values (schema
-     presence alone proves nothing).
+  — and `/joint_states`; report contract: `dataset/stage1/probe/V1_report_REV13.json`, REV1.3
+  evidence run; prior evidence retained: REV1.2 `V1_report_REV12.json` + run-4 end-hold archive,
+  REV1.1 run-3 `V1_report.json` + archived fallen-run reports). The probe must **determine**
+  (never assume; report each finding as `confirmed` / `plausible` / `unknown`):
+  1. **Event-aware contact publication validation (REV1.3/R6 — replaces the removed absolute
+     effective-contact-frequency [50, 150] Hz band).** Only intervals containing contact
+     messages are evaluated; reported metrics: `active_contact_event_rate`, `median_event_dt`,
+     `p95_event_dt`, `max_event_dt` (within contact bursts), and burst duration. **Silence
+     intervals are not cadence failures**; silence semantics remain `UNKNOWN_NO_MESSAGE`. The
+     `JointWrench` fields of both topics must be actually populated at runtime with per-contact,
+     per-body-side force, torque, and `force_offset` values (schema presence alone proves
+     nothing).
   2. **Body identity** — `body_1_name` / `body_2_name` map to the expected ankle/ground collision
      pairs, left/right distinguishable, no cross-foot contamination.
-  3. **Publication mode** — periodic vs. event-only publication, and whether empty-contact
-     messages are ever sent (this decides whether silence can ever become `VALID_NO_CONTACT`,
-     § 3.6.4).
-  4. **Timestamp semantics (REV1.2/R2 correction — timestamp-domain validation on source
-     stamps).** Validation uses **source timestamps only**: (a) the same simulation clock domain
-     as `/joint_states`, established by **nearest-neighbor statistics** — for every contact
-     message source stamp, the absolute difference to the nearest `/joint_states` source stamp,
-     reported as **median, p95, and max**; (b) monotonicity and measured dt of the source
-     stamps. Source stamps are preserved verbatim. **Callback arrival time is not valid
-     measurement time.** Envelope-overlap of subscriber capture windows is explicitly **not**
-     a timestamp-domain criterion (the REV1.1 envelope-fraction check is deleted: it measured
-     subscriber discovery skew — a probe instrumentation artifact — not stamp-domain
-     agreement).
+  3. **Publication mode (REV1.3/R7 — under the Stage 1 two-state contract).** Periodic vs.
+     event-only publication and whether empty-contact messages are ever sent are **determined
+     facts**: event-only publication is **contract-consistent** (silence is recorded as
+     `UNKNOWN_NO_MESSAGE`; no zero wrench from silence, no fabricated flight labels, no
+     fabricated no-contact state) and is **not a blocking failure**. Empty-message behavior is
+     recorded for the future `VALID_NO_CONTACT` extension only.
+  4. **Timestamp association compatibility (REV1.3/R10 — formerly "timestamp semantics").**
+     Validation uses **source timestamps only** and proves that contact source stamps are
+     **associable** to the `/joint_states` grid: **nearest-neighbor statistics** — for every
+     contact message source stamp, the absolute difference to the nearest `/joint_states`
+     source stamp, reported as **median, p95, and max**; plus monotonicity and measured dt of
+     the source stamps. Source stamps are preserved verbatim. **The evidence proves association
+     compatibility; it does NOT prove universal clock identity.** **Callback arrival time is
+     not valid measurement time.** Envelope-overlap of subscriber capture windows is explicitly
+     **not** a criterion (the REV1.1 envelope-fraction check is deleted: it measured subscriber
+     discovery skew — a probe instrumentation artifact).
   5. **Frame/reference interpretation** — established from documented Gazebo message semantics
      plus a **controlled comparison after transforming both sides to a common frame and a common
      moment origin**. Newton's-third-law summation and standing-load magnitudes are **plausibility
@@ -716,16 +747,17 @@ All sources exist in the current pipeline; the collector adds subscriptions only
      (GPT-5.6 P1-R1). Per-foot static support near `≈ 26 N` (total `m·g ≈ 52 N`, `m = 5.305 kg`,
      `g = 9.8 m/s²`) is a gross sanity range, not unit proof.
 
-  If the wrenches are not populated, body identity is wrong, or publication mode makes no-contact
-  unobservable with no independent no-contact signal, **Stage 1 acquisition is blocked until this
+  If the wrenches are not populated, body identity is wrong, or contact events are not observed,
+  **Stage 1 acquisition is blocked until this
   RFC is revised. No force-free fallback is pre-authorized** (estimating forces from kinematics
-  would defeat the purpose of § 1). If frame/reference remains unresolved, **raw acquisition
+  would defeat the purpose of § 1). Event-only publication is not a blocking condition under the
+  REV1.3/R7 two-state contract. If frame/reference remains unresolved, **raw acquisition
   proceeds but CoP/derived-moment derivation is blocked** (§ 3.6.4, § 3.7).
 
 - **V-2 (blocking): pose-info completeness, semantics, and rate.** Executed by the same probe
   via gz-transport subscription to `/world/nao_world/pose/info` (report:
-  `dataset/stage1/probe/V2_report_REV12.json`, REV1.2 re-run; the REV1.1 run-3 report
-  `V2_report.json` is retained as prior evidence). Verify:
+  `dataset/stage1/probe/V2_report_REV13.json`, REV1.3 evidence run; prior evidence retained:
+  REV1.2 `V2_report_REV12.json`, REV1.1 run-3 `V2_report.json`). Verify:
   1. **Unique entities** — all 25 links of `nao_simple.sdf` (incl. `base_link`, `l_ankle`,
      `r_ankle`) appear as **unique, exactly-named** entries (25 strings occurring in `Pose_V` is
      not sufficient).
@@ -741,6 +773,15 @@ All sources exist in the current pipeline; the collector adds subscriptions only
      composition method **requires verification using selected non-identity links** (e.g.
      `l_ankle` / `r_ankle`) before composed poses are treated as validated world poses —
      identity-link (`base_link`) agreement alone is a consistency check, not a validation.
+     **REV1.3/R8 — composition evidence (an extension of this criterion, not a new gate):** the
+     probe must report `composition_evidence` for **at least two non-identity links**
+     (`l_ankle`, `r_ankle`, optionally `Head`) composed via `T_world_model × T_model_link`, and
+     compare against an **independent available pose source** if one exists. If no independent
+     non-identity-link world-pose source is available, the report must state
+     `composition_status: UNVERIFIED` — **validation must not be claimed**. While
+     `composition_status` is `UNVERIFIED`, composed foot/CoM fields remain
+     `derived_pending_validation` (§ 3.3 note, § 3.5); the collector may still store the raw
+     `Pose_V` entries and the model pose.
      Fixed standing geometry remains an informational sanity check (standing scenarios only).
      An existing subscriber proves consumption, not semantics.
   3. **Source stamps and cadence** — per-message stamps are recorded; the observed publication
@@ -754,7 +795,7 @@ All sources exist in the current pipeline; the collector adds subscriptions only
   coverage and frame semantics only; the mass/CoM computation itself is a § 3.4 derivation, not
   validated here.
 
-- **Probe result pinning (REV1.1; file naming per REV1.2):** V-1/V-2 reports record their git
+- **Probe result pinning (REV1.1; file naming per REV1.3):** V-1/V-2 reports record their git
   commit, the RFC hash under which they ran, the invocation command (argv), and a config hash.
   **Level 3 (bulk acquisition, § 0.0) requires both reports to exist, pass
   their blocking criteria, and be committed** before the first production episode.
@@ -765,10 +806,12 @@ All sources exist in the current pipeline; the collector adds subscriptions only
 
 ```text
 dataset/stage1/
-  probe/                      # pre-acquisition probe evidence (REV1.2)
-                              #   V1_report_REV12.json, V2_report_REV12.json
-                              #   (REV1.1 run-3: V1_report.json, V2_report.json;
-                              #    archived fallen-run reports) — pinned before Level 3
+  probe/                      # pre-acquisition probe evidence (REV1.3)
+                              #   V1_report_REV13.json, V2_report_REV13.json
+                              #   (REV1.2: V1/V2_report_REV12.json + run-4
+                              #    end-hold archive; REV1.1 run-3:
+                              #    V1/V2_report.json + archived fallen-run
+                              #    reports) — pinned before Level 3
   stage1_theta_list.json      # verbatim copy of the frozen Stage 0 list
                               # + cross-checked theta_list_hash (fail-closed)
   raw/                        # lossless raw stream captures per episode
@@ -795,7 +838,7 @@ dataset/stage1/
 
 ## Document status
 
-**REV1.2-CORRECTED — ACQUISITION CONTRACT (pending re-audit).**
+**REV1.3-MINIMAL-HARDENING — ACQUISITION-CONTRACT-READY (pending final independent audit).**
 
 Revision history:
 
@@ -852,6 +895,38 @@ Revision history:
   Probe re-run evidence under this revision: `dataset/stage1/probe/V1_report_REV12.json`,
   `V2_report_REV12.json`. **REV1.2 does not re-freeze itself** — it is pending re-audit, and no
   acceptance criterion is claimed satisfied by this revision.
+- **REV1.3-MINIMAL-HARDENING** (2026-10-08): minimal corrections per the GPT-5.6 independent
+  re-audit of REV1.2 (corrections R6–R10; correction task
+  `STAGE1_REV13_MINIMAL_HARDENING_TASK`). Hardening only — no new V-gate, no schema change,
+  no population/seeds/rings change, no controller/gait/Stage 0 change, no optimization:
+  1. **R6 — event-aware contact publication validation:** the absolute effective-contact-
+     frequency band [50, 150] Hz is removed; the V-1 publication criterion now reports
+     `active_contact_event_rate`, `median_event_dt`, `p95_event_dt`, `max_event_dt` (within
+     contact bursts), and burst duration; only intervals containing contact messages are
+     evaluated; silence intervals are not cadence failures; silence semantics remain
+     `UNKNOWN_NO_MESSAGE` (Appendix B V-1.1);
+  2. **R7 — Stage 1 two-state contact validity:** the Stage 1 acquisition contract operates
+     exactly `VALID_CONTACT` / `UNKNOWN_NO_MESSAGE`; no message never equals a zero wrench; no
+     fabricated flight labels; no fabricated no-contact state. `VALID_NO_CONTACT` is kept as a
+     future extension only (explicit empty contact message or independent validated source),
+     not required for Stage 1 acquisition; event-only publication is contract-consistent and
+     no longer a V-1 blocking condition (§ 3.6.2–3.6.4, Appendix B V-1.3);
+  3. **R8 — V-2 composition evidence (extension of the existing criterion, not a new gate):**
+     `composition_evidence` validates at least two non-identity links (e.g. `l_ankle`,
+     `r_ankle`) via `T_world_model × T_model_link`, compared against an independent pose
+     source if available; otherwise `composition_status: UNVERIFIED` and no validation claim;
+     composed foot/CoM fields remain `derived_pending_validation` until evidence exists
+     (§ 3.3 note, § 3.5, Appendix B V-2.2);
+  4. **R9 — measured/derived labels:** `right_foot_pose` (and `left_foot_pose`) are `derived`
+     (not measured); measured = raw gz pose messages, model pose, raw contacts, joint states;
+     derived = foot pose, CoM, CoP, ZMP, velocities, transforms (§ 3.0, § 3.4, § 3.5);
+  5. **R10 — timestamp wording:** the confirmed V-1 timestamp criterion is renamed/stated as
+     **timestamp association compatibility** — the evidence proves the source stamps are
+     associable; it does not prove universal clock identity (Appendix B V-1.4).
+  Probe evidence under this revision: `dataset/stage1/probe/V1_report_REV13.json`,
+  `V2_report_REV13.json`. **REV1.3 is pending final independent audit** — status
+  ACQUISITION-CONTRACT-READY is a readiness claim only, not acceptance; no acquisition
+  authorization is claimed.
 
 **This document authorizes preparation and collector implementation (Levels 1–2, § 0.0) only.
 Bulk acquisition of the 96 episodes (Level 3) is NOT authorized by this document alone — it

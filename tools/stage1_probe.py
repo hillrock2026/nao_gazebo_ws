@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Stage 1 pre-acquisition probes: V-1 (contact raw path) and V-2 (pose path).
 
-Contract: docs/STAGE1_DYNAMICS_DATASET_RFC.md (REV1.2-CORRECTED, pending
-re-audit), Appendix B. This script is Level 1 preparation instrumentation
-(RFC § 0.0):
+Contract: docs/STAGE1_DYNAMICS_DATASET_RFC.md (REV1.3-MINIMAL-HARDENING,
+pending final independent audit), Appendix B. This script is Level 1
+preparation instrumentation (RFC § 0.0):
 
   * read-only — it only subscribes to existing topics and writes JSON reports
     under dataset/stage1/probe/;
@@ -13,23 +13,32 @@ re-audit), Appendix B. This script is Level 1 preparation instrumentation
   * it never starts acquisition — the 96 episodes are Level 3 and stay gated.
 
 V-1 determines (never assumes) the contact raw-path facts:
-  1. runtime population & cadence of both foot contact topics on BOTH the ROS
-     bridge path and the gz-transport native path (REV1.2/R1: the native
-     Contacts stream is the canonical raw source; the bridge is an optional
-     derived stream — its field loss is documented, a dead bridge is
-     recorded but does not block the native path);
+  1. event-aware contact publication validation (REV1.3/R6 — replaces the
+     removed absolute effective-frequency [50,150] Hz band): only intervals
+     containing contact messages are evaluated; reported metrics are
+     active_contact_event_rate, median/p95/max event dt (within bursts),
+     burst duration, and silence-interval counts. Silence intervals are NOT
+     cadence failures; silence semantics remain UNKNOWN_NO_MESSAGE. The
+     gz-transport native path is the canonical raw source (REV1.2/R1); the
+     ROS bridge is an optional derived stream — a dead bridge is recorded
+     but does not block the native path;
   2. body identity — verbatim collision / body entity names observed;
-  3. publication mode — which payload fields are populated (positions,
-     normals, depths, wrenches; force_offset and world on the native path;
-     the ROS bridge schema is introspected and recorded for field loss);
-  4. timestamp semantics (REV1.2/R2) — timestamp-domain validation on SOURCE
-     stamps only: the same simulation clock domain as /joint_states is
-     established via nearest-neighbor statistics (median / p95 / max of
-     |contact stamp - nearest /joint_states stamp|); monotonicity and
-     measured dt; exact-stamp preservation across the ROS bridge. The
-     REV1.1 envelope-overlap criterion is DELETED — subscriber capture
-     window overlap is a discovery-skew artifact, not timestamp-domain
-     validation; callback arrival time is never used as measurement time;
+  3. publication mode (REV1.3/R7 — Stage 1 two-state contract
+     VALID_CONTACT / UNKNOWN_NO_MESSAGE): which payload fields are
+     populated (positions, normals, depths, wrenches; force_offset and
+     world on the native path; the ROS bridge schema is introspected and
+     recorded for field loss). Event-only publication is contract-
+     consistent and is not a failure: silence is recorded as
+     UNKNOWN_NO_MESSAGE (no zero wrench from silence, no fabricated flight
+     labels, no fabricated no-contact state). VALID_NO_CONTACT is a future
+     extension, not required for Stage 1 acquisition;
+  4. timestamp association compatibility (REV1.3/R10 — formerly
+     "timestamp semantics"): source-stamp evidence that contact stamps are
+     ASSOCIABLE to the /joint_states grid — nearest-neighbor statistics
+     (median / p95 / max), monotonicity, measured dt, exact-stamp
+     preservation across the ROS bridge. The evidence proves association
+     compatibility; it does NOT prove universal clock identity. Callback
+     arrival time is never used as measurement time;
   5. frame/reference interpretation — N3L / standing equilibrium is used ONLY
      as a plausibility check (GPT-5.6 correction 3). It never substitutes for
      a common-frame/common-origin comparison, so it can never mark this
@@ -38,17 +47,16 @@ V-1 determines (never assumes) the contact raw-path facts:
 V-2 determines the /world/nao_world/pose/info facts:
   1. unique entities — all 25 links of nao_simple.sdf as unique, exactly-named
      entries;
-  2. pose frame semantics (REV1.2/R4) — DETERMINED from evidence, never
-     assumed, and REPORTED as relative/model-relative, never as world pose:
-     run 1 falsified the RFC REV1.1 App. B V-2.2 literal reading — link
-     entries are parent-frame / model-relative poses while the model entry
-     carries the world pose. The model entry is cross-checked against
-     /body_pose (exact-stamp), world poses are recovered by composing the
-     nao model entry with each link entry
-     (p_w = p_nao + R(q_nao).p_rel, q_w = q_nao (x) q_rel). REV1.2/R5: the
-     base_link (identity-link) comparison is a consistency check ONLY — the
-     composition method requires verification using selected non-identity
-     links before composed poses are treated as validated;
+  2. pose frame semantics (REV1.2/R4) + composition_evidence (REV1.3/R8):
+     link entries are parent/model-relative (reported as model-relative,
+     never as world pose); the model entry is cross-checked against
+     /body_pose (exact-stamp); composition_evidence evaluates at least two
+     non-identity links (l_ankle, r_ankle) via
+     T_world_link = T_world_model x T_model_link and compares against an
+     independent pose source if one is available. When no independent
+     non-identity-link world-pose source exists, composition_status is
+     reported as UNVERIFIED and validation is NOT claimed — composed
+     foot/CoM fields remain derived_pending_validation;
   3. source stamps & measured cadence (SceneBroadcaster has no configured
      publish rate — measured, not assumed);
   4. alignment hit rate (the operative check) — the fraction of joint-clock
@@ -61,12 +69,12 @@ running on the same ROS_DOMAIN_ID / GZ_PARTITION):
     python3 tools/stage1_probe.py --probe both --duration 20.0 \
         --warmup-sec 5.0
 
-REV1.2 evidence run (report suffix; writes V1_report_REV12.json /
-V2_report_REV12.json):
+REV1.3 evidence run (report suffix; writes V1_report_REV13.json /
+V2_report_REV13.json):
 
     python3 tools/stage1_probe.py --probe both --duration 20.0 \
         --warmup-sec 30.0 --ros-domain-id 88 \
-        --gz-partition stage1probe4 --report-suffix REV12
+        --gz-partition stage1probe7 --report-suffix REV13
 
 Standing-scenario launch used with this probe (runtime args only, no file
 edits — RFC § 5.4). It mirrors the acquisition LAUNCH_BASE
@@ -137,7 +145,6 @@ N3L_RATIO_MIN, N3L_RATIO_MAX = 0.5, 1.5
 N3L_PAIRWISE_MAX_FRACTION = 0.2  # |fz_L + fz_R| / (m*g) upper bound.
 
 V2_HIT_RATE_MIN = 0.95           # RFC App. B V-2 criterion 4 (>= 95 %).
-CADENCE_MIN_HZ, CADENCE_MAX_HZ = 50.0, 150.0
 POPULATED_FRACTION_MIN = 0.95
 STAMP_ENVELOPE_FRACTION_MIN = 0.95
 BODY_POSE_MATCH_FRACTION_MIN = 0.99
@@ -162,8 +169,8 @@ FRAME_SEMANTICS_FRACTION_MIN = 0.99
 DYNAMIC_MATCH_MAX_DIFF_M = 1e-3  # classification tolerance, see analyze_v2.
 
 CRITERION_STATUS = ('confirmed', 'plausible', 'contradicted', 'unknown')
-V1_BLOCKING = ('population_cadence', 'body_identity', 'publication_mode',
-               'timestamp_semantics')
+V1_BLOCKING = ('contact_publication_events', 'body_identity',
+               'publication_mode', 'timestamp_association_compatibility')
 V2_BLOCKING = ('unique_entities', 'pose_frame_semantics',
                'source_stamps_cadence', 'alignment_hit_rate')
 
@@ -236,6 +243,73 @@ def percentile(sorted_vals, p):
     k = max(0, min(len(sorted_vals) - 1,
                    int(math.ceil(p * len(sorted_vals))) - 1))
     return sorted_vals[k]
+
+
+def event_segmentation(stamps, gap_s):
+    """Split ascending stamps into bursts separated by gaps > gap_s.
+
+    Returns (bursts, silences): bursts = lists of consecutive stamps whose
+    pairwise dt <= gap_s; silences = the gap durations that separated
+    consecutive bursts."""
+    bursts, silences = [], []
+    cur = [stamps[0]]
+    for a, b in zip(stamps, stamps[1:]):
+        gap = b - a
+        if gap > gap_s:
+            silences.append(gap)
+            bursts.append(cur)
+            cur = [b]
+        else:
+            cur.append(b)
+    bursts.append(cur)
+    return bursts, silences
+
+
+def event_publication_stats(stamps, gap_s):
+    """Event-aware contact publication statistics (REV1.3/R6).
+
+    Only intervals containing contact messages are evaluated (bursts = runs
+    of dt <= gap_s). Silence intervals (gap > gap_s) are counted and
+    reported, never treated as cadence failures; silence semantics remain
+    UNKNOWN_NO_MESSAGE (REV1.3/R7)."""
+    if not stamps:
+        return None
+    bursts, silences = event_segmentation(stamps, gap_s)
+    burst_durations = [b[-1] - b[0] for b in bursts]
+    event_dts = [y - x for b in bursts for x, y in zip(b, b[1:])]
+    active_span = sum(burst_durations)
+    n = len(stamps)
+    return {
+        'gap_threshold_s': gap_s,
+        'n_messages': n,
+        'n_bursts': len(bursts),
+        'burst_duration_s': {
+            'min': round(min(burst_durations), 9) if burst_durations else None,
+            'median': round(statistics.median(burst_durations), 9)
+            if burst_durations else None,
+            'p95': round(percentile(sorted(burst_durations), 0.95), 9)
+            if burst_durations else None,
+            'max': round(max(burst_durations), 9)
+            if burst_durations else None,
+        },
+        'silence_intervals': {
+            'n': len(silences),
+            'total_s': round(sum(silences), 9) if silences else 0.0,
+            'max_s': round(max(silences), 9) if silences else None,
+        },
+        'n_event_dt_samples': len(event_dts),
+        'median_event_dt_s': round(statistics.median(event_dts), 9)
+        if event_dts else None,
+        'p95_event_dt_s': round(percentile(sorted(event_dts), 0.95), 9)
+        if event_dts else None,
+        'max_event_dt_s': round(max(event_dts), 9) if event_dts else None,
+        'active_contact_event_rate_hz': round(n / active_span, 6)
+        if active_span > 0 else None,
+        'semantics': 'event-aware (REV1.3/R6): only intervals containing '
+                     'contact messages are evaluated; silence intervals '
+                     'are not cadence failures; silence frames remain '
+                     'UNKNOWN_NO_MESSAGE (REV1.3/R7)',
+    }
 
 
 def round_floats(obj, ndigits=9):
@@ -867,18 +941,21 @@ def analyze_v1(collected, args, provenance):
     criteria = []
     tf = {topic: _topic_facts_v1(records, topic) for topic in CONTACT_TOPICS}
 
-    # --- criterion 1: population & cadence, native path canonical (blocking)
+    # --- criterion 1: event-aware contact publication (blocking, R6) -----
+    # REV1.3/R6: the absolute effective-frequency band [50, 150] Hz is
+    # REMOVED (effective rate = burst rate x duty is gait-phase dependent).
+    # Validation is event-aware: only intervals containing contact messages
+    # are evaluated; silence intervals are counted, never failed.
     pop_ev, pop_problems, pop_notes = {}, [], []
     pop_status = 'confirmed'
     for topic in CONTACT_TOPICS:
         t = tf[topic]
-        hz = t['dt'].get('mean_rate_hz')
         ev = {
             'gz_n_messages': t['gz_n'],
-            'gz_mean_rate_hz': hz,
-            'gz_dt': t['dt'],
             'ros_n_messages': t['ros_n'],
             'native_path_canonical': True,
+            'event_publication': event_publication_stats(
+                t['stamps'], args.contact_window_sec),
         }
         gz_stream = streams.get(gz_kind(topic), {})
         wall = gz_stream.get('wall_span_s')
@@ -891,13 +968,14 @@ def analyze_v1(collected, args, provenance):
         if t['gz_n'] < MIN_MESSAGES_FOR_CADENCE:
             pop_status = 'contradicted'
             pop_problems.append(
-                '%s: gz native path received %d messages (< %d)' % (
-                    topic, t['gz_n'], MIN_MESSAGES_FOR_CADENCE))
-        elif hz is None or not (CADENCE_MIN_HZ <= hz <= CADENCE_MAX_HZ):
-            pop_status = 'contradicted'
+                '%s: gz native path received %d messages (< %d) — contact '
+                'events not observed' % (topic, t['gz_n'],
+                                         MIN_MESSAGES_FOR_CADENCE))
+        elif ev['event_publication'] is None \
+                or ev['event_publication']['n_bursts'] < 1:
+            pop_status = 'unknown'
             pop_problems.append(
-                '%s: measured gz cadence %s Hz outside expected band '
-                '[%s, %s]' % (topic, hz, CADENCE_MIN_HZ, CADENCE_MAX_HZ))
+                '%s: no event bursts determinable from valid stamps' % topic)
         if t['ros_n'] == 0:
             # REV1.2/R1: the ROS bridge is an optional derived stream — a
             # dead bridge is recorded, but does not block the native path.
@@ -907,11 +985,13 @@ def analyze_v1(collected, args, provenance):
                 'stream (REV1.2/R1), recorded, non-blocking for the native '
                 'canonical path' % topic)
     criteria.append(_criterion(
-        'population_cadence',
-        'Runtime population & cadence of both foot contact topics on the '
-        'gz-transport native path (canonical raw source, REV1.2/R1); the ROS '
-        'bridge path is an optional derived stream, recorded but '
-        'non-blocking', True,
+        'contact_publication_events',
+        'Event-aware contact publication validation (REV1.3/R6, replaces the '
+        'absolute effective-frequency band): active_contact_event_rate, '
+        'median / p95 / max event dt within bursts, burst duration, silence '
+        'interval counts — only intervals containing contact messages are '
+        'evaluated; silence intervals are not cadence failures (silence '
+        'semantics remain UNKNOWN_NO_MESSAGE)', True,
         pop_status, pop_ev, '; '.join(pop_problems + pop_notes)))
 
     # --- criterion 2: body identity (blocking) ---------------------------
@@ -1076,24 +1156,44 @@ def analyze_v1(collected, args, provenance):
                 'wrench unpopulated (RFC App. B V-1 failure condition)'
                 % topic)
         if nc == 'not_observable':
-            pub_status = 'contradicted'
-            pub_problems.append(
-                '%s: event-only publication — no-contact is unobservable '
-                'with no independent signal (RFC App. B V-1 failure '
-                'condition)' % topic)
+            # REV1.3/R7: the Stage 1 acquisition contract is two-state
+            # (VALID_CONTACT / UNKNOWN_NO_MESSAGE). Event-only publication
+            # is contract-consistent and is NOT a failure: silence is
+            # recorded as UNKNOWN_NO_MESSAGE (no zero wrench from silence,
+            # no fabricated flight labels, no fabricated no-contact state).
+            # VALID_NO_CONTACT is a future extension, not required for
+            # Stage 1 acquisition.
+            ev['two_state_contract'] = {
+                'contract': 'VALID_CONTACT / UNKNOWN_NO_MESSAGE '
+                            '(REV1.3/R7)',
+                'event_only_publication_consistent': True,
+                'silence_semantics': 'UNKNOWN_NO_MESSAGE — no zero wrench '
+                                     'from silence, no fabricated flight '
+                                     'labels, no fabricated no-contact '
+                                     'state',
+                'valid_no_contact': 'future extension only — NOT required '
+                                    'for Stage 1 acquisition (REV1.3/R7); '
+                                    'would require an explicit empty '
+                                    'contact message or an independent '
+                                    'validated no-contact source',
+            }
         pub_ev[topic] = ev
     criteria.append(_criterion(
         'publication_mode',
         'Which payload fields are populated per non-empty contact '
         '(positions, normals, depths, wrenches, world, force_offset) and '
-        'whether publication is periodic or event-only', True, pub_status,
+        'whether publication is periodic or event-only — publication mode '
+        'is a determined fact under the REV1.3/R7 two-state contract: '
+        'event-only publication is contract-consistent (silence is recorded '
+        'as UNKNOWN_NO_MESSAGE), not a blocking failure', True, pub_status,
         pub_ev, '; '.join(pub_problems)))
 
-    # --- criterion 4: timestamp semantics (blocking) ----------------------
-    # REV1.2/R2: timestamp-domain validation on SOURCE stamps only. The
-    # REV1.1 envelope-overlap criterion is deleted: subscriber capture
-    # window overlap measures discovery skew (a probe instrumentation
-    # artifact), not stamp-domain agreement. Callback arrival time is not
+    # --- criterion 4: timestamp association compatibility (blocking) ------
+    # REV1.2/R2 + REV1.3/R10: validation on SOURCE stamps only; the criterion
+    # is association COMPATIBILITY — the evidence proves the source stamps
+    # are associable within the declared windows; it does NOT prove
+    # universal clock identity. The REV1.1 envelope-overlap criterion is
+    # deleted (discovery-skew artifact). Callback arrival time is not
     # valid measurement time; only preserved source stamps are used.
     def arrival_backwards(seq):
         back = dup = 0
@@ -1158,10 +1258,11 @@ def analyze_v1(collected, args, provenance):
             if match is not None else None,
         }
         # Nearest-neighbor statistics on source stamps: for every contact
-        # message stamp, |stamp - nearest /joint_states stamp|. Same clock
-        # domain check: p95 <= contact association window (pre-registered
-        # constant; a different clock domain would show second-scale
-        # distances, not millisecond-scale).
+        # message stamp, |stamp - nearest /joint_states stamp|. Association
+        # compatibility (REV1.3/R10): p95 <= contact association window
+        # proves the stamps are associable within the declared windows; it
+        # does NOT prove universal clock identity (a domain offset beyond
+        # the measured windows cannot be excluded by this evidence).
         if jstamps and arr:
             dists = sorted(nearest_dist(jstamps, s) for s in arr)
             nn = {
@@ -1172,28 +1273,29 @@ def analyze_v1(collected, args, provenance):
                 'direction': 'contact stamp -> nearest /joint_states stamp',
             }
             ev['nearest_joint_stamp_dt'] = nn
-            same_domain = nn['p95_s'] <= args.contact_window_sec
-            ev['clock_domain_check'] = {
+            associable = nn['p95_s'] <= args.contact_window_sec
+            ev['association_compatibility_check'] = {
                 'method': 'p95 of |contact source stamp - nearest '
                           '/joint_states source stamp| <= contact '
-                          'association window (REV1.2/R2; source stamps '
-                          'only)',
+                          'association window (REV1.2/R2 source stamps '
+                          'only; REV1.3/R10 association compatibility — '
+                          'NOT a universal clock identity claim)',
                 'threshold_s': args.contact_window_sec,
                 'statistic_s': nn['p95_s'],
-                'same_clock_domain': same_domain,
+                'association_compatible': associable,
             }
-            if not same_domain:
+            if not associable:
                 ts_status = 'contradicted'
                 ts_problems.append(
                     '%s: p95 nearest-stamp difference %s s > %s s — contact '
-                    'stamps are not in the /joint_states simulation clock '
-                    'domain' % (topic, nn['p95_s'],
-                                args.contact_window_sec))
+                    'source stamps are not associable to the /joint_states '
+                    'grid within the declared windows' % (
+                        topic, nn['p95_s'], args.contact_window_sec))
         else:
             ev['nearest_joint_stamp_dt'] = None
-            ev['clock_domain_check'] = {
-                'method': 'nearest-neighbor on source stamps (REV1.2/R2)',
-                'same_clock_domain': None,
+            ev['association_compatibility_check'] = {
+                'method': 'nearest-neighbor on source stamps (REV1.3/R10)',
+                'association_compatible': None,
                 'note': 'not measurable: contact stamps = %d, joint stamps '
                         '= %d' % (len(arr), len(jstamps)),
             }
@@ -1215,13 +1317,15 @@ def analyze_v1(collected, args, provenance):
                     topic, round(match, 6)))
         ts_ev[topic] = ev
     criteria.append(_criterion(
-        'timestamp_semantics',
-        'Timestamp-domain validation on source stamps (REV1.2/R2): same '
-        'simulation clock domain as /joint_states via nearest-neighbor '
-        'statistics (median / p95 / max), monotonicity, measured dt, and '
-        'exact-stamp preservation across the ROS bridge; callback arrival '
-        'time is not valid measurement time and subscriber capture-window '
-        'envelope overlap is not a criterion', True, ts_status, ts_ev,
+        'timestamp_association_compatibility',
+        'Timestamp association compatibility (REV1.3/R10, formerly timestamp '
+        'semantics): source stamps are associable to the /joint_states grid '
+        '— nearest-neighbor statistics (median / p95 / max), monotonicity, '
+        'measured dt, and exact-stamp preservation across the ROS bridge. '
+        'The evidence proves association compatibility; it does NOT prove '
+        'universal clock identity. Callback arrival time is not valid '
+        'measurement time and subscriber capture-window envelope overlap is '
+        'not a criterion', True, ts_status, ts_ev,
         '; '.join(ts_problems)))
 
     # --- criterion 5: frame/reference (plausibility only, not blocking) ---
@@ -1311,18 +1415,47 @@ def analyze_v1(collected, args, provenance):
             'fact': 'contact publication mode per topic (gz native path)',
             'value': {topic: pub_ev[topic]['publication_mode']
                       for topic in CONTACT_TOPICS},
-            'consequence': 'periodic cadence implies messages continue '
-                           'during no-contact; empty-message behavior must '
-                           'still be re-confirmed during the acquisition '
-                           'pilot (fail-closed three-state, RFC § 3.6.4)',
+            'consequence': 'Stage 1 operates the two-state contract '
+                           'VALID_CONTACT / UNKNOWN_NO_MESSAGE (REV1.3/R7): '
+                           'event-only publication is contract-consistent — '
+                           'the collector emits UNKNOWN_NO_MESSAGE during '
+                           'silence (no zero wrench from silence, no '
+                           'fabricated flight labels, no fabricated '
+                           'no-contact state); empty-message behavior is '
+                           'recorded for the future VALID_NO_CONTACT '
+                           'extension only',
         },
         {
-            'fact': 'no-contact observability within the standing window',
+            'fact': 'no-contact observability within the collection window',
             'value': no_contact_modes,
-            'consequence': 'VALID_NO_CONTACT may only be emitted when empty '
-                           'Contacts messages are confirmed on the native '
-                           'path; otherwise the collector must emit UNKNOWN '
-                           '(fail-closed)',
+            'consequence': 'VALID_NO_CONTACT is a future extension, NOT '
+                           'required for Stage 1 acquisition (REV1.3/R7); '
+                           'the collector emits UNKNOWN_NO_MESSAGE on '
+                           'silence (two-state, fail-closed)',
+        },
+        {
+            'fact': 'event-aware contact publication statistics '
+                    '(REV1.3/R6)',
+            'value': {topic: {
+                'active_contact_event_rate_hz':
+                    (pop_ev[topic].get('event_publication') or {}).get(
+                        'active_contact_event_rate_hz'),
+                'median_event_dt_s':
+                    (pop_ev[topic].get('event_publication') or {}).get(
+                        'median_event_dt_s'),
+                'p95_event_dt_s':
+                    (pop_ev[topic].get('event_publication') or {}).get(
+                        'p95_event_dt_s'),
+                'max_event_dt_s':
+                    (pop_ev[topic].get('event_publication') or {}).get(
+                        'max_event_dt_s'),
+                'burst_duration_s':
+                    (pop_ev[topic].get('event_publication') or {}).get(
+                        'burst_duration_s'),
+            } for topic in CONTACT_TOPICS},
+            'consequence': 'cadence is validated by event semantics only '
+                           '(no absolute effective-frequency band); silence '
+                           'intervals are not failures',
         },
         {
             'fact': 'verbatim collision entity names per topic',
@@ -1345,12 +1478,14 @@ def analyze_v1(collected, args, provenance):
             'value': {topic: ts_ev[topic].get(
                 'fraction_ros_stamps_exact_in_gz')
                 for topic in CONTACT_TOPICS},
-            'consequence': 'both paths share the gz source sim-time domain '
-                           'when this fraction is high',
+            'consequence': 'the optional derived bridge stream preserves the '
+                           'gz source sim-time stamps when this fraction is '
+                           'high',
         },
         {
-            'fact': 'contact/joint clock-domain agreement '
-                    '(nearest-neighbor source-stamp statistics, REV1.2/R2)',
+            'fact': 'contact/joint stamp association compatibility '
+                    '(nearest-neighbor source-stamp statistics, '
+                    'REV1.3/R10)',
             'value': {topic: {
                 'median_s': (ts_ev[topic].get('nearest_joint_stamp_dt')
                              or {}).get('median_s'),
@@ -1359,10 +1494,13 @@ def analyze_v1(collected, args, provenance):
                 'max_s': (ts_ev[topic].get('nearest_joint_stamp_dt')
                           or {}).get('max_s'),
             } for topic in CONTACT_TOPICS},
-            'consequence': 'millisecond-scale nearest-stamp distances '
-                           'establish the same simulation clock domain on '
-                           'source stamps; the collector aligns on source '
-                           'stamps only, never on callback arrival time',
+            'consequence': 'millisecond-scale nearest-stamp distances prove '
+                           'the source stamps are ASSOCIABLE within the '
+                           'declared windows — this is association '
+                           'compatibility, NOT a universal clock identity '
+                           'claim (REV1.3/R10); the collector aligns on '
+                           'source stamps only, never on callback arrival '
+                           'time',
         },
     ]
     if pairs and fr_ev.get('median_signed_sum_newtons') is not None:
@@ -1385,8 +1523,9 @@ def analyze_v1(collected, args, provenance):
     else:
         consequences.append(
             'raw contact acquisition feasible on the gz-transport native '
-            'path (lossless); see bridge_field_loss for the ROS bridge '
-            'field loss')
+            'path (lossless) under the two-state contract VALID_CONTACT / '
+            'UNKNOWN_NO_MESSAGE (REV1.3/R7); see bridge_field_loss for the '
+            'ROS bridge field loss')
     consequences.append(
         'frame/reference determination stays at plausibility level; '
         'CoP/derived-moment derivation remains blocked pending a '
@@ -1941,8 +2080,9 @@ def analyze_v2(collected, args, provenance):
     # base_link entry must reproduce the nao entry exactly. REV1.2/R5: this
     # identity-link comparison is a CONSISTENCY CHECK ONLY — it cannot
     # exercise the rotation term (identity link), so it is not an
-    # end-to-end validation; the composition method requires verification
-    # using selected non-identity links.
+    # end-to-end validation. REV1.3/R8 extends the evidence to at least two
+    # NON-IDENTITY links (l_ankle, r_ankle) composed via
+    # T_world_model x T_model_link, with an explicit composition_status.
     base_comp_vs_nao = []
     for r in pose_recs:
         tr = r.get('tracked') or {}
@@ -1951,6 +2091,51 @@ def analyze_v2(collected, args, provenance):
             w = compose_world_pose(m, b)
             base_comp_vs_nao.append(max(
                 abs(w['position'][k] - m['position'][k]) for k in range(3)))
+
+    # REV1.3/R8: composition evidence on non-identity links, compared
+    # against an independent pose source IF one is available.
+    composition_links = ('l_ankle', 'r_ankle')
+    independent_sources = [
+        {
+            'source': BODY_POSE_TOPIC,
+            'coverage': 'model entry (base_link — identity link only)',
+            'usable_for_non_identity_links': False,
+        },
+        {
+            'source': DYNAMIC_POSE_TOPIC,
+            'coverage': 'measured parent-relative entries — same semantics '
+                        'as pose/info link entries, not a world-pose source '
+                        '(probe-determined)',
+            'usable_for_non_identity_links': False,
+        },
+        {
+            'source': 'fixed standing geometry',
+            'coverage': 'envelope sanity only (standing scenarios)',
+            'usable_for_non_identity_links': False,
+        },
+    ]
+    composition_status = 'UNVERIFIED'
+    status_reason = (
+        'no independent non-identity-link world-pose source is available '
+        'in the current pipeline (REV1.3/R8): validation is NOT claimed')
+    composition_evidence = {
+        'method': 'T_world_link = T_world_model x T_model_link (same '
+                  'Pose_V message; p_w = p_nao + R(q_nao).p_rel, '
+                  'q_w = q_nao (x) q_rel)',
+        'requirement': 'at least two non-identity links (REV1.3/R8)',
+        'links_evaluated': list(composition_links),
+        'n_non_identity_links_evaluated': len(composition_links),
+        'composed_median_positions_m': {
+            key: median_pos(composed_rows(key)) for key in composition_links},
+        'independent_pose_sources': independent_sources,
+        'composition_status': composition_status,
+        'status_reason': status_reason,
+        'consequence': 'composed foot/CoM fields remain '
+                       'derived_pending_validation until validation '
+                       'evidence exists; the collector still stores raw '
+                       'Pose_V entries and the model pose',
+    }
+
     composition_ev = {
         'formula': 'p_world = p_nao + R(q_nao) . p_link_entry; '
                    'q_world = q_nao (x) q_link_entry; quaternions are '
@@ -1964,15 +2149,16 @@ def analyze_v2(collected, args, provenance):
             median_pos(composed_rows('l_ankle')),
         'r_ankle_composed_median_position_m':
             median_pos(composed_rows('r_ankle')),
+        'composition_evidence': composition_evidence,
         'note': 'the raw l_ankle median documents parent-frame values (SDF '
                 'hip y-offset 0.05, leg FK); the composed medians are the '
                 'recovered world poses; REV1.2/R5: the base_link comparison '
                 'is an identity-link CONSISTENCY CHECK ONLY (base_link IS '
                 'the model frame, so the rotation term is never exercised) '
-                '— not an end-to-end validation; the composition method '
-                'requires verification using selected non-identity links '
-                '(e.g. l_ankle / r_ankle) before composed poses are treated '
-                'as validated',
+                '— not an end-to-end validation; REV1.3/R8: composition '
+                'evidence on non-identity links is reported with an '
+                'explicit composition_status (%s) — %s'
+                % (composition_status, status_reason),
     }
 
     # (e) fixed standing-geometry sanity, evaluated on world poses under
@@ -2138,14 +2324,17 @@ def analyze_v2(collected, args, provenance):
     }
     criteria.append(_criterion(
         'pose_frame_semantics',
-        'RFC REV1.2 App. B V-2.2 (R4): pose/info link entries are parent/'
+        'RFC REV1.3 App. B V-2.2 (R4): pose/info link entries are parent/'
         'model-relative poses — reported as model-relative, never as world '
         'pose; world poses are derived by composition '
         'T_world_link = T_world_model . T_model_link; the nao model entry '
         '(composition anchor) is cross-checked against /body_pose '
         '(exact-stamp); identity-link composition consistency is recorded '
-        '(R5: consistency check only — the composition method requires '
-        'verification using selected non-identity links)',
+        '(R5: consistency check only); composition_evidence (R8) reports '
+        'non-identity-link composition with an explicit composition_status '
+        '(UNVERIFIED while no independent source exists) — validation is '
+        'not claimed and composed foot/CoM fields remain '
+        'derived_pending_validation',
         True, wp_status, wp_ev,
         '; '.join(wp_problems + standing_notes)))
 
@@ -2297,23 +2486,30 @@ def analyze_v2(collected, args, provenance):
                            'not a native world-pose alternative)',
         },
         {
-            'fact': 'world-pose composition consistency (identity link '
-                    'only, REV1.2/R5)',
+            'fact': 'world-pose composition evidence (identity link + '
+                    'non-identity links; REV1.3/R8)',
             'value': {
                 'composed_base_link_vs_nao_entry_max_diff_m':
                     composition_ev[
                         'composed_base_link_vs_nao_entry_max_diff_m'],
+                'non_identity_links_evaluated':
+                    composition_evidence['links_evaluated'],
+                'composition_status': composition_status,
                 'dynamic_entry_semantics': dyn_ev[
                     'dynamic_entry_semantics'],
                 'dynamic_pose_info_n_messages': dyn_ev['n_messages'],
             },
             'consequence': 'identity-link consistency (base_link IS the '
-                           'model frame, rotation term never exercised) — '
-                           'NOT an end-to-end validation: the composition '
+                           'model frame, rotation term never exercised) '
+                           'plus non-identity-link composition evidence '
+                           '(l_ankle, r_ankle) — composition_status is '
+                           '%s: validation is NOT claimed. The composition '
                            'method is the declared collector recovery path '
-                           'but REQUIRES verification using selected '
-                           'non-identity links (e.g. l_ankle/r_ankle) '
-                           'before composed poses are treated as validated',
+                           'but composed foot/CoM fields remain '
+                           'derived_pending_validation until an '
+                           'independent non-identity-link world-pose '
+                           'source provides validation evidence'
+                           % composition_status,
         },
         {
             'fact': 'model entry "nao" vs base_link pose offset',
@@ -2337,15 +2533,16 @@ def analyze_v2(collected, args, provenance):
     consequences = []
     if blocking_failures:
         consequences.append(
-            'acquisition blocked until the pose path is fixed (RFC REV1.2 '
+            'acquisition blocked until the pose path is fixed (RFC REV1.3 '
             'App. B V-2 failure conditions): %s' % ', '.join(blocking_failures))
     else:
         consequences.append(
             'pose/info link entries confirmed parent/model-relative '
             '(REV1.2/R4): reported as model-relative, never as world pose; '
             'world poses are derived by composition with the nao model '
-            'entry (same message) and still REQUIRE non-identity-link '
-            'verification (REV1.2/R5) before being treated as validated')
+            'entry (same message); composition_status = %s (REV1.3/R8) — '
+            'validation is not claimed and composed foot/CoM fields remain '
+            'derived_pending_validation' % composition_status)
         consequences.append(
             'pose/info may serve as the raw pose source (model-relative '
             'entries + model entry retained verbatim) with the %s s '
@@ -2511,7 +2708,7 @@ def provenance_facts():
     }
 
 
-REPORT_SCHEMA_VERSION = 'stage1-probe/1.2'
+REPORT_SCHEMA_VERSION = 'stage1-probe/1.3'
 
 
 def build_report(probe_id, args, env, provenance, collected, analysis,
