@@ -1,0 +1,1128 @@
+{
+  "schema_version": "stage1-probe/1.3",
+  "probe": "V-2",
+  "wallclock_utc": "2026-10-08T05:43:35.909701+00:00",
+  "argv": [
+    "tools/stage1_probe.py",
+    "--probe",
+    "both",
+    "--duration",
+    "20.0",
+    "--warmup-sec",
+    "30.0",
+    "--ros-domain-id",
+    "88",
+    "--gz-partition",
+    "stage1probe8",
+    "--report-suffix",
+    "REV13"
+  ],
+  "environment": {
+    "wallclock_utc": "2026-10-08T05:42:52.760048+00:00",
+    "python_version": "3.12.3",
+    "ROS_DISTRO": "jazzy",
+    "RMW_IMPLEMENTATION": null,
+    "ROS_DOMAIN_ID": {
+      "effective": "88",
+      "cli": "88"
+    },
+    "GZ_PARTITION": {
+      "effective": "stage1probe8",
+      "cli": "stage1probe8"
+    }
+  },
+  "provenance": {
+    "git_commit": "559c243740641c93eef29f9228da3124dfd43080",
+    "rfc": {
+      "path": "/home/liu/workspace/Nao_Program/nao_gazebo_ws/docs/STAGE1_DYNAMICS_DATASET_RFC.md",
+      "sha256": "d6a5e02286bb306b78925ed7d977ec41bf7d73e90990ec2e5cffc5ba1578084b"
+    },
+    "sdf": {
+      "path": "/home/liu/workspace/Nao_Program/nao_gazebo_ws/src/nao/nao_description/urdf/nao_simple.sdf",
+      "sha256": "44ed828509db9e869bfa701b491233862dcd1448183bb2ec0a1c3b497aa46400"
+    },
+    "sdf_mass": {
+      "sdf_path": "/home/liu/workspace/Nao_Program/nao_gazebo_ws/src/nao/nao_description/urdf/nao_simple.sdf",
+      "n_mass_elements": 25,
+      "total_mass_kg": 5.305366,
+      "m_g_newtons": [
+        51.9926,
+        52.0456
+      ]
+    },
+    "mode": {
+      "read_only": true,
+      "level": "Level 1 preparation instrumentation (RFC \u00a7 0.0)",
+      "published_topics": [],
+      "frozen_components_modified": "none",
+      "outputs": "dataset/stage1/probe/V1_report[_suffix].json, V2_report[_suffix].json (--report-suffix)"
+    }
+  },
+  "config": {
+    "probe": "both",
+    "duration_s": 20.0,
+    "warmup_sec": 30.0,
+    "contact_window_sec": 0.05,
+    "pose_window_sec": 0.02,
+    "max_samples": 2,
+    "report_suffix": "REV13",
+    "ros_qos": "BEST_EFFORT / KEEP_LAST(50) / VOLATILE",
+    "gz_transport": "gz-transport native subscribe (default QoS)"
+  },
+  "config_sha256": "b1847e153c5f4d06c7dd91f0000738777153638354ee3013330c94589898e621",
+  "measurement": {
+    "streams": {
+      "pose_info": {
+        "transport": "gz",
+        "topic": "/world/nao_world/pose/info",
+        "subscribe_ok": true,
+        "first_msg_after_s": 0.016,
+        "wall_span_s": 20.985,
+        "n_messages": 1219,
+        "n_valid_stamp": 1219,
+        "empty_after_warmup": false
+      },
+      "dynamic_pose_info": {
+        "transport": "gz",
+        "topic": "/world/nao_world/dynamic_pose/info",
+        "subscribe_ok": true,
+        "first_msg_after_s": 0.012,
+        "wall_span_s": 20.985,
+        "n_messages": 1219,
+        "n_valid_stamp": 1219,
+        "empty_after_warmup": false
+      },
+      "joint_states": {
+        "transport": "ros",
+        "topic": "/joint_states",
+        "subscribe_ok": true,
+        "first_msg_after_s": 0.85,
+        "wall_span_s": 20.161,
+        "n_messages": 1832,
+        "n_valid_stamp": 1832,
+        "empty_after_warmup": false
+      },
+      "body_pose": {
+        "transport": "ros",
+        "topic": "/body_pose",
+        "subscribe_ok": true,
+        "first_msg_after_s": 0.867,
+        "wall_span_s": 20.135,
+        "n_messages": 1170,
+        "n_valid_stamp": 1170,
+        "empty_after_warmup": false
+      }
+    },
+    "session_errors": [],
+    "callback_errors": []
+  },
+  "analysis": {
+    "criteria": [
+      {
+        "id": "unique_entities",
+        "title": "All 25 nao_simple.sdf links appear as unique, exactly-named entities in /world/nao_world/pose/info (model entry \"nao\" included)",
+        "blocking": true,
+        "status": "confirmed",
+        "evidence": {
+          "n_messages": 1219,
+          "n_entries_total": 65826,
+          "n_unique_verbatim_names": 54,
+          "verbatim_names": [
+            "Head",
+            "Head_visual",
+            "LAnklePitch_link",
+            "LAnklePitch_link_visual",
+            "LBicep",
+            "LBicep_visual",
+            "LElbow",
+            "LForeArm",
+            "LForeArm_visual",
+            "LHip",
+            "LHip_visual",
+            "LPelvis",
+            "LPelvis_visual",
+            "LShoulder",
+            "LShoulder_visual",
+            "LThigh",
+            "LThigh_visual",
+            "LTibia",
+            "LTibia_visual",
+            "Neck",
+            "Neck_visual",
+            "RAnklePitch_link",
+            "RAnklePitch_link_visual",
+            "RBicep",
+            "RBicep_visual",
+            "RElbow",
+            "RForeArm",
+            "RForeArm_visual",
+            "RHip",
+            "RHip_visual",
+            "RPelvis",
+            "RPelvis_visual",
+            "RShoulder",
+            "RShoulder_visual",
+            "RThigh",
+            "RThigh_visual",
+            "RTibia",
+            "RTibia_visual",
+            "base_link",
+            "base_link_fixed_joint_lump__torso_visual",
+            "ground_plane",
+            "l_ankle",
+            "l_ankle_visual",
+            "l_wrist",
+            "l_wrist_visual",
+            "link",
+            "nao",
+            "r_ankle",
+            "r_ankle_visual",
+            "r_wrist",
+            "r_wrist_visual",
+            "sun",
+            "sunVisual",
+            "visual"
+          ],
+          "local_name_union": [
+            "Head",
+            "Head_visual",
+            "LAnklePitch_link",
+            "LAnklePitch_link_visual",
+            "LBicep",
+            "LBicep_visual",
+            "LElbow",
+            "LForeArm",
+            "LForeArm_visual",
+            "LHip",
+            "LHip_visual",
+            "LPelvis",
+            "LPelvis_visual",
+            "LShoulder",
+            "LShoulder_visual",
+            "LThigh",
+            "LThigh_visual",
+            "LTibia",
+            "LTibia_visual",
+            "Neck",
+            "Neck_visual",
+            "RAnklePitch_link",
+            "RAnklePitch_link_visual",
+            "RBicep",
+            "RBicep_visual",
+            "RElbow",
+            "RForeArm",
+            "RForeArm_visual",
+            "RHip",
+            "RHip_visual",
+            "RPelvis",
+            "RPelvis_visual",
+            "RShoulder",
+            "RShoulder_visual",
+            "RThigh",
+            "RThigh_visual",
+            "RTibia",
+            "RTibia_visual",
+            "base_link",
+            "base_link_fixed_joint_lump__torso_visual",
+            "ground_plane",
+            "l_ankle",
+            "l_ankle_visual",
+            "l_wrist",
+            "l_wrist_visual",
+            "link",
+            "nao",
+            "r_ankle",
+            "r_ankle_visual",
+            "r_wrist",
+            "r_wrist_visual",
+            "sun",
+            "sunVisual",
+            "visual"
+          ],
+          "naming_convention": "bare_names",
+          "model_entry_nao_present": true,
+          "ground_entry_present": true,
+          "missing_expected_links": [],
+          "ambiguous_expected_links": {},
+          "ids_unstable": {},
+          "fraction_messages_with_all_25_links": 1.0,
+          "per_message_link_coverage_min": 25,
+          "rfc_reference": "RFC App. B V-2 criterion 1 \u2014 \"25 strings occurring in Pose_V is not sufficient\"; exactly-named unique entries required"
+        },
+        "notes": ""
+      },
+      {
+        "id": "pose_frame_semantics",
+        "title": "RFC REV1.3 App. B V-2.2 (R4): pose/info link entries are parent/model-relative poses \u2014 reported as model-relative, never as world pose; world poses are derived by composition T_world_link = T_world_model . T_model_link; the nao model entry (composition anchor) is cross-checked against /body_pose (exact-stamp); identity-link composition consistency is recorded (R5: consistency check only); composition_evidence (R8) reports non-identity-link composition with an explicit composition_status (UNVERIFIED while no independent source exists) \u2014 validation is not claimed and composed foot/CoM fields remain derived_pending_validation",
+        "blocking": true,
+        "status": "confirmed",
+        "evidence": {
+          "body_pose_n_messages": 1170,
+          "body_pose_frame_ids": {
+            "world": 1170
+          },
+          "pose_info_messages_with_nao_entry": 1219,
+          "n_exact_stamp_matched": 1170,
+          "n_unmatched": 0,
+          "fraction_exact_stamp_matched": 1.0,
+          "max_position_diff_m": 0.0,
+          "median_position_diff_m": 0.0,
+          "n_quat_compared": 1170,
+          "max_normalized_quat_component_diff": 0.0,
+          "tolerances": {
+            "match_fraction_min": 0.99,
+            "position_m": 1e-06,
+            "quat_component": 1e-09
+          },
+          "body_pose_cross_check_scope": "the /body_pose exact-stamp check validates that the nao MODEL entry (the composition anchor) is the world pose \u2014 link entries have no /body_pose counterpart",
+          "frame_semantics": {
+            "n_messages_evaluated": 1219,
+            "base_link_identity_fraction": 1.0,
+            "nao_entry_identity_fraction": 0.0,
+            "base_link_matches_nao_entry_fraction": 0.0,
+            "l_ankle_raw_below_ground_fraction": 1.0,
+            "identity_tolerance": 1e-06,
+            "fraction_min": 0.99,
+            "link_entry_frame_semantics": "model_relative_for_links",
+            "rfc_expectation": "model_relative_for_links (RFC REV1.2/R4) \u2014 entries are reported as parent/model-relative, never as world pose",
+            "discriminator": "base_link is the model frame (no <pose> in nao_simple.sdf), so a world-frame base_link entry must equal the nao model-entry world pose; an identity base_link entry with a moving nao entry proves parent-frame link entries",
+            "run1_evidence": "run 1 (fallen robot, *.run1_fallen.json): base_link == [0, 0, 0] exactly on every message while the nao entry was [0.2616, 0, 0.1141]; l_ankle kept the SDF hip y-offset 0.05 and the fully-extended leg geometry \u2014 parent-frame FK, not a world pose"
+          },
+          "composition": {
+            "formula": "p_world = p_nao + R(q_nao) . p_link_entry; q_world = q_nao (x) q_link_entry; quaternions are [x, y, z, w] (gz.msgs.Pose convention)",
+            "n_messages_with_model_and_base_link": 1219,
+            "composed_base_link_vs_nao_entry_max_diff_m": 0.0,
+            "base_link_composition_tolerance_m": 1e-06,
+            "l_ankle_raw_median_position_m": [
+              0.001337692836,
+              0.05056329445,
+              -0.283523238225
+            ],
+            "l_ankle_composed_median_position_m": [
+              0.279628564197,
+              -0.048159768921,
+              0.049624996318
+            ],
+            "r_ankle_composed_median_position_m": [
+              0.220510331985,
+              -0.128397670648,
+              0.049596539648
+            ],
+            "composition_evidence": {
+              "method": "T_world_link = T_world_model x T_model_link (same Pose_V message; p_w = p_nao + R(q_nao).p_rel, q_w = q_nao (x) q_rel)",
+              "requirement": "at least two non-identity links (REV1.3/R8)",
+              "links_evaluated": [
+                "l_ankle",
+                "r_ankle"
+              ],
+              "n_non_identity_links_evaluated": 2,
+              "composed_median_positions_m": {
+                "l_ankle": [
+                  0.279628564197,
+                  -0.048159768921,
+                  0.049624996318
+                ],
+                "r_ankle": [
+                  0.220510331985,
+                  -0.128397670648,
+                  0.049596539648
+                ]
+              },
+              "independent_pose_sources": [
+                {
+                  "source": "/body_pose",
+                  "coverage": "model entry (base_link \u2014 identity link only)",
+                  "usable_for_non_identity_links": false
+                },
+                {
+                  "source": "/world/nao_world/dynamic_pose/info",
+                  "coverage": "measured parent-relative entries \u2014 same semantics as pose/info link entries, not a world-pose source (probe-determined)",
+                  "usable_for_non_identity_links": false
+                },
+                {
+                  "source": "fixed standing geometry",
+                  "coverage": "envelope sanity only (standing scenarios)",
+                  "usable_for_non_identity_links": false
+                }
+              ],
+              "composition_status": "UNVERIFIED",
+              "status_reason": "no independent non-identity-link world-pose source is available in the current pipeline (REV1.3/R8): validation is NOT claimed",
+              "consequence": "composed foot/CoM fields remain derived_pending_validation until validation evidence exists; the collector still stores raw Pose_V entries and the model pose"
+            },
+            "note": "the raw l_ankle median documents parent-frame values (SDF hip y-offset 0.05, leg FK); the composed medians are the recovered world poses; REV1.2/R5: the base_link comparison is an identity-link CONSISTENCY CHECK ONLY (base_link IS the model frame, so the rotation term is never exercised) \u2014 not an end-to-end validation; REV1.3/R8: composition evidence on non-identity links is reported with an explicit composition_status (UNVERIFIED) \u2014 no independent non-identity-link world-pose source is available in the current pipeline (REV1.3/R8): validation is NOT claimed"
+          },
+          "model_entry_nao_vs_base_link_median_delta_m": [
+            0.246262123514,
+            -0.085009087725,
+            0.332478056405
+          ],
+          "standing_geometry": {
+            "base_link": {
+              "n": 1219,
+              "source": "composed world pose (nao entry (x) base_link entry)",
+              "median_position_m": [
+                0.246262123514,
+                -0.085009087725,
+                0.332478056405
+              ],
+              "fraction_within_standing_envelope": 1.0
+            },
+            "l_ankle": {
+              "n": 1219,
+              "source": "composed world pose (nao entry (x) l_ankle entry)",
+              "median_position_m": [
+                0.279628564197,
+                -0.048159768921,
+                0.049624996318
+              ],
+              "fraction_within_standing_envelope": 1.0
+            },
+            "r_ankle": {
+              "n": 1219,
+              "source": "composed world pose (nao entry (x) r_ankle entry)",
+              "median_position_m": [
+                0.220510331985,
+                -0.128397670648,
+                0.049596539648
+              ],
+              "fraction_within_standing_envelope": 1.0
+            }
+          },
+          "ground_plane": {
+            "n": 1219,
+            "median_z_m": 0.0,
+            "fraction_abs_z_within_tolerance": 1.0,
+            "tolerance_abs_z_m": 0.01
+          },
+          "dynamic_pose_info_cross_check": {
+            "topic": "/world/nao_world/dynamic_pose/info",
+            "n_messages": 1219,
+            "dt": {
+              "n_dt": 1218,
+              "dt_min_s": 0.006,
+              "dt_max_s": 0.018,
+              "dt_mean_s": 0.015623974,
+              "dt_median_s": 0.016,
+              "dt_stdev_s": 0.001514591,
+              "mean_rate_hz": 64.004204,
+              "n_nonpositive_dt": 0
+            },
+            "n_stamp_matched": 1206,
+            "stamp_match_tolerance_s": 0.008,
+            "max_abs_stamp_diff_s": 0.008,
+            "max_position_diff_vs_raw_link_entry_m": {
+              "base_link": 0.0,
+              "l_ankle": 0.001151988732,
+              "r_ankle": 0.001117537728
+            },
+            "max_position_diff_vs_composed_world_m": {
+              "base_link": 0.335762832023,
+              "l_ankle": 0.337999170526,
+              "r_ankle": 0.33767510555
+            },
+            "dynamic_entry_semantics": "ambiguous",
+            "role": "informational cross-check (non-blocking) \u2014 determines whether dynamic_pose/info is a native world-pose source the collector could use instead of composing pose/info"
+          },
+          "informational_checks": {
+            "standing_geometry": "informational (REV1.2): standing-scenario sanity on composed world poses; walk-scenario swing feet are expected outside the ankle envelope \u2014 not a blocking check",
+            "ground_plane": "informational (REV1.2): static-entity sanity on the world frame",
+            "notes": []
+          }
+        },
+        "notes": "link entries are parent-frame (model-relative) poses \u2014 the REV1.2 contract semantics (reported as model-relative, never as world pose); world poses are derived by composing the nao model entry with each link entry (same Pose_V message)"
+      },
+      {
+        "id": "source_stamps_cadence",
+        "title": "Source stamps and measured cadence of pose/info, /joint_states and /body_pose (SceneBroadcaster rate is not configured \u2014 measured, never assumed)",
+        "blocking": true,
+        "status": "confirmed",
+        "evidence": {
+          "pose_info": {
+            "n_valid_stamp": 1219,
+            "dt": {
+              "n_dt": 1218,
+              "dt_min_s": 0.006,
+              "dt_max_s": 0.018,
+              "dt_mean_s": 0.015624795,
+              "dt_median_s": 0.016,
+              "dt_stdev_s": 0.001505818,
+              "mean_rate_hz": 64.000841,
+              "n_nonpositive_dt": 0
+            },
+            "backwards": 0,
+            "duplicates": 0,
+            "sim_span_s": 19.031,
+            "wall_span_s": 20.985,
+            "sim_over_wall_rate": 0.90688587086
+          },
+          "joint_states": {
+            "n_valid_stamp": 1832,
+            "dt": {
+              "n_dt": 1831,
+              "dt_min_s": 0.01,
+              "dt_max_s": 0.01,
+              "dt_mean_s": 0.01,
+              "dt_median_s": 0.01,
+              "dt_stdev_s": 0.0,
+              "mean_rate_hz": 100.0,
+              "n_nonpositive_dt": 0
+            },
+            "backwards": 0,
+            "duplicates": 0,
+            "sim_span_s": 18.31,
+            "wall_span_s": 20.161,
+            "sim_over_wall_rate": 0.908189077923
+          },
+          "body_pose": {
+            "n_valid_stamp": 1170,
+            "dt": {
+              "n_dt": 1169,
+              "dt_min_s": 0.006,
+              "dt_max_s": 0.018,
+              "dt_mean_s": 0.015643285,
+              "dt_median_s": 0.016,
+              "dt_stdev_s": 0.001506905,
+              "mean_rate_hz": 63.925193,
+              "n_nonpositive_dt": 0
+            },
+            "backwards": 0,
+            "duplicates": 0,
+            "sim_span_s": 18.287,
+            "wall_span_s": 20.135,
+            "sim_over_wall_rate": 0.908219518252
+          }
+        },
+        "notes": ""
+      },
+      {
+        "id": "alignment_hit_rate",
+        "title": "Fraction of joint-clock frames whose causal last-not-after 0.02 s window contains at least one pose/info message (>= 95 %)",
+        "blocking": true,
+        "status": "confirmed",
+        "evidence": {
+          "n_joint_frames": 1832,
+          "n_pose_messages": 1219,
+          "causal_window_s": 0.02,
+          "window_semantics": "last-not-after: last pose stamp p with p <= t and t - p <= window (RFC \u00a7 3.6.3, App. B V-2 criterion 4)",
+          "n_hits": 1832,
+          "hit_rate": 1.0,
+          "hit_rate_min": 0.95,
+          "first_misses": [],
+          "pose_info_dt_mean_s": 0.015624795
+        },
+        "notes": ""
+      }
+    ],
+    "determined_facts": [
+      {
+        "fact": "pose/info entity naming convention",
+        "value": {
+          "convention": "bare_names",
+          "verbatim_names": [
+            "Head",
+            "Head_visual",
+            "LAnklePitch_link",
+            "LAnklePitch_link_visual",
+            "LBicep",
+            "LBicep_visual",
+            "LElbow",
+            "LForeArm",
+            "LForeArm_visual",
+            "LHip",
+            "LHip_visual",
+            "LPelvis",
+            "LPelvis_visual",
+            "LShoulder",
+            "LShoulder_visual",
+            "LThigh",
+            "LThigh_visual",
+            "LTibia",
+            "LTibia_visual",
+            "Neck",
+            "Neck_visual",
+            "RAnklePitch_link",
+            "RAnklePitch_link_visual",
+            "RBicep",
+            "RBicep_visual",
+            "RElbow",
+            "RForeArm",
+            "RForeArm_visual",
+            "RHip",
+            "RHip_visual",
+            "RPelvis",
+            "RPelvis_visual",
+            "RShoulder",
+            "RShoulder_visual",
+            "RThigh",
+            "RThigh_visual",
+            "RTibia",
+            "RTibia_visual",
+            "base_link",
+            "base_link_fixed_joint_lump__torso_visual",
+            "ground_plane",
+            "l_ankle",
+            "l_ankle_visual",
+            "l_wrist",
+            "l_wrist_visual",
+            "link",
+            "nao",
+            "r_ankle",
+            "r_ankle_visual",
+            "r_wrist",
+            "r_wrist_visual",
+            "sun",
+            "sunVisual",
+            "visual"
+          ]
+        },
+        "consequence": "the collector must associate poses by these verbatim names (local-name matching is a probe convenience, not the collector contract)"
+      },
+      {
+        "fact": "fraction of pose/info messages carrying all 25 links",
+        "value": 1.0,
+        "consequence": "a single-message 25-link snapshot is usable only when this fraction is high; otherwise the collector must stitch across messages"
+      },
+      {
+        "fact": "measured pose/info cadence (source stamps)",
+        "value": {
+          "n_dt": 1218,
+          "dt_min_s": 0.006,
+          "dt_max_s": 0.018,
+          "dt_mean_s": 0.015624795,
+          "dt_median_s": 0.016,
+          "dt_stdev_s": 0.001505818,
+          "mean_rate_hz": 64.000841,
+          "n_nonpositive_dt": 0
+        },
+        "consequence": "SceneBroadcaster rate is determined at runtime and pinned in this report, not assumed"
+      },
+      {
+        "fact": "/body_pose exact-stamp agreement with pose/info",
+        "value": {
+          "fraction_exact_stamp_matched": 1.0,
+          "frame_ids": {
+            "world": 1170
+          }
+        },
+        "consequence": "body_pose_converter is confirmed to re-publish the model-entry pose with the source stamp"
+      },
+      {
+        "fact": "pose/info link-entry frame semantics (REV1.2/R4)",
+        "value": {
+          "link_entry_frame_semantics": "model_relative_for_links",
+          "base_link_identity_fraction": 1.0,
+          "base_link_matches_nao_entry_fraction": 0.0
+        },
+        "consequence": "link entries are parent-frame (model-relative) poses, reported as model-relative and NEVER as world pose: the collector must NOT record them as world poses; world poses are derived by composing the nao model entry with each link entry (same Pose_V message) \u2014 T_world_link = T_world_model . T_model_link (dynamic_pose/info is also parent-relative, not a native world-pose alternative)"
+      },
+      {
+        "fact": "world-pose composition evidence (identity link + non-identity links; REV1.3/R8)",
+        "value": {
+          "composed_base_link_vs_nao_entry_max_diff_m": 0.0,
+          "non_identity_links_evaluated": [
+            "l_ankle",
+            "r_ankle"
+          ],
+          "composition_status": "UNVERIFIED",
+          "dynamic_entry_semantics": "ambiguous",
+          "dynamic_pose_info_n_messages": 1219
+        },
+        "consequence": "identity-link consistency (base_link IS the model frame, rotation term never exercised) plus non-identity-link composition evidence (l_ankle, r_ankle) \u2014 composition_status is UNVERIFIED: validation is NOT claimed. The composition method is the declared collector recovery path but composed foot/CoM fields remain derived_pending_validation until an independent non-identity-link world-pose source provides validation evidence"
+      },
+      {
+        "fact": "model entry \"nao\" vs base_link pose offset",
+        "value": [
+          0.246262123514,
+          -0.085009087725,
+          0.332478056405
+        ],
+        "consequence": "under model-relative link entries the base_link entry is the model-frame identity, so this delta IS the nao model-entry world pose itself \u2014 not a constant kinematic offset between two world poses"
+      },
+      {
+        "fact": "joint-clock causal-window hit rate (0.02 s)",
+        "value": 1.0,
+        "consequence": "per-frame miss flags are required in the collector when frames fall outside the window"
+      }
+    ],
+    "verdict": {
+      "probe": "V-2",
+      "status": "PASS",
+      "blocking_failures": [],
+      "non_blocking_statuses": {},
+      "consequences": [
+        "pose/info link entries confirmed parent/model-relative (REV1.2/R4): reported as model-relative, never as world pose; world poses are derived by composition with the nao model entry (same message); composition_status = UNVERIFIED (REV1.3/R8) \u2014 validation is not claimed and composed foot/CoM fields remain derived_pending_validation",
+        "pose/info may serve as the raw pose source (model-relative entries + model entry retained verbatim) with the 0.02 s causal last-not-after association window (RFC \u00a7 3.6.3)",
+        "joint-clock frames are pose-associatable at >= 95 %%; the collector still records per-frame miss flags"
+      ]
+    }
+  },
+  "samples": {
+    "body_pose": {
+      "n_available": 1170,
+      "first_message": {
+        "stamp_s": 24.979,
+        "frame_id": "world",
+        "position": [
+          0.193252072498,
+          -0.041042563124,
+          0.331375166237
+        ],
+        "orientation": [
+          0.011745861175,
+          -0.016049091684,
+          -0.300567766134,
+          0.953553081565
+        ]
+      }
+    },
+    "dynamic_pose_info": {
+      "n_available": 1219,
+      "first_message": {
+        "stamp_s": 24.231,
+        "n_entries_total": 26,
+        "first_entries": [
+          {
+            "name": "nao",
+            "id": 10
+          },
+          {
+            "name": "base_link",
+            "id": 11
+          },
+          {
+            "name": "Neck",
+            "id": 15
+          },
+          {
+            "name": "Head",
+            "id": 18
+          },
+          {
+            "name": "LPelvis",
+            "id": 21
+          },
+          {
+            "name": "LHip",
+            "id": 24
+          },
+          {
+            "name": "LThigh",
+            "id": 27
+          },
+          {
+            "name": "LTibia",
+            "id": 30
+          },
+          {
+            "name": "LAnklePitch_link",
+            "id": 33
+          },
+          {
+            "name": "l_ankle",
+            "id": 36
+          },
+          {
+            "name": "LShoulder",
+            "id": 44
+          },
+          {
+            "name": "LBicep",
+            "id": 47
+          },
+          {
+            "name": "LElbow",
+            "id": 50
+          },
+          {
+            "name": "LForeArm",
+            "id": 52
+          },
+          {
+            "name": "l_wrist",
+            "id": 55
+          },
+          {
+            "name": "RPelvis",
+            "id": 58
+          },
+          {
+            "name": "RHip",
+            "id": 61
+          },
+          {
+            "name": "RThigh",
+            "id": 64
+          },
+          {
+            "name": "RTibia",
+            "id": 67
+          },
+          {
+            "name": "RAnklePitch_link",
+            "id": 70
+          },
+          {
+            "name": "r_ankle",
+            "id": 73
+          },
+          {
+            "name": "RShoulder",
+            "id": 81
+          },
+          {
+            "name": "RBicep",
+            "id": 84
+          },
+          {
+            "name": "RElbow",
+            "id": 87
+          },
+          {
+            "name": "RForeArm",
+            "id": 89
+          },
+          {
+            "name": "r_wrist",
+            "id": 92
+          }
+        ],
+        "tracked": {
+          "nao": {
+            "id": 10,
+            "position": [
+              0.182444031781,
+              -0.059650407373,
+              0.332611723552
+            ],
+            "orientation": [
+              0.010989146526,
+              -0.000415341566,
+              -0.319002212894,
+              0.947690167892
+            ],
+            "verbatim_name": "nao"
+          },
+          "base_link": {
+            "id": 11,
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "orientation": [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ],
+            "verbatim_name": "base_link"
+          },
+          "l_ankle": {
+            "id": 36,
+            "position": [
+              0.002868728818,
+              0.061373493768,
+              -0.276654647292
+            ],
+            "orientation": [
+              -1.8385904e-05,
+              0.042625894717,
+              0.002530365064,
+              0.999087899043
+            ],
+            "verbatim_name": "l_ankle"
+          },
+          "r_ankle": {
+            "id": 73,
+            "position": [
+              0.000605879231,
+              -0.038191271356,
+              -0.283552448699
+            ],
+            "orientation": [
+              -0.000143256563,
+              -0.003171769437,
+              -0.00018909129,
+              0.999994941788
+            ],
+            "verbatim_name": "r_ankle"
+          }
+        }
+      }
+    },
+    "joint_states": {
+      "n_available": 1832,
+      "first_message": {
+        "stamp_s": 24.964,
+        "n_name": 24,
+        "n_position": 24,
+        "n_velocity": 24,
+        "n_effort": 0
+      }
+    },
+    "pose_info": {
+      "n_available": 1219,
+      "first_message": {
+        "stamp_s": 24.235,
+        "n_entries_total": 54,
+        "first_entries": [
+          {
+            "name": "ground_plane",
+            "id": 4
+          },
+          {
+            "name": "nao",
+            "id": 10
+          },
+          {
+            "name": "link",
+            "id": 5
+          },
+          {
+            "name": "base_link",
+            "id": 11
+          },
+          {
+            "name": "Neck",
+            "id": 15
+          },
+          {
+            "name": "Head",
+            "id": 18
+          },
+          {
+            "name": "LPelvis",
+            "id": 21
+          },
+          {
+            "name": "LHip",
+            "id": 24
+          },
+          {
+            "name": "LThigh",
+            "id": 27
+          },
+          {
+            "name": "LTibia",
+            "id": 30
+          },
+          {
+            "name": "LAnklePitch_link",
+            "id": 33
+          },
+          {
+            "name": "l_ankle",
+            "id": 36
+          },
+          {
+            "name": "LShoulder",
+            "id": 44
+          },
+          {
+            "name": "LBicep",
+            "id": 47
+          },
+          {
+            "name": "LElbow",
+            "id": 50
+          },
+          {
+            "name": "LForeArm",
+            "id": 52
+          },
+          {
+            "name": "l_wrist",
+            "id": 55
+          },
+          {
+            "name": "RPelvis",
+            "id": 58
+          },
+          {
+            "name": "RHip",
+            "id": 61
+          },
+          {
+            "name": "RThigh",
+            "id": 64
+          },
+          {
+            "name": "RTibia",
+            "id": 67
+          },
+          {
+            "name": "RAnklePitch_link",
+            "id": 70
+          },
+          {
+            "name": "r_ankle",
+            "id": 73
+          },
+          {
+            "name": "RShoulder",
+            "id": 81
+          },
+          {
+            "name": "RBicep",
+            "id": 84
+          },
+          {
+            "name": "RElbow",
+            "id": 87
+          },
+          {
+            "name": "RForeArm",
+            "id": 89
+          },
+          {
+            "name": "r_wrist",
+            "id": 92
+          },
+          {
+            "name": "visual",
+            "id": 6
+          },
+          {
+            "name": "sunVisual",
+            "id": 9
+          }
+        ],
+        "tracked": {
+          "ground_plane": {
+            "id": 4,
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "orientation": [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ],
+            "verbatim_name": "ground_plane"
+          },
+          "nao": {
+            "id": 10,
+            "position": [
+              0.18253869994,
+              -0.059523520411,
+              0.332579252775
+            ],
+            "orientation": [
+              0.010693051839,
+              -0.000512493387,
+              -0.319016003967,
+              0.94768886519
+            ],
+            "verbatim_name": "nao"
+          },
+          "base_link": {
+            "id": 11,
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "orientation": [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ],
+            "verbatim_name": "base_link"
+          },
+          "l_ankle": {
+            "id": 36,
+            "position": [
+              0.003137212949,
+              0.061380325685,
+              -0.276631790076
+            ],
+            "orientation": [
+              -1.730713e-05,
+              0.042885301407,
+              0.002547550017,
+              0.999076754115
+            ],
+            "verbatim_name": "l_ankle"
+          },
+          "r_ankle": {
+            "id": 73,
+            "position": [
+              0.000502105719,
+              -0.038184316456,
+              -0.283552276431
+            ],
+            "orientation": [
+              -0.000134852728,
+              -0.002985698335,
+              -0.000178077852,
+              0.999995517844
+            ],
+            "verbatim_name": "r_ankle"
+          }
+        }
+      }
+    }
+  },
+  "message_schemas": {
+    "gz.msgs.Pose_V": {
+      "header": {
+        "data": {
+          "key": "string",
+          "value": "repeated string"
+        },
+        "stamp": {
+          "nsec": "int32",
+          "sec": "int64"
+        }
+      },
+      "pose": {
+        "header": {
+          "data": {
+            "key": "string",
+            "value": "repeated string"
+          },
+          "stamp": {
+            "nsec": "int32",
+            "sec": "int64"
+          }
+        },
+        "id": "uint32",
+        "name": "string",
+        "orientation": {
+          "header": {
+            "data": "repeated message",
+            "stamp": "message"
+          },
+          "w": "double",
+          "x": "double",
+          "y": "double",
+          "z": "double"
+        },
+        "position": {
+          "header": {
+            "data": "repeated message",
+            "stamp": "message"
+          },
+          "x": "double",
+          "y": "double",
+          "z": "double"
+        }
+      }
+    },
+    "sensor_msgs/msg/JointState": {
+      "header": "std_msgs/Header",
+      "name": "sequence<string>",
+      "position": "sequence<double>",
+      "velocity": "sequence<double>",
+      "effort": "sequence<double>"
+    },
+    "geometry_msgs/msg/PoseStamped": {
+      "header": "std_msgs/Header",
+      "pose": "geometry_msgs/Pose"
+    }
+  }
+}
