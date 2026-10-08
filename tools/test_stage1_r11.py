@@ -69,21 +69,43 @@ def complete_provenance():
 def raw_records():
     """Raw measured stream events (verbatim storage, non-propagation).
 
-    R12 note: the fixture satisfies the strengthened R12-D raw structural
-    contract (known stream categories, required keys, all required
-    categories present)."""
+    R12/R13 notes: the fixture satisfies the strengthened raw structural
+    contract (known stream categories, required keys, RFC-shaped nested
+    payloads, all required categories present)."""
     return [
         {'stream': 'pose_info', 'stamp_s': 1.012,
          'entries': [{'name': 'nao', 'position': [0.5, -0.28, 0.33]},
                      {'name': 'l_ankle', 'position': [0.0, 0.05, -0.28]}]},
-        {'stream': 'contacts_left', 'stamp_s': 1.013,
-         'n_contacts': 1, 'collision1': 'nao::l_ankle::l_ankle_collision',
-         'collision2': 'ground_plane::link::collision',
-         'wrenches': [{'body_1_force': [0.01, 0.02, 25.5]}]},
-        {'stream': 'contacts_right', 'stamp_s': 1.017,
-         'n_contacts': 1, 'collision1': 'nao::r_ankle::r_ankle_collision',
-         'collision2': 'ground_plane::link::collision',
-         'wrenches': [{'body_1_force': [0.0, -0.01, 24.8]}]},
+        {'stream': 'contacts_left', 'stamp_s': 1.013, 'n_contacts': 1,
+         'contacts': [{
+             'collision1': 'nao::l_ankle::l_ankle_collision',
+             'collision2': 'ground_plane::link::collision',
+             'position': [[0.1, 0.05, 0.0]],
+             'normal': [[0.0, 0.0, 1.0]],
+             'depth': [0.001],
+             'wrenches': [{
+                 'body_1_name': '', 'body_2_name': '',
+                 'body_1_wrench': {'force': [0.01, 0.02, 25.5],
+                                   'torque': [0.0, 0.001, 0.0],
+                                   'force_offset': [0.1, 0.05, 0.0]},
+                 'body_2_wrench': {'force': [-0.01, -0.02, -25.5],
+                                   'torque': [0.0, -0.001, 0.0],
+                                   'force_offset': [0.1, 0.05, 0.0]}}]}]},
+        {'stream': 'contacts_right', 'stamp_s': 1.017, 'n_contacts': 1,
+         'contacts': [{
+             'collision1': 'nao::r_ankle::r_ankle_collision',
+             'collision2': 'ground_plane::link::collision',
+             'position': [[0.1, -0.05, 0.0]],
+             'normal': [[0.0, 0.0, 1.0]],
+             'depth': [0.001],
+             'wrenches': [{
+                 'body_1_name': '', 'body_2_name': '',
+                 'body_1_wrench': {'force': [0.0, -0.01, 24.8],
+                                   'torque': [0.0, 0.0, 0.0],
+                                   'force_offset': [0.1, -0.05, 0.0]},
+                 'body_2_wrench': {'force': [0.0, 0.01, -24.8],
+                                   'torque': [0.0, 0.0, 0.0],
+                                   'force_offset': [0.1, -0.05, 0.0]}}]}]},
         {'stream': 'joint_command', 'stamp_s': 1.010,
          'command': [0.1] * 24},
         {'stream': 'joint_states', 'stamp_s': 1.010,
@@ -131,8 +153,22 @@ class TestAPendingPropagation(unittest.TestCase):
         frame = {'cop_position': [0.31, -0.02]}
         rep = c.check_frame_emission(frame)
         self.assertFalse(rep['ok'], rep['errors'])
-        # R12: Option-B fields must be PRESENT and null (fail-closed).
-        frame_ok = {f: None for f in c.WRENCH_FRAME_DEPENDENT_FIELDS}
+        # R12/R13: Option-B fields must be PRESENT and null; the positive
+        # control is a complete valid frame (R13-A shapes).
+        frame_ok = {
+            'left_foot_pose': {'position': [0.31, 0.05, 0.05],
+                               'orientation': [0.0, 0.0, 0.0, 1.0]},
+            'right_foot_pose': {'position': [0.30, -0.05, 0.05],
+                                'orientation': [0.0, 0.0, 0.0, 1.0]},
+            'left_foot_velocity': [0.01, 0.0, 0.0],
+            'right_foot_velocity': [0.0, 0.0, 0.0],
+            'com_position': [0.31, 0.0, 0.33],
+            'com_velocity': [0.0, 0.0, 0.0],
+            'com_acceleration': [0.0, 0.0, 0.0],
+            'zmp_position': [0.31, 0.0],
+        }
+        for f in c.WRENCH_FRAME_DEPENDENT_FIELDS:
+            frame_ok[f] = None
         rep2 = c.check_frame_emission(frame_ok)
         self.assertTrue(rep2['ok'], rep2['errors'])
 

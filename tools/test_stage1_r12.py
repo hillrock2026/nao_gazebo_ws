@@ -128,10 +128,19 @@ for _f in ('theta_hash', 'theta_list_hash', 'config_hash',
 
 
 def literal_frame():
+    # R13-A: every Option-A field present with its RFC shape; Option-B
+    # fields present and null (wrench frame/reference UNKNOWN).
     return {
-        'left_foot_pose': {'position': [0.31, 0.05, 0.05]},
-        'right_foot_pose': {'position': [0.30, -0.05, 0.05]},
+        'left_foot_pose': {'position': [0.31, 0.05, 0.05],
+                           'orientation': [0.0, 0.0, 0.0, 1.0]},
+        'right_foot_pose': {'position': [0.30, -0.05, 0.05],
+                            'orientation': [0.0, 0.0, 0.0, 1.0]},
+        'left_foot_velocity': [0.01, 0.0, 0.0],
+        'right_foot_velocity': [0.0, 0.0, 0.0],
         'com_position': [0.31, 0.0, 0.33],
+        'com_velocity': [0.0, 0.0, 0.0],
+        'com_acceleration': [0.0, 0.0, 0.0],
+        'zmp_position': [0.31, 0.0],
         # Option B: present and null while wrench frame/reference UNKNOWN.
         'left_contact_force': None,
         'right_contact_force': None,
@@ -142,15 +151,40 @@ def literal_frame():
 
 
 def literal_raw():
+    # R13-C: RFC-shaped nested payloads (§ 3.6.1 contacts, § 3.3-3.5 pose
+    # entries, § 3.9 24-vector command). Body names are empty strings —
+    # verbatim measured values (probe-observed).
     return [
         {'stream': 'contacts_left', 'stamp_s': 1.013, 'n_contacts': 1,
-         'collision1': 'nao::l_ankle::l_ankle_collision',
-         'collision2': 'ground_plane::link::collision',
-         'wrenches': [{'body_1_force': [0.01, 0.02, 25.5]}]},
+         'contacts': [{
+             'collision1': 'nao::l_ankle::l_ankle_collision',
+             'collision2': 'ground_plane::link::collision',
+             'position': [[0.1, 0.05, 0.0]],
+             'normal': [[0.0, 0.0, 1.0]],
+             'depth': [0.001],
+             'wrenches': [{
+                 'body_1_name': '', 'body_2_name': '',
+                 'body_1_wrench': {'force': [0.01, 0.02, 25.5],
+                                   'torque': [0.0, 0.001, 0.0],
+                                   'force_offset': [0.1, 0.05, 0.0]},
+                 'body_2_wrench': {'force': [-0.01, -0.02, -25.5],
+                                   'torque': [0.0, -0.001, 0.0],
+                                   'force_offset': [0.1, 0.05, 0.0]}}]}]},
         {'stream': 'contacts_right', 'stamp_s': 1.017, 'n_contacts': 1,
-         'collision1': 'nao::r_ankle::r_ankle_collision',
-         'collision2': 'ground_plane::link::collision',
-         'wrenches': [{'body_1_force': [0.0, -0.01, 24.8]}]},
+         'contacts': [{
+             'collision1': 'nao::r_ankle::r_ankle_collision',
+             'collision2': 'ground_plane::link::collision',
+             'position': [[0.1, -0.05, 0.0]],
+             'normal': [[0.0, 0.0, 1.0]],
+             'depth': [0.001],
+             'wrenches': [{
+                 'body_1_name': '', 'body_2_name': '',
+                 'body_1_wrench': {'force': [0.0, -0.01, 24.8],
+                                   'torque': [0.0, 0.0, 0.0],
+                                   'force_offset': [0.1, -0.05, 0.0]},
+                 'body_2_wrench': {'force': [0.0, 0.01, -24.8],
+                                   'torque': [0.0, 0.0, 0.0],
+                                   'force_offset': [0.1, -0.05, 0.0]}}]}]},
         {'stream': 'pose_info', 'stamp_s': 1.012,
          'entries': [{'name': 'nao', 'position': [0.5, -0.28, 0.33]},
                      {'name': 'l_ankle', 'position': [0.0, 0.05, -0.28]}]},
