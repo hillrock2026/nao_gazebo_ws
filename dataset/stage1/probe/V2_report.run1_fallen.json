@@ -1,0 +1,802 @@
+{
+  "schema_version": "stage1-probe/1.0",
+  "probe": "V-2",
+  "wallclock_utc": "2026-10-07T09:00:50.777589+00:00",
+  "argv": [
+    "tools/stage1_probe.py",
+    "--probe",
+    "both",
+    "--duration",
+    "15.0",
+    "--warmup-sec",
+    "45.0",
+    "--ros-domain-id",
+    "88",
+    "--gz-partition",
+    "stage1probe"
+  ],
+  "environment": {
+    "wallclock_utc": "2026-10-07T08:59:34.760491+00:00",
+    "python_version": "3.12.3",
+    "ROS_DISTRO": "jazzy",
+    "RMW_IMPLEMENTATION": null,
+    "ROS_DOMAIN_ID": {
+      "effective": "88",
+      "cli": "88"
+    },
+    "GZ_PARTITION": {
+      "effective": "stage1probe",
+      "cli": "stage1probe"
+    }
+  },
+  "provenance": {
+    "git_commit": "32c9d4c0633288c537ba696b6edec7f20fa39133",
+    "rfc": {
+      "path": "/home/liu/workspace/Nao_Program/nao_gazebo_ws/docs/STAGE1_DYNAMICS_DATASET_RFC.md",
+      "sha256": "6bd2e1ce05190de0384fa0f818f858ebc6f51b99f338fe6066dc90753621cb86"
+    },
+    "sdf": {
+      "path": "/home/liu/workspace/Nao_Program/nao_gazebo_ws/src/nao/nao_description/urdf/nao_simple.sdf",
+      "sha256": "44ed828509db9e869bfa701b491233862dcd1448183bb2ec0a1c3b497aa46400"
+    },
+    "sdf_mass": {
+      "sdf_path": "/home/liu/workspace/Nao_Program/nao_gazebo_ws/src/nao/nao_description/urdf/nao_simple.sdf",
+      "n_mass_elements": 25,
+      "total_mass_kg": 5.305366,
+      "m_g_newtons": [
+        51.9926,
+        52.0456
+      ]
+    },
+    "mode": {
+      "read_only": true,
+      "level": "Level 1 preparation instrumentation (RFC \u00a7 0.0)",
+      "published_topics": [],
+      "frozen_components_modified": "none",
+      "outputs": "dataset/stage1/probe/V1_report.json, V2_report.json"
+    }
+  },
+  "config": {
+    "probe": "both",
+    "duration_s": 15.0,
+    "warmup_sec": 45.0,
+    "contact_window_sec": 0.05,
+    "pose_window_sec": 0.02,
+    "max_samples": 2,
+    "ros_qos": "BEST_EFFORT / KEEP_LAST(50) / VOLATILE",
+    "gz_transport": "gz-transport native subscribe (default QoS)"
+  },
+  "measurement": {
+    "streams": {
+      "pose_info": {
+        "transport": "gz",
+        "topic": "/world/nao_world/pose/info",
+        "subscribe_ok": true,
+        "first_msg_after_s": 0.028,
+        "wall_span_s": 15.483,
+        "n_messages": 898,
+        "n_valid_stamp": 898,
+        "empty_after_warmup": false
+      },
+      "joint_states": {
+        "transport": "ros",
+        "topic": "/joint_states",
+        "subscribe_ok": true,
+        "first_msg_after_s": 0.153,
+        "wall_span_s": 15.364,
+        "n_messages": 1365,
+        "n_valid_stamp": 1365,
+        "empty_after_warmup": false
+      },
+      "body_pose": {
+        "transport": "ros",
+        "topic": "/body_pose",
+        "subscribe_ok": true,
+        "first_msg_after_s": 0.148,
+        "wall_span_s": 15.363,
+        "n_messages": 891,
+        "n_valid_stamp": 891,
+        "empty_after_warmup": false
+      }
+    },
+    "session_errors": [],
+    "callback_errors": []
+  },
+  "analysis": {
+    "criteria": [
+      {
+        "id": "unique_entities",
+        "title": "All 25 nao_simple.sdf links appear as unique, exactly-named entities in /world/nao_world/pose/info (model entry \"nao\" included)",
+        "blocking": true,
+        "status": "confirmed",
+        "evidence": {
+          "n_messages": 898,
+          "n_entries_total": 48492,
+          "n_unique_verbatim_names": 54,
+          "verbatim_names": [
+            "Head",
+            "Head_visual",
+            "LAnklePitch_link",
+            "LAnklePitch_link_visual",
+            "LBicep",
+            "LBicep_visual",
+            "LElbow",
+            "LForeArm",
+            "LForeArm_visual",
+            "LHip",
+            "LHip_visual",
+            "LPelvis",
+            "LPelvis_visual",
+            "LShoulder",
+            "LShoulder_visual",
+            "LThigh",
+            "LThigh_visual",
+            "LTibia",
+            "LTibia_visual",
+            "Neck",
+            "Neck_visual",
+            "RAnklePitch_link",
+            "RAnklePitch_link_visual",
+            "RBicep",
+            "RBicep_visual",
+            "RElbow",
+            "RForeArm",
+            "RForeArm_visual",
+            "RHip",
+            "RHip_visual",
+            "RPelvis",
+            "RPelvis_visual",
+            "RShoulder",
+            "RShoulder_visual",
+            "RThigh",
+            "RThigh_visual",
+            "RTibia",
+            "RTibia_visual",
+            "base_link",
+            "base_link_fixed_joint_lump__torso_visual",
+            "ground_plane",
+            "l_ankle",
+            "l_ankle_visual",
+            "l_wrist",
+            "l_wrist_visual",
+            "link",
+            "nao",
+            "r_ankle",
+            "r_ankle_visual",
+            "r_wrist",
+            "r_wrist_visual",
+            "sun",
+            "sunVisual",
+            "visual"
+          ],
+          "local_name_union": [
+            "Head",
+            "Head_visual",
+            "LAnklePitch_link",
+            "LAnklePitch_link_visual",
+            "LBicep",
+            "LBicep_visual",
+            "LElbow",
+            "LForeArm",
+            "LForeArm_visual",
+            "LHip",
+            "LHip_visual",
+            "LPelvis",
+            "LPelvis_visual",
+            "LShoulder",
+            "LShoulder_visual",
+            "LThigh",
+            "LThigh_visual",
+            "LTibia",
+            "LTibia_visual",
+            "Neck",
+            "Neck_visual",
+            "RAnklePitch_link",
+            "RAnklePitch_link_visual",
+            "RBicep",
+            "RBicep_visual",
+            "RElbow",
+            "RForeArm",
+            "RForeArm_visual",
+            "RHip",
+            "RHip_visual",
+            "RPelvis",
+            "RPelvis_visual",
+            "RShoulder",
+            "RShoulder_visual",
+            "RThigh",
+            "RThigh_visual",
+            "RTibia",
+            "RTibia_visual",
+            "base_link",
+            "base_link_fixed_joint_lump__torso_visual",
+            "ground_plane",
+            "l_ankle",
+            "l_ankle_visual",
+            "l_wrist",
+            "l_wrist_visual",
+            "link",
+            "nao",
+            "r_ankle",
+            "r_ankle_visual",
+            "r_wrist",
+            "r_wrist_visual",
+            "sun",
+            "sunVisual",
+            "visual"
+          ],
+          "naming_convention": "bare_names",
+          "model_entry_nao_present": true,
+          "ground_entry_present": true,
+          "missing_expected_links": [],
+          "ambiguous_expected_links": {},
+          "ids_unstable": {},
+          "fraction_messages_with_all_25_links": 1.0,
+          "per_message_link_coverage_min": 25,
+          "rfc_reference": "RFC App. B V-2 criterion 1 \u2014 \"25 strings occurring in Pose_V is not sufficient\"; exactly-named unique entries required"
+        },
+        "notes": ""
+      },
+      {
+        "id": "world_pose_semantics",
+        "title": "/world/nao_world/pose/info entries are world-frame poses: exact-stamp cross-check against /body_pose (frame_id \"world\") plus fixed standing-geometry sanity",
+        "blocking": true,
+        "status": "contradicted",
+        "evidence": {
+          "body_pose_n_messages": 891,
+          "body_pose_frame_ids": {
+            "world": 891
+          },
+          "pose_info_messages_with_nao_entry": 898,
+          "n_exact_stamp_matched": 891,
+          "n_unmatched": 0,
+          "fraction_exact_stamp_matched": 1.0,
+          "max_position_diff_m": 0.0,
+          "median_position_diff_m": 0.0,
+          "n_quat_compared": 891,
+          "max_normalized_quat_component_diff": 0.0,
+          "tolerances": {
+            "match_fraction_min": 0.99,
+            "position_m": 1e-06,
+            "quat_component": 1e-09
+          },
+          "model_entry_nao_vs_base_link_median_delta_m": [
+            0.261572089321,
+            7.536028e-06,
+            0.114074085432
+          ],
+          "standing_geometry": {
+            "base_link": {
+              "n": 898,
+              "median_position_m": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "fraction_within_standing_envelope": 0.0
+            },
+            "l_ankle": {
+              "n": 898,
+              "median_position_m": [
+                0.163464601994,
+                0.049784350739,
+                -0.205183678177
+              ],
+              "fraction_within_standing_envelope": 0.0
+            },
+            "r_ankle": {
+              "n": 898,
+              "median_position_m": [
+                0.163313129542,
+                -0.050897985158,
+                -0.205377454879
+              ],
+              "fraction_within_standing_envelope": 0.0
+            }
+          },
+          "ground_plane": {
+            "n": 898,
+            "median_z_m": 0.0,
+            "fraction_abs_z_within_tolerance": 1.0,
+            "tolerance_abs_z_m": 0.01
+          }
+        },
+        "notes": "base_link standing-geometry envelope fraction 0.0 < 0.95; l_ankle standing-geometry envelope fraction 0.0 < 0.95; r_ankle standing-geometry envelope fraction 0.0 < 0.95"
+      },
+      {
+        "id": "source_stamps_cadence",
+        "title": "Source stamps and measured cadence of pose/info, /joint_states and /body_pose (SceneBroadcaster rate is not configured \u2014 measured, never assumed)",
+        "blocking": true,
+        "status": "confirmed",
+        "evidence": {
+          "pose_info": {
+            "n_valid_stamp": 898,
+            "dt": {
+              "n_dt": 897,
+              "dt_min_s": 0.006,
+              "dt_max_s": 0.018,
+              "dt_mean_s": 0.015312152,
+              "dt_median_s": 0.016,
+              "dt_stdev_s": 0.001640924,
+              "mean_rate_hz": 65.307608,
+              "n_nonpositive_dt": 0
+            },
+            "backwards": 0,
+            "duplicates": 0,
+            "sim_span_s": 13.735,
+            "wall_span_s": 15.483,
+            "sim_over_wall_rate": 0.88710198282
+          },
+          "joint_states": {
+            "n_valid_stamp": 1365,
+            "dt": {
+              "n_dt": 1364,
+              "dt_min_s": 0.01,
+              "dt_max_s": 0.01,
+              "dt_mean_s": 0.01,
+              "dt_median_s": 0.01,
+              "dt_stdev_s": 0.0,
+              "mean_rate_hz": 100.0,
+              "n_nonpositive_dt": 0
+            },
+            "backwards": 0,
+            "duplicates": 0,
+            "sim_span_s": 13.64,
+            "wall_span_s": 15.364,
+            "sim_over_wall_rate": 0.887789638115
+          },
+          "body_pose": {
+            "n_valid_stamp": 891,
+            "dt": {
+              "n_dt": 890,
+              "dt_min_s": 0.006,
+              "dt_max_s": 0.018,
+              "dt_mean_s": 0.015323596,
+              "dt_median_s": 0.016,
+              "dt_stdev_s": 0.001621289,
+              "mean_rate_hz": 65.258836,
+              "n_nonpositive_dt": 0
+            },
+            "backwards": 0,
+            "duplicates": 0,
+            "sim_span_s": 13.638,
+            "wall_span_s": 15.363,
+            "sim_over_wall_rate": 0.887717242726
+          }
+        },
+        "notes": ""
+      },
+      {
+        "id": "alignment_hit_rate",
+        "title": "Fraction of joint-clock frames whose causal last-not-after 0.02 s window contains at least one pose/info message (>= 95 %)",
+        "blocking": true,
+        "status": "confirmed",
+        "evidence": {
+          "n_joint_frames": 1365,
+          "n_pose_messages": 898,
+          "causal_window_s": 0.02,
+          "window_semantics": "last-not-after: last pose stamp p with p <= t and t - p <= window (RFC \u00a7 3.6.3, App. B V-2 criterion 4)",
+          "n_hits": 1365,
+          "hit_rate": 1.0,
+          "hit_rate_min": 0.95,
+          "first_misses": [],
+          "pose_info_dt_mean_s": 0.015312152
+        },
+        "notes": ""
+      }
+    ],
+    "determined_facts": [
+      {
+        "fact": "pose/info entity naming convention",
+        "value": {
+          "convention": "bare_names",
+          "verbatim_names": [
+            "Head",
+            "Head_visual",
+            "LAnklePitch_link",
+            "LAnklePitch_link_visual",
+            "LBicep",
+            "LBicep_visual",
+            "LElbow",
+            "LForeArm",
+            "LForeArm_visual",
+            "LHip",
+            "LHip_visual",
+            "LPelvis",
+            "LPelvis_visual",
+            "LShoulder",
+            "LShoulder_visual",
+            "LThigh",
+            "LThigh_visual",
+            "LTibia",
+            "LTibia_visual",
+            "Neck",
+            "Neck_visual",
+            "RAnklePitch_link",
+            "RAnklePitch_link_visual",
+            "RBicep",
+            "RBicep_visual",
+            "RElbow",
+            "RForeArm",
+            "RForeArm_visual",
+            "RHip",
+            "RHip_visual",
+            "RPelvis",
+            "RPelvis_visual",
+            "RShoulder",
+            "RShoulder_visual",
+            "RThigh",
+            "RThigh_visual",
+            "RTibia",
+            "RTibia_visual",
+            "base_link",
+            "base_link_fixed_joint_lump__torso_visual",
+            "ground_plane",
+            "l_ankle",
+            "l_ankle_visual",
+            "l_wrist",
+            "l_wrist_visual",
+            "link",
+            "nao",
+            "r_ankle",
+            "r_ankle_visual",
+            "r_wrist",
+            "r_wrist_visual",
+            "sun",
+            "sunVisual",
+            "visual"
+          ]
+        },
+        "consequence": "the collector must associate poses by these verbatim names (local-name matching is a probe convenience, not the collector contract)"
+      },
+      {
+        "fact": "fraction of pose/info messages carrying all 25 links",
+        "value": 1.0,
+        "consequence": "a single-message 25-link snapshot is usable only when this fraction is high; otherwise the collector must stitch across messages"
+      },
+      {
+        "fact": "measured pose/info cadence (source stamps)",
+        "value": {
+          "n_dt": 897,
+          "dt_min_s": 0.006,
+          "dt_max_s": 0.018,
+          "dt_mean_s": 0.015312152,
+          "dt_median_s": 0.016,
+          "dt_stdev_s": 0.001640924,
+          "mean_rate_hz": 65.307608,
+          "n_nonpositive_dt": 0
+        },
+        "consequence": "SceneBroadcaster rate is determined at runtime and pinned in this report, not assumed"
+      },
+      {
+        "fact": "/body_pose exact-stamp agreement with pose/info",
+        "value": {
+          "fraction_exact_stamp_matched": 1.0,
+          "frame_ids": {
+            "world": 891
+          }
+        },
+        "consequence": "body_pose_converter is confirmed to re-publish the model-entry pose with the source stamp"
+      },
+      {
+        "fact": "model entry \"nao\" vs base_link pose offset",
+        "value": [
+          0.261572089321,
+          7.536028e-06,
+          0.114074085432
+        ],
+        "consequence": "determines whether the model entry pose equals the base_link pose or carries a fixed offset"
+      },
+      {
+        "fact": "joint-clock causal-window hit rate (0.02 s)",
+        "value": 1.0,
+        "consequence": "per-frame miss flags are required in the collector when frames fall outside the window"
+      }
+    ],
+    "verdict": {
+      "probe": "V-2",
+      "status": "FAIL",
+      "blocking_failures": [
+        "world_pose_semantics"
+      ],
+      "non_blocking_statuses": {},
+      "consequences": [
+        "acquisition blocked until the pose path is fixed (RFC App. B V-2 failure conditions): world_pose_semantics"
+      ]
+    }
+  },
+  "samples": {
+    "body_pose": {
+      "n_available": 891,
+      "first_message": {
+        "stamp_s": 101.473,
+        "frame_id": "world",
+        "position": [
+          0.261571949379,
+          7.536079e-06,
+          0.114074622216
+        ],
+        "orientation": [
+          0.00154343112,
+          0.847750011007,
+          0.000357223262,
+          0.530393635944
+        ]
+      }
+    },
+    "joint_states": {
+      "n_available": 1365,
+      "first_message": {
+        "stamp_s": 101.477,
+        "n_name": 24,
+        "n_position": 24,
+        "n_velocity": 24,
+        "n_effort": 0
+      }
+    },
+    "pose_info": {
+      "n_available": 898,
+      "first_message": {
+        "stamp_s": 101.376,
+        "n_entries_total": 54,
+        "first_entries": [
+          {
+            "name": "ground_plane",
+            "id": 4
+          },
+          {
+            "name": "nao",
+            "id": 10
+          },
+          {
+            "name": "link",
+            "id": 5
+          },
+          {
+            "name": "base_link",
+            "id": 11
+          },
+          {
+            "name": "Neck",
+            "id": 15
+          },
+          {
+            "name": "Head",
+            "id": 18
+          },
+          {
+            "name": "LPelvis",
+            "id": 21
+          },
+          {
+            "name": "LHip",
+            "id": 24
+          },
+          {
+            "name": "LThigh",
+            "id": 27
+          },
+          {
+            "name": "LTibia",
+            "id": 30
+          },
+          {
+            "name": "LAnklePitch_link",
+            "id": 33
+          },
+          {
+            "name": "l_ankle",
+            "id": 36
+          },
+          {
+            "name": "LShoulder",
+            "id": 44
+          },
+          {
+            "name": "LBicep",
+            "id": 47
+          },
+          {
+            "name": "LElbow",
+            "id": 50
+          },
+          {
+            "name": "LForeArm",
+            "id": 52
+          },
+          {
+            "name": "l_wrist",
+            "id": 55
+          },
+          {
+            "name": "RPelvis",
+            "id": 58
+          },
+          {
+            "name": "RHip",
+            "id": 61
+          },
+          {
+            "name": "RThigh",
+            "id": 64
+          },
+          {
+            "name": "RTibia",
+            "id": 67
+          },
+          {
+            "name": "RAnklePitch_link",
+            "id": 70
+          },
+          {
+            "name": "r_ankle",
+            "id": 73
+          },
+          {
+            "name": "RShoulder",
+            "id": 81
+          },
+          {
+            "name": "RBicep",
+            "id": 84
+          },
+          {
+            "name": "RElbow",
+            "id": 87
+          },
+          {
+            "name": "RForeArm",
+            "id": 89
+          },
+          {
+            "name": "r_wrist",
+            "id": 92
+          },
+          {
+            "name": "visual",
+            "id": 6
+          },
+          {
+            "name": "sunVisual",
+            "id": 9
+          }
+        ],
+        "tracked": {
+          "ground_plane": {
+            "id": 4,
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "orientation": [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ],
+            "verbatim_name": "ground_plane"
+          },
+          "nao": {
+            "id": 10,
+            "position": [
+              0.261571949379,
+              7.536079e-06,
+              0.114074622216
+            ],
+            "orientation": [
+              0.00154343112,
+              0.847750011007,
+              0.000357223262,
+              0.530393635944
+            ],
+            "verbatim_name": "nao"
+          },
+          "base_link": {
+            "id": 11,
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "orientation": [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ],
+            "verbatim_name": "base_link"
+          },
+          "l_ankle": {
+            "id": 36,
+            "position": [
+              0.163465815602,
+              0.049784346819,
+              -0.205181987093
+            ],
+            "orientation": [
+              -0.000826904111,
+              -0.817670949438,
+              -0.001367509153,
+              0.575683649753
+            ],
+            "verbatim_name": "l_ankle"
+          },
+          "r_ankle": {
+            "id": 73,
+            "position": [
+              0.163314376453,
+              -0.050897988304,
+              -0.205375951415
+            ],
+            "orientation": [
+              -0.002288622495,
+              -0.81769883065,
+              -0.000162445786,
+              0.575641692524
+            ],
+            "verbatim_name": "r_ankle"
+          }
+        }
+      }
+    }
+  },
+  "message_schemas": {
+    "gz.msgs.Pose_V": {
+      "header": {
+        "data": {
+          "key": "string",
+          "value": "repeated string"
+        },
+        "stamp": {
+          "nsec": "int32",
+          "sec": "int64"
+        }
+      },
+      "pose": {
+        "header": {
+          "data": {
+            "key": "string",
+            "value": "repeated string"
+          },
+          "stamp": {
+            "nsec": "int32",
+            "sec": "int64"
+          }
+        },
+        "id": "uint32",
+        "name": "string",
+        "orientation": {
+          "header": {
+            "data": "repeated message",
+            "stamp": "message"
+          },
+          "w": "double",
+          "x": "double",
+          "y": "double",
+          "z": "double"
+        },
+        "position": {
+          "header": {
+            "data": "repeated message",
+            "stamp": "message"
+          },
+          "x": "double",
+          "y": "double",
+          "z": "double"
+        }
+      }
+    },
+    "sensor_msgs/msg/JointState": {
+      "header": "std_msgs/Header",
+      "name": "sequence<string>",
+      "position": "sequence<double>",
+      "velocity": "sequence<double>",
+      "effort": "sequence<double>"
+    },
+    "geometry_msgs/msg/PoseStamped": {
+      "header": "std_msgs/Header",
+      "pose": "geometry_msgs/Pose"
+    }
+  }
+}

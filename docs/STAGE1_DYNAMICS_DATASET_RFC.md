@@ -6,29 +6,48 @@ residual-learning preparation.
 
 | Field | Value |
 |---|---|
-| Revision | REV1.0-DRAFT |
-| Status | **RFC — specification only. Not authorized for implementation.** |
-| Author | Implementation Agent (DeepSeek / Qoder role) |
-| Date | 2026-10-07 |
+| Revision | REV1.2-CORRECTED |
+| Status | **CORRECTED ACQUISITION CONTRACT** — semantic corrections per the GPT-5.6 independent audit of the REV1.1 preparation artifacts; **pending re-audit** (not self-re-frozen); three-tier authorization, see § 0.0 |
+| Author | Implementation Agent (DeepSeek / Qoder role); REV1.2 corrections: Implementation Agent (GLM-5.3) |
+| Date | 2026-10-08 (REV1.1: 2026-10-07) |
 | Roadmap position | Baseline Dataset (Stage 0, frozen) → **Dynamics Dataset (this RFC)** → LIPM Prior → Residual Network → Optimization → Sim2Real |
 
 ## 0. Scope declaration (read first)
 
-This document is a **Request For Comments / contract draft**. It contains:
+REV1.1 turned this document from a draft into the **frozen acquisition contract** for Stage 1.
+"FINAL" means exactly this: the contract for raw data acquisition is frozen, and any later
+change to population, seeds, rings, schema, formulas, or validity rules requires a REV increment
+(§ 4.4). It does **not** mean the program, the analysis, or any downstream stage is finalized.
 
-- a schema specification,
-- a sampling contract,
-- a measurement-source inventory,
-- verification gates and acceptance criteria.
+**REV1.2 (this revision) applies the five semantic corrections (R1–R5) identified by the
+GPT-5.6 independent audit of the REV1.1 preparation artifacts** (2026-10-08): raw contact
+source (R1), V-1 timestamp validation method (R2), contact validity semantics naming (R3),
+V-2 pose frame semantics (R4), and composition validation wording (R5). The corrections are
+**semantic only** — population, seeds, rings, schema shape, formulas, and all frozen pins of
+§ 0.1 are unchanged. REV1.2 is **pending re-audit**: it does not re-freeze itself, does not
+declare any acceptance criterion satisfied, and leaves the Level 3 gate conditions of § 0.0
+unchanged.
 
-It contains **no implementation**. Specifically, this RFC does not include, authorize, or imply:
+### 0.0 Authorization levels (three-tier, explicit — REV1.1)
 
-- a collector / instrumentation script,
+| Level | Scope | Status under this revision |
+|---|---|---|
+| 1 — Preparation | Completion of this RFC revision; read-only V-1/V-2 probes (`tools/stage1_probe.py`, new file); collector contract specification (`docs/STAGE1_COLLECTOR_CONTRACT.md`, new file) | **authorized** |
+| 2 — Collector implementation | Implementing the collector per `docs/STAGE1_COLLECTOR_CONTRACT.md` as a **read-only instrumentation process**: new subscribers, a new writer process, storage under `dataset/stage1/` only — no modification to any frozen component (runner, controller/gait generator, converters, model, world, physics, launch files) | **authorized within the § 7 boundary** |
+| 3 — Bulk raw acquisition | The 96 pre-registered episodes (§ 4.1) | **NOT authorized by this document alone.** Requires: V-1 pass **and** V-2 pass, probe results pinned (Appendix B), and remote publication of the Stage 0 closure commit and this contract (owner action, GPT-5.6 correction 8). |
+
+Analysis, LIPM fitting, residual learning, training, and optimization are **never** authorized by
+this document and require separate authorization (§ 7).
+
+This document is a **contract**, not itself an implementation. Specifically, this RFC does not
+include, authorize, or imply:
+
 - any modification to the simulation pipeline (launch files, converters, world, model),
-- any modification to the Stage 0 frozen artifacts.
+- any modification to the Stage 0 frozen artifacts,
+- any modification to the frozen runner `tools/run_phase_a_episode.py`.
 
-Stage 1 **implementation** (the collector) is a separate, later step that requires its own
-authorization after this RFC is accepted. Until then, nothing in this document may be executed.
+The probe and the collector are read-only instrumentation processes; their authorization and
+boundary rules are stated in § 5.4, § 7, and `docs/STAGE1_COLLECTOR_CONTRACT.md`.
 
 ### 0.1 Pinned upstream artifacts (inheritance anchors)
 
@@ -134,7 +153,8 @@ provenance, integrity), never gait performance.
 ## 3.0 Frame clock and file format
 
 - One record ("frame") per `/joint_states` message — the Stage 0 master clock is inherited
-  unchanged: nominal period `0.010 s` (100 Hz), simulation time.
+  unchanged: nominal period `0.010 s` (100 Hz), simulation time. The nominal period is a
+  labeling convention only; the **operative transition interval is measured** per § 5.2 (REV1.1).
 - Frames are strictly ordered within an episode; `frame_id` is the 0-based index of the
   `/joint_states` message within the episode.
 - Per-episode storage: newline-delimited JSON (`.jsonl`), one frame per line, plus episode-level
@@ -147,7 +167,7 @@ provenance, integrity), never gait performance.
 
 | Field | Type | Unit | Source / rule |
 |---|---|---|---|
-| `timestamp` | float | s (sim time) | stamp of the `/joint_states` message defining the frame (Stage 0 semantics) |
+| `sim_time_sec` | float | s (sim time) | stamp of the `/joint_states` message defining the frame (Stage 0 semantics; renamed in REV1.1 to make the time domain explicit) |
 | `episode_id` | string | — | globally unique; inherits the Stage 0 naming convention (θ id + seed) |
 | `frame_id` | int | — | 0-based, strictly increasing, consecutive within an episode |
 
@@ -174,13 +194,37 @@ RShoulderPitch, RShoulderRoll, RElbowYaw, RElbowRoll, RWristYaw
 
 | Field | Type | Unit | Source / rule | Class |
 |---|---|---|---|---|
-| `base_pose` | {`position`: float[3], `orientation`: float[4] (xyzw)} | m, – | `/body_pose` (frozen topic); equivalently the `base_link` entry of `/world/nao_world/pose/info`. Alignment: causal last-not-after, tolerance `0.02 s` (Stage 0 §6.4) | measured |
+| `base_pose` | {`position`: float[3], `orientation`: float[4] (xyzw)} | m, – | `/body_pose` (frozen topic), which re-publishes the `nao` **model entry** of `/world/nao_world/pose/info` with its source stamp. **REV1.2 (R4):** the `base_link` entry itself is a parent/model-relative pose (identity — `base_link` is the model frame), **not** a world pose; the world pose of `base_link` equals the model entry (pose frame semantics note below). Alignment: causal last-not-after, tolerance `0.02 s` (Stage 0 §6.4) | measured |
+| `pose_source_stamp` | float | s (sim time) | stamp of the source `/world/nao_world/pose/info` message from which the link-pose fields of this frame were taken. One message carries all 25 link poses, so a single stamp covers base/CoM/foot pose fields (§ 3.3–3.5). Preserved verbatim; alignment misses flagged per frame (REV1.1, per GPT-5.6 correction 5) | measured |
 | `base_velocity` | float[3] | m/s | central finite difference of `base_pose.position` on the frame grid; one-sided at boundaries | derived |
 | `base_angular_velocity` | float[3] | rad/s | quaternion finite difference of `base_pose.orientation` (pinned: `2 * log(q(t+1) * q(t)^{-1}) / dt`), expressed in the **world** frame | derived |
 
 *Derived twist is the default contract. If verification gate V-3 (Appendix B) finds a native
 ground-truth twist stream, the source may be upgraded by RFC revision only — silent substitution
 is forbidden.*
+
+**Pose frame semantics (REV1.2, R4/R5 corrections).** Entries of
+`/world/nao_world/pose/info` are **parent/model-relative poses**, not world poses (probe
+evidence: the `base_link` entry is pinned at the model-frame identity on every message while
+the `nao` model entry moves; the REV1.1 "each entry is the world pose of the corresponding link
+entity" assumption is falsified). The world pose of a link is **derived by composition** with
+the `nao` model entry of the *same* `Pose_V` message:
+
+```text
+T_world_link = T_world_model · T_model_link
+```
+
+- `base_link` world pose = the model entry itself (identity link), cross-checkable against
+  `/body_pose` (exact-stamp).
+- The model entry (composition anchor) is validated against `/body_pose` by gate V-2.
+- **R5:** the composition method itself is **not** "end-to-end validated" — only the identity
+  link (`base_link`) has been compared. The composition method **requires verification using
+  selected non-identity links** (e.g. `l_ankle` / `r_ankle`) before composed poses are treated
+  as validated world poses; identity-link agreement alone is a consistency check, not a
+  validation.
+- All pose fields of this contract (§ 3.3–3.5) are world poses obtained through this
+  composition; the raw model-relative entries and the model entry are retained verbatim in the
+  raw capture (Appendix C).
 
 ## 3.4 CoM
 
@@ -191,8 +235,11 @@ so the parameters are frozen constants of this contract):
 c \;=\; \frac{1}{\sum_i m_i} \sum_{i} m_i \,\big(R_i\, \hat{c}_i + t_i\big)
 ```
 
-where `i` runs over all 25 links of `nao_simple.sdf`, `(R_i, t_i)` is the world pose of link `i`
-(source: `/world/nao_world/pose/info`, causal last-not-after, tolerance `0.02 s`), and
+where `i` runs over all 25 links of `nao_simple.sdf`, `(R_i, t_i)` is the **composed world pose**
+of link `i` (REV1.2, R4: `T_world_link = T_world_model · T_model_link`, both factors taken from
+the same `/world/nao_world/pose/info` message — model entry + link entry; parent-relative link
+entries are never world poses and are never recorded as such; see the § 3.3 pose frame semantics
+note), association causal last-not-after, tolerance `0.02 s`, and
 `(m_i, ĉ_i)` are the mass and CoM offset-in-link-frame pinned from the SDF.
 
 | Field | Type | Unit | Source / rule | Class |
@@ -210,38 +257,117 @@ hash would change).
 
 | Field | Type | Unit | Source / rule | Class |
 |---|---|---|---|---|
-| `left_foot_pose` | {`position`: float[3], `orientation`: float[4]} | m, – | `l_ankle` entry of `/world/nao_world/pose/info`, causal last-not-after ≤ `0.02 s` | measured |
+| `left_foot_pose` | {`position`: float[3], `orientation`: float[4]} | m, – | composed world pose of `l_ankle` (REV1.2, R4: model entry · `l_ankle` entry, same `Pose_V` message, § 3.3 pose frame semantics; the raw `l_ankle` entry is model-relative, never a world pose), causal last-not-after ≤ `0.02 s` | derived (composition of measured pose/info entries) |
 | `right_foot_pose` | {`position`: float[3], `orientation`: float[4]} | m, – | `r_ankle` entry, same rule | measured |
 | `left_foot_velocity` | float[3] | m/s | central finite difference of `left_foot_pose.position` | derived |
 | `right_foot_velocity` | float[3] | m/s | central finite difference of `right_foot_pose.position` | derived |
 
-## 3.6 Contact (wrench, not boolean)
+## 3.6 Contact (raw-first, lossless; wrench, not boolean)
 
-Stage 0 recorded booleans only. Stage 1 records the wrench. Source: the raw bridged topics
-`/nao/left_foot_contact_raw` and `/nao/right_foot_contact_raw`
-(`ros_gz_interfaces/msg/Contacts`; gz `msgs.Contact` carries `repeated JointWrench` with
-force/torque fields). The frozen `Bool` topics (`/left_foot/contact`, `/right_foot/contact`) are
-**kept** so the boolean definition remains byte-identical to Stage 0 (cross-stage comparability).
+Stage 0 recorded booleans only. Stage 1 records the contact evidence **raw-first** (REV1.1): the
+primary contract artifact is the lossless raw payload; per-foot aggregates and moments are
+derived additions, never replacements.
+
+### 3.6.1 Raw payload retention (mandatory, lossless — REV1.1; source corrected REV1.2/R1)
+
+**Source (REV1.2, R1 correction): the Gazebo native `Contacts` stream is the canonical raw
+evidence source.** The collector subscribes, via gz-transport, to the native topics
+`/nao/left_foot_contact_raw` and `/nao/right_foot_contact_raw` (gz `msgs.Contacts`; each
+`msgs.Contact` entry carries the full evidence below) and retains the native payload losslessly.
+The two topics are stored **separately** — never summed or merged at write time.
+
+The ROS bridge stream on the same names (`ros_gz_interfaces/msg/Contacts`) is an **optional
+derived stream only**: it may be recorded as an additional cross-validation copy but is never
+the raw evidence source and never a substitute for the native capture. The bridge is lossy, and
+its field loss is a **measured, documented fact** (probe `bridge_field_loss`, run evidence):
+the per-contact `header` stamp, the per-contact `world` field, and `Wrench.force_offset` have
+no ROS-bridge counterpart — all three are mandatory raw-retention fields below, which is why
+native gz capture is mandatory.
+
+For each `Contacts` message, the collector retains, without reduction:
+
+| gz message field | Retained content |
+|---|---|
+| `Contacts.header` | header (incl. timestamp) verbatim |
+| `Contact.header` | per-contact header (incl. timestamp) verbatim |
+| `Contact.collision1`, `collision2` | collision names verbatim (collision identity) |
+| `Contact.wrench[]` (`JointWrench`) | every entry verbatim: `body_1_name`, `body_1_id`, `body_2_name`, `body_2_id` (body identity), `body_1_wrench`, `body_2_wrench` (both body sides) |
+| `Wrench` (each body side) | `force` (Vector3d), `torque` (Vector3d), `force_offset` (Vector3d) verbatim |
+| `Contact.position[]`, `normal[]`, `depth[]` | per-contact-point position / normal / depth arrays verbatim |
+| `Contact.world` | per-contact world field verbatim, if populated |
+| stream metadata | per-topic capture metadata: topic name, message type, transport (gz native), per-message arrival order, and the § 3.6.3 association record. If the optional ROS bridge copy is also captured, its metadata must record that it is a derived stream with the field loss documented above |
+
+**Prohibitions (fail-closed):**
+
+- Per-foot resultant force/moment fields (§ 3.6.2) are **derived additions**; writing them in
+  place of the raw payload is a contract violation. Derived per-foot force/moment data may
+  **never replace** the raw native evidence.
+- The ROS bridge stream is an optional derived stream only (REV1.2, R1); bridge data may never
+  be presented as, or persisted in place of, the native `Contacts` payload.
+- Bilateral summation (`body_1_wrench + body_2_wrench`) may be computed downstream, never
+  recorded as a substitute for both body-side wrenches.
+- Contacts within one foot are never merged if merging discards contact-level records.
+- No source field may be dropped, rounded, aggregated, or re-expressed before persistence.
+
+### 3.6.2 Per-frame derived contact fields (additions, not replacements)
 
 | Field | Type | Unit | Source / rule | Class |
 |---|---|---|---|---|
 | `left_contact` | bool | – | `/left_foot/contact`, freshness last-not-after ≤ `0.05 s` (Stage 0 rule, unchanged) | measured |
 | `right_contact` | bool | – | `/right_foot/contact`, same rule | measured |
-| `left_contact_force` | float[3] ∪ null | N | sum of reported wrench force components for the left sensor's collisions, expressed in the **world** frame after the transform validated by gate V-1 | measured |
-| `right_contact_force` | float[3] ∪ null | N | same, right sensor | measured |
-| `left_contact_moment` | float[3] ∪ null | N·m | net moment about the **left foot (ankle) frame origin**, after the V-1-validated transform | measured |
-| `right_contact_moment` | float[3] ∪ null | N·m | same, right foot frame origin | measured |
-| `left_contact_wrench_valid` | bool | – | see semantics below | meta |
-| `right_contact_wrench_valid` | bool | – | see semantics below | meta |
+| `left_contact_force` | float[3] ∪ null | N | sum of the left sensor's reported wrench force components, expressed in the **world** frame — published **only after** the frame/reference interpretation is **determined** by gate V-1 and the pinned transform recorded; `null` until then | derived (from raw) |
+| `right_contact_force` | float[3] ∪ null | N | same, right sensor | derived (from raw) |
+| `left_contact_moment` | float[3] ∪ null | N·m | net moment about the **left foot (ankle) frame origin** — same V-1 precondition (moment reference point must be determined, not assumed); `null` until then | derived (from raw) |
+| `right_contact_moment` | float[3] ∪ null | N·m | same, right foot frame origin | derived (from raw) |
+| `left_contact_wrench_state` | `VALID_CONTACT` ∪ `VALID_NO_CONTACT` ∪ `UNKNOWN_NO_MESSAGE` | – | see § 3.6.4 (REV1.2/R3) | meta |
+| `right_contact_wrench_state` | `VALID_CONTACT` ∪ `VALID_NO_CONTACT` ∪ `UNKNOWN_NO_MESSAGE` | – | see § 3.6.4 (REV1.2/R3) | meta |
 
-**Wrench validity semantics (pre-registered, fail-closed against fabrication):**
+The frozen `Bool` topics (`/left_foot/contact`, `/right_foot/contact`) are **kept** so the boolean
+definition remains byte-identical to Stage 0 (cross-stage comparability). The Bool is produced by
+`contact_converter` from the **same underlying contact stream**; it is therefore **not
+independent evidence** of no-contact and never suffices, alone, to upgrade `UNKNOWN_NO_MESSAGE`
+to `VALID_NO_CONTACT` (GPT-5.6 correction 4; REV1.2/R3).
 
-- `contact = false` and no `Contacts` message within the Stage 0 freshness window (`0.05 s`) →
-  force = `[0,0,0]`, moment = `[0,0,0]`, `valid = true` (true flight; zero is the physical value).
-- `contact = true` but no `Contacts` message within the window → force = `null`, moment = `null`,
-  `valid = false` (**no interpolation, no hold, no zero-fill** — the frame is flagged, never
-  fabricated).
+### 3.6.3 Frame association of contact messages
+
+Raw contact messages are stored as events with their own stamps (§ 3.6.1). Their association with
+joint-clock frames uses the declared rule: for frame `t`, the associated raw message set is all
+left/right-topic messages with stamp in `(sim_time_sec[t] − 0.05 s, sim_time_sec[t]]` (causal
+last-not-after; `0.05 s` = Stage 0 freshness value, pre-registered). The association (which raw
+messages, at what stamps) is recorded per frame. No interpolation, no hold, no zero-fill across
+frames. A frame with no associated message records an empty association set and wrench state
+`UNKNOWN_NO_MESSAGE` (§ 3.6.4) unless the no-contact evidence rule of § 3.6.4 applies. Streams are
+never aligned by callback arrival time; callback arrival time is not valid measurement time
+(REV1.2/R2).
+
+### 3.6.4 Wrench validity semantics — three states (REV1.2/R3; replaces the REV1.0 two-state rule)
+
+**REV1.0's rule "`contact = false` and no message → force = `[0,0,0]`, `valid = true`" is
+deleted.** For an event-only or lossy stream, silence is uninterpretable, and a Bool derived from
+the same stream is not independent evidence that a zero wrench was observed. The replacement
+(fail-closed rule kept; REV1.2/R3 renames the silence state `UNKNOWN` → `UNKNOWN_NO_MESSAGE`):
+
+- `VALID_CONTACT` — at least one associated raw message within the window with relevant fields
+  populated; the wrench evidence is observed.
+- `VALID_NO_CONTACT` — a **reliable observation of no contact** exists, in one of exactly two
+  pre-registered forms: (a) an **explicit empty contact message** — an associated `Contacts`
+  message within the window whose contact list is **empty** (the sensor actively reported
+  no-contact) — or (b) an **independent validated no-contact source** (a pre-registered signal
+  from a different code path, verified by a probe gate). Only such a frame may record a measured
+  zero wrench.
+- `UNKNOWN_NO_MESSAGE` — **no contact message** within the window (event-only stream, dropped
+  delivery, or no update). **No zero wrench is generated from silence.** Derived force/moment
+  are `null`; **no interpolation, no hold, no zero-fill, never a fabricated measured zero.**
+  Downstream analyses must treat these frames as missing contact evidence.
+
 - Wrenches are never averaged, extrapolated, or gap-filled across frames.
+- **Frame/reference interpretation status:** whether body-side wrench force/torque are expressed
+  in world or link axes, and about which reference point torque is taken, is **determined by
+  V-1** (Appendix B) — via documented Gazebo message semantics plus common-frame/common-origin
+  comparison — never assumed, and never inferred solely from Newton's-third-law summation or
+  standing-load magnitudes. Until determined and pinned, derived moment/CoP fields remain `null`
+  (**derivation blocked**), while **raw acquisition remains authorized** — the retained raw
+  evidence allows later reinterpretation; discarded aggregates would not.
 
 ## 3.7 ZMP / CoP
 
@@ -250,11 +376,14 @@ Two deliberately independent quantities (this is a design decision, not redundan
 - `cop_position` — **kinetics** (from measured contact wrenches): the point on the ground contact
   plane at which the net measured ground-reaction wrench produces zero horizontal moment.
   Single support: computed from that foot's measured force/moment. Double support: computed from
-  the sum of both feet's wrenches about the world origin, then projected. The pinned formula:
-  with net force `F = (F_x, F_y, F_z)` and net moment `τ` about the world origin,
-  `cop = ( (−τ_y·F_z − ... )/... )` — the exact closed-form expression is fixed at implementation
-  time **before the first collected episode** and recorded in the collector config hash (§ 3.10);
-  once fixed it is immutable.
+the sum of both feet's wrenches about the world origin, then projected. The pinned formula:
+with net force `F = (F_x, F_y, F_z)` and net moment `τ` about the world origin,
+`cop = ( (−τ_y·F_z − ... )/... )` — the exact closed-form expression is fixed **before the first
+CoP derivation**, which may occur after raw acquisition (REV1.1: the derivation contract is
+decoupled from the collection contract), and is recorded in a dedicated `cop_derivation_hash`
+(§ 3.10) **separate from** the collector `config_hash`; once fixed it is immutable. CoP derivation
+is additionally **blocked until V-1 determines the wrench frame/reference interpretation**
+(§ 3.6.4) — raw acquisition is not blocked by this.
 - `zmp_position` — **kinematics** (LIPM formula, model side):
 
 ```math
@@ -263,8 +392,12 @@ p_x \;=\; c_x \;-\; \frac{c_z - p_z^{floor}}{g}\,\ddot{c}_x
 p_y \;=\; c_y \;-\; \frac{c_z - p_z^{floor}}{g}\,\ddot{c}_y
 ```
 
-with `g = 9.81 m/s²` (pinned), `p_z^{floor}` = world z of the contact plane (pinned constant from
-`nao_world.sdf`), and `c`, `c̈` from § 3.4.
+with `g = 9.81 m/s²` (pinned for this kinematics formula), `p_z^{floor}` = world z of the contact
+plane (pinned constant from `nao_world.sdf`), and `c`, `c̈` from § 3.4. **Recorded discrepancy
+(REV1.1, P2, non-blocking):** `nao_world.sdf` sets world gravity to `-9.8 m/s²`, not `-9.81`. This
+affects derived-ZMP consistency only, never raw observation. The derivation stage must pin the
+`g` choice (recorded world gravity or the formula constant) together with the
+`cop_derivation_hash` before first derivation.
 
 | Field | Type | Unit | Source / rule | Class |
 |---|---|---|---|---|
@@ -287,7 +420,7 @@ validation possible without circularity (neither quantity is used to compute the
 
 | Field | Type | Unit | Source / rule | Class |
 |---|---|---|---|---|
-| `controller_command` | float[24] | rad | `/joint_command`, hold-last ≤ `0.05 s` (Stage 0 rule, unchanged) | measured |
+| `controller_command` | float[24] | rad | the **actual command/reference published on `/joint_command`** — what the controller/gait generator sent; hold-last ≤ `0.05 s` (Stage 0 rule, unchanged). It is **not** measured joint state, **not** torque, and **not** the realized actuator output applied by the physics engine; its source message stamp is retained (REV1.1 clarification, GPT-5.6 P0-R4) | measured |
 | `gait_phase` | {`phase`: string, `fraction`: float ∈ [0,1)} | – | deterministic derivation from `(θ, t)` via the frozen ROS-free model `src/nao_gz_sim/scripts/nao_gait_phase.py` (classify + normalized phase time); no simulation feedback is involved, hence provenance-clean | derived (deterministic, replayable) |
 | `desired_velocity` | float[2] | m/s | deterministic from θ per the frozen Stage 0 parameterization: `v_x = step_length × step_frequency`, `v_y = 0`; exact definitions pinned to the Stage 0 GaitGenerator semantics | derived (deterministic) |
 
@@ -301,13 +434,14 @@ Every episode record must carry:
 | `theta_id`, `theta_hash` | per-θ canonical JSON hash (Stage 0 method) |
 | `theta_list_hash` | `844646f5…` — cross-checked fail-closed before every episode (inherited Stage 0 tamper check) |
 | `git_commit` | HEAD of the collector at acquisition time |
-| `config_hash` | SHA-256 of the collector configuration (includes the pinned CoP formula and all alignment constants) |
+| `config_hash` | SHA-256 of the collector configuration (subscriptions, alignment constants, association window, serialization rules) — **excludes** any CoP derivation formula (REV1.1 decoupling, per GPT-5.6 P0-R5) |
+| `cop_derivation_hash` | SHA-256 of the CoP/derived-wrench derivation configuration (closed-form formula, `g` choice, frame/reference transforms as determined by V-1), fixed **before first derivation**; `null` until then. Separate field, separate freeze time (§ 3.7) |
 | `gazebo_seed` | the seed of the run (inherited from the Stage 0 per-episode `run_config` value for the same (θ, seed) pair) |
 | `robot_model_version` | `nao_simple.sdf` sha256 `44ed8285…` (§ 0.1) |
 | `world_model_version` | `nao_world.sdf` sha256 `383341d1…` (§ 0.1) |
 | `gz_sim_version` | `8.15.0` (recorded, not pinned — environment fact) |
 | `stage1_rfc_hash` | sha256 of this RFC at the revision under which the episode was collected |
-| `timestamp` | wall-clock acquisition date |
+| `acquisition_wallclock_utc` | wall-clock acquisition date (UTC) — distinct time domain from `sim_time_sec`; no cross-domain arithmetic |
 | `ring` | sampling ring label (§ 4) |
 | `frame_count`, `t_start`, `t_end` | episode extents |
 | `episode_integrity_hash` | sha256 over the episode's canonical sample file (self-verification) |
@@ -383,14 +517,29 @@ with
 A frame must be **self-contained**: constructing the tuple may not require joining across episodes
 or consulting files outside the episode's own records + the pinned model constants.
 
-## 5.2 Consecutivity and validity rules
+## 5.2 Consecutivity, Δt, and validity rules
 
 - `(t, t+1)` pairs are valid **only** for consecutive `frame_id`s within the same episode.
   Cross-episode pairs are never formed; episode boundaries are hard boundaries.
+- **Transition Δt contract (REV1.1):** the transition interval is
+  `Δt = sim_time_sec[t+1] − sim_time_sec[t]` — the **measured** adjacent simulation timestamps,
+  never the nominal `0.010 s`. A transition is **invalid** when `Δt ≤ 0` (reset / non-monotonic
+  clock) or `|Δt − 0.010| > 0.005` (pre-registered data-quality band around the nominal 100 Hz
+  grid — a chosen policy, not a physical constant). **Transition invalidity is not frame
+  invalidity:** each of the two frames retains its own per-group validity flags; only the
+  `(s_t, u_t, s_{t+1})` tuple use and the finite-difference stencils that span the transition are
+  rejected. No separate Δt field is stored (recomputable from adjacent `sim_time_sec`).
 - Clock gaps (dropped `/joint_states` messages, resets) must be flagged in a per-frame
   `clock_valid` mask; they are never silently interpolated.
+- **Source stamps preserved (REV1.1, per GPT-5.6 correction 5):** the source message stamps of
+  all measured streams — `/joint_states`, each raw contact message (§ 3.6.1), each
+  `pose/info` message (§ 3.3 `pose_source_stamp`) — are preserved losslessly. Streams are never
+  aligned by callback arrival time and never assumed exactly synchronous; alignment uses only
+  the declared rules of § 3. Reset/non-positive Δt invalidates the adjacent transitions and marks
+  the clock discontinuity; it does not silently discard the frames.
 - Measured quantities are never interpolated or gap-filled. Derived quantities use only the pinned
-  finite-difference stencils of § 3, which skip invalid frames rather than bridging them.
+  finite-difference stencils of § 3, which skip invalid frames and invalid transitions rather
+  than bridging them.
 
 ## 5.3 Per-episode data-quality marking (mark, never discard)
 
@@ -406,7 +555,10 @@ or consulting files outside the episode's own records + the pinned model constan
 
 The collector may only **subscribe** to streams that already exist in the current pipeline
 (Appendix A). No new publishers, no parameter changes, no model/world/launch modifications, no
-converter changes are authorized by this RFC. Two sources are already on the wire but unverified
+converter changes are authorized by this RFC. Existing launch arguments that enable
+already-defined behavior (e.g. bridge/converter enable flags) may be used **at runtime**; editing
+the launch or converter files themselves remains forbidden (REV1.1 boundary clarification, per
+GPT-5.6 §2.8). Two sources are already on the wire but unverified
 for this purpose (wrench population; pose-info completeness) — these carry blocking gates V-1/V-2
 (Appendix B).
 
@@ -476,8 +628,12 @@ authorized by an accepted RFC revision is out of scope):
   `nao_simple.sdf`, gait generator semantics). Instrumentation is read-only (§ 5.4).
 - **Best-θ selection, ranking, or recommendation** — no Stage 1 output may express or imply a gait
   preference.
-- **Implementation of the collector itself** — separate authorization required after this RFC is
-  accepted.
+- **Collector implementation boundary (REV1.1):** the collector may be implemented under Level 2
+  authorization (§ 0.0) as a **read-only instrumentation process** — new subscribers, a new writer
+  process, `dataset/stage1/` storage only, no modification to any frozen component (runner,
+  controller/gait generator, converters, model, world, physics, launch files). **Bulk raw
+  acquisition of the 96 episodes is Level 3 and remains gated** on V-1/V-2 pass + pinned probe
+  results (Appendix B).
 
 ---
 
@@ -492,14 +648,14 @@ authorized by an accepted RFC revision is out of scope):
 | R3 | **Provenance defined** — θ/hash chain, git commit, config hash, seed, model versions, RFC hash per episode | § 3.10 |
 | R4 | **Measurement source identified** — every field mapped to an existing topic or a pinned derivation rule; sources not yet verified carry explicit gates | § 5.4, Appendix A, Appendix B |
 | R5 | **No optimization leakage** — no fitness, no ranking, no adaptive sampling; explicit prohibitions | § 4.2, § 7 |
-| R6 | **No implementation** — specification only; collector explicitly out of scope and unauthorized | § 0, § 7 |
+| R6 | **Authorization explicit and tiered** — preparation + collector implementation authorized within the read-only boundary; bulk acquisition gated on V-1/V-2 + pinned results (REV1.1) | § 0.0, § 5.4, § 7 |
 | R7 | **Stage 0 immutability respected** — no frozen artifact touched; new storage root `dataset/stage1/` | § 4.3, § 7 |
 
 ## 8.2 Dataset acceptance (deferred — criteria for the *future* Stage 1 dataset, satisfiable only by the separately authorized implementation)
 
 | # | Criterion |
 |---|---|
-| D1 | All 96 pre-registered episodes acquired under gates V-1/V-2 passed; V-1 failure blocks collection (no partial pivot) |
+| D1 | All 96 pre-registered episodes acquired under gates V-1/V-2 passed **and probe results pinned**; a V-1 failure on wrench population / body identity / publication mode blocks acquisition (no partial pivot); an unresolved frame/reference interpretation blocks derived moment/CoP fields but not raw acquisition (§ 3.6.4) |
 | D2 | Provenance fields present for 100 % of episodes; `theta_list_hash` fail-closed checks all passed |
 | D3 | Per-frame validity flags present for 100 % of frames; degraded episodes marked, none discarded |
 | D4 | Corpus index self-verification (content_hash) passes; commit scope decided by owner at implementation time |
@@ -520,25 +676,88 @@ All sources exist in the current pipeline; the collector adds subscriptions only
 | A3 | IMU | `/imu/data` | `sensor_msgs/Imu` | frozen (Stage 0) |
 | A4 | contact boolean | `/left_foot/contact`, `/right_foot/contact` | `std_msgs/Bool` | frozen (Stage 0) — definition must remain byte-identical |
 | A5 | base_pose | `/body_pose` | `geometry_msgs/PoseStamped` | frozen (Stage 0) |
-| A6 | **contact wrench** | `/nao/left_foot_contact_raw`, `/nao/right_foot_contact_raw` | `ros_gz_interfaces/Contacts` (gz `msgs.Contact` with `repeated JointWrench`) | on the wire, bridged — **wrench population unverified → gate V-1** |
-| A7 | **all 25 link world poses** (base pose cross-check, CoM, foot poses) | `/world/nao_world/pose/info` | gz `msgs.Pose_V` (SceneBroadcaster) | on the wire — **completeness/rate unverified → gate V-2** |
+| A6 | **contact wrench** | `/nao/left_foot_contact_raw`, `/nao/right_foot_contact_raw` — **gz-transport native, the canonical raw source (REV1.2/R1)** | gz `msgs.Contacts` (each `Contact` carries `repeated JointWrench`) | on the wire — **wrench population unverified → gate V-1**. The ROS bridge counterpart (`ros_gz_interfaces/Contacts`) is an **optional derived stream only** (measured field loss: per-contact header stamp, `world`, `force_offset`) |
+| A7 | **all 25 link poses + `nao` model entry** (base pose cross-check, CoM, foot poses) | `/world/nao_world/pose/info` | gz `msgs.Pose_V` (SceneBroadcaster) | on the wire — **completeness/rate unverified → gate V-2**. Entries are parent/model-relative (REV1.2/R4); world poses are **derived by composition** with the model entry (§ 3.3 pose frame semantics) |
 | A8 | gait_phase, desired_velocity | deterministic derivation (§ 3.9) | `nao_gait_phase.py` + pinned formulas | derived |
 | A9 | joint/base/foot/CoM velocities & accelerations | deterministic finite differences (§ 3.2–3.5) | pinned stencils | derived |
 
 # Appendix B — Verification gates (must pass before Stage 1 collection starts)
 
-- **V-1 (blocking): contact wrench availability.** During a scripted probe episode, verify that
-  the `JointWrench` fields of both `*_foot_contact_raw` topics are populated with physically
-  plausible values (e.g., stance-foot vertical force > 0 while the robot is supported), that the
-  frame convention of the wrench is established, and that flight periods are distinguishable per
-  the § 3.6 semantics (event-only publication vs. periodic). If the physics engine does not
-  populate the wrenches or flight is ambiguous, **Stage 1 collection is blocked until this RFC is
-  revised. No force-free fallback is pre-authorized** (estimating forces from kinematics would
-  defeat the purpose of § 1).
-- **V-2 (blocking): pose-info completeness and rate.** Verify that `/world/nao_world/pose/info`
-  enumerates all 25 links of `nao_simple.sdf` and arrives at a rate sufficient for the `0.02 s`
-  causal last-not-after alignment (§ 3.3–3.5). Failure → RFC revision required (no silent
-  widening of tolerances).
+- **V-1 (blocking): contact wrench availability and semantics.** Executed by the read-only probe
+  `tools/stage1_probe.py` (subscribes to both `*_foot_contact_raw` topics — on the gz-transport
+  **native** path (canonical, R1) and on the ROS bridge path (derived, field-loss documentation)
+  — and `/joint_states`; report contract: `dataset/stage1/probe/V1_report_REV12.json`, REV1.2
+  re-run; the REV1.1 run-3 report `V1_report.json` and the archived fallen-run reports are
+  retained as prior evidence). The probe must **determine** (never
+  assume; report each finding as `confirmed` / `plausible` / `unknown`):
+  1. **Runtime population** — the `JointWrench` fields of both topics are actually populated at
+     runtime with per-contact, per-body-side force, torque, and `force_offset` values (schema
+     presence alone proves nothing).
+  2. **Body identity** — `body_1_name` / `body_2_name` map to the expected ankle/ground collision
+     pairs, left/right distinguishable, no cross-foot contamination.
+  3. **Publication mode** — periodic vs. event-only publication, and whether empty-contact
+     messages are ever sent (this decides whether silence can ever become `VALID_NO_CONTACT`,
+     § 3.6.4).
+  4. **Timestamp semantics (REV1.2/R2 correction — timestamp-domain validation on source
+     stamps).** Validation uses **source timestamps only**: (a) the same simulation clock domain
+     as `/joint_states`, established by **nearest-neighbor statistics** — for every contact
+     message source stamp, the absolute difference to the nearest `/joint_states` source stamp,
+     reported as **median, p95, and max**; (b) monotonicity and measured dt of the source
+     stamps. Source stamps are preserved verbatim. **Callback arrival time is not valid
+     measurement time.** Envelope-overlap of subscriber capture windows is explicitly **not**
+     a timestamp-domain criterion (the REV1.1 envelope-fraction check is deleted: it measured
+     subscriber discovery skew — a probe instrumentation artifact — not stamp-domain
+     agreement).
+  5. **Frame/reference interpretation** — established from documented Gazebo message semantics
+     plus a **controlled comparison after transforming both sides to a common frame and a common
+     moment origin**. Newton's-third-law summation and standing-load magnitudes are **plausibility
+     checks only**: they do not by themselves establish world-vs-body axes or the torque reference
+     point, and standing torque magnitude must never be used to reverse-infer the moment origin
+     (GPT-5.6 P1-R1). Per-foot static support near `≈ 26 N` (total `m·g ≈ 52 N`, `m = 5.305 kg`,
+     `g = 9.8 m/s²`) is a gross sanity range, not unit proof.
+
+  If the wrenches are not populated, body identity is wrong, or publication mode makes no-contact
+  unobservable with no independent no-contact signal, **Stage 1 acquisition is blocked until this
+  RFC is revised. No force-free fallback is pre-authorized** (estimating forces from kinematics
+  would defeat the purpose of § 1). If frame/reference remains unresolved, **raw acquisition
+  proceeds but CoP/derived-moment derivation is blocked** (§ 3.6.4, § 3.7).
+
+- **V-2 (blocking): pose-info completeness, semantics, and rate.** Executed by the same probe
+  via gz-transport subscription to `/world/nao_world/pose/info` (report:
+  `dataset/stage1/probe/V2_report_REV12.json`, REV1.2 re-run; the REV1.1 run-3 report
+  `V2_report.json` is retained as prior evidence). Verify:
+  1. **Unique entities** — all 25 links of `nao_simple.sdf` (incl. `base_link`, `l_ankle`,
+     `r_ankle`) appear as **unique, exactly-named** entries (25 strings occurring in `Pose_V` is
+     not sufficient).
+  2. **Pose frame semantics (REV1.2/R4 correction).** `Pose_V` link entries are
+     **parent/model-relative poses** — the REV1.1 assumption "each entry is the world pose of the
+     corresponding link entity" is **falsified by probe evidence** (identity-pinned `base_link`
+     entry while the `nao` model entry moves) and entries must **never** be recorded as world
+     poses. The world pose of a link requires **composition**:
+     `T_world_link = T_world_model · T_model_link`, with both factors from the same `Pose_V`
+     message. The model entry (composition anchor) is cross-checked against `/body_pose` (which
+     `body_pose_converter` identifies from the model entry; exact-stamp comparison). The frame
+     semantics is **determined from in-band evidence, never assumed**. **REV1.2/R5:** the
+     composition method **requires verification using selected non-identity links** (e.g.
+     `l_ankle` / `r_ankle`) before composed poses are treated as validated world poses —
+     identity-link (`base_link`) agreement alone is a consistency check, not a validation.
+     Fixed standing geometry remains an informational sanity check (standing scenarios only).
+     An existing subscriber proves consumption, not semantics.
+  3. **Source stamps and cadence** — per-message stamps are recorded; the observed publication
+     cadence is measured (SceneBroadcaster has no explicit publish_rate configured — measured,
+     not assumed).
+  4. **Alignment hit rate (the operative check)** — the fraction of joint-clock frames whose
+     causal last-not-after `0.02 s` window contains at least one pose message is **≥ 95 %**;
+     misses are flagged per frame (a nominal average frequency alone is not proof).
+
+  Failure → RFC revision required (no silent widening of tolerances). Passing V-2 validates pose
+  coverage and frame semantics only; the mass/CoM computation itself is a § 3.4 derivation, not
+  validated here.
+
+- **Probe result pinning (REV1.1; file naming per REV1.2):** V-1/V-2 reports record their git
+  commit, the RFC hash under which they ran, the invocation command (argv), and a config hash.
+  **Level 3 (bulk acquisition, § 0.0) requires both reports to exist, pass
+  their blocking criteria, and be committed** before the first production episode.
 - **V-3 (non-blocking, informational):** presence of a native ground-truth twist stream; if
   absent, the derived finite-difference twist of § 3.3 is the contract (no revision needed).
 
@@ -546,23 +765,96 @@ All sources exist in the current pipeline; the collector adds subscriptions only
 
 ```text
 dataset/stage1/
+  probe/                      # pre-acquisition probe evidence (REV1.2)
+                              #   V1_report_REV12.json, V2_report_REV12.json
+                              #   (REV1.1 run-3: V1_report.json, V2_report.json;
+                              #    archived fallen-run reports) — pinned before Level 3
   stage1_theta_list.json      # verbatim copy of the frozen Stage 0 list
                               # + cross-checked theta_list_hash (fail-closed)
+  raw/                        # lossless raw stream captures per episode
+                              #   (§ 3.6.1 contact payload; source-stamped pose
+                              #    events) — immutable once written
+  derived/                    # recomputable derived artifacts (per-foot
+                              #   aggregates, aligned .jsonl frames, CoP once
+                              #   unblocked) — never replacements for raw/
   ring0/ ring1/ ring2/ ring3/ # per-episode directories, Stage 0 conventions
   records/                    # *.record.json + *.metrics.json per episode
+  provenance/                 # collector config, hashes, episode provenance
   corpus_index.json           # self-verifying (content_hash), atomic write
   corpus_index.meta.json      # volatile sidecar (BF-3 pattern)
 ```
 
 - `dataset/stage0/**` is never written (§ 4.3).
-- The per-frame aligned samples (`.jsonl`) are the contract artifact. Raw stream dumps and the
-  git commit scope for `dataset/stage1/` are an **owner decision at implementation time**, not
-  pre-declared here.
+- The per-frame aligned samples (`.jsonl`) **and** the lossless raw payload captures (§ 3.6.1) are
+  both contract artifacts — REV1.1 makes raw retention mandatory (not an owner option); only the
+  git commit scope for `dataset/stage1/` remains an owner decision at implementation time.
+- The exact raw/derived/provenance layout, immutability and recomputation rules are specified in
+  `docs/STAGE1_COLLECTOR_CONTRACT.md` (Level 1 deliverable, referenced by this contract).
 
 ---
 
 ## Document status
 
-REV1.0-DRAFT — submitted for owner authorization and Independent Auditor (TRAE + GLM-5.3) review.
-**No implementation is authorized by this document.** Stage 1 instrumentation requires a separate
-authorization after this RFC is accepted.
+**REV1.2-CORRECTED — ACQUISITION CONTRACT (pending re-audit).**
+
+Revision history:
+
+- **REV1.0-DRAFT** (2026-10-07): original specification, submitted for owner authorization and
+  Independent Auditor review. "No implementation authorized."
+- **REV1.1-FINAL** (2026-10-07): minimal revision per the GLM-5.3 adversarial audit
+  (`STAGE1_RFC_REV1.1_MINIMAL_REVISION_AND_PROBE_DESIGN_AUDIT_REPORT.md`, verdict A) and the
+  GPT-5.6 engineering review (Decision B — READY AFTER MINOR FIXES). Changes, in order of the
+  GPT-5.6 required corrections:
+  1. three-tier authorization; "FINAL" = frozen acquisition contract, not blanket permission
+     (§ 0, § 0.0);
+  2. lossless raw contact payload retention mandatory; per-foot aggregates demoted to derived
+     additions (§ 3.6.1–3.6.2);
+  3. V-1 semantics rewritten: determine-not-assume; N3L/standing values are plausibility checks
+     only; common-frame/common-origin comparison required (Appendix B);
+  4. flight validity fail-closed: three-state wrench semantics replace the zero-fill rule; Bool
+     from the same stream is not independent evidence (§ 3.6.4);
+  5. source stamps preserved for all three streams; measured-Δt transition contract;
+     transition-invalid ≠ frame-invalid (§ 3.3, § 5.2);
+  6. V-2 semantics: unique entities, world-pose semantics, source stamps, ≥ 95 % causal-window
+     hit rate (Appendix B);
+  7. boundary frozen: launch args runtime-only, no file edits; `dataset/stage0/**`,
+     runner, controller/generator, model, world, physics untouched (§ 5.4, § 7);
+  8. `config_hash` / `cop_derivation_hash` decoupled; remote push of the Stage 0 closure commit +
+     this contract required before production (§ 3.10, § 0.0).
+  Also: `sim_time_sec` / `acquisition_wallclock_utc` renames (§ 3.1, § 3.10);
+  `controller_command` actual-published semantics (§ 3.9); gravity 9.8/9.81 discrepancy recorded
+  (§ 3.7); probe report pinning required before Level 3 (Appendix B, Appendix C).
+- **REV1.2-CORRECTED** (2026-10-08): semantic corrections per the GPT-5.6 independent audit of
+  the REV1.1 preparation artifacts (corrections R1–R5; correction task
+  `STAGE1_REV1.2_CORRECTION_TASK`). Semantic only — population, seeds, rings, schema shape,
+  formulas, and all § 0.1 frozen pins unchanged:
+  1. **R1 — raw contact source:** the Gazebo native `Contacts` stream (gz-transport) is the
+     canonical raw evidence source; native payload retention mandatory; the ROS bridge is an
+     optional derived stream only, with its measured field loss (per-contact header stamp,
+     `world`, `force_offset`) documented in the contract; derived per-foot force/moment data
+     may never replace raw evidence (§ 3.6.1, Appendix A6);
+  2. **R2 — V-1 timestamp validation:** the envelope-overlap criterion is deleted — subscriber
+     capture window overlap is not timestamp-domain validation; replaced by source-stamp
+     validation: same simulation clock domain via nearest-neighbor statistics (median / p95 /
+     max); callback arrival time is not valid measurement time (§ 3.6.3, Appendix B V-1.4);
+  3. **R3 — contact validity semantics:** fail-closed rule kept; the three states are
+     `VALID_CONTACT` / `UNKNOWN_NO_MESSAGE` / `VALID_NO_CONTACT`; no contact message →
+     `UNKNOWN_NO_MESSAGE`, no zero wrench from silence; `VALID_NO_CONTACT` requires an explicit
+     empty contact message or an independent validated no-contact source (§ 3.6.2–3.6.4);
+  4. **R4 — V-2 pose frame semantics:** `Pose_V` entries are parent/model-relative poses, never
+     world poses; world poses require composition `T_world_link = T_world_model · T_model_link`;
+     pose fields reclassified accordingly (§ 3.3 note, § 3.4, § 3.5, Appendix A7, Appendix B
+     V-2.2);
+  5. **R5 — validation wording:** "end-to-end validated" claims for the composition method are
+     removed — only an identity-link (`base_link`) comparison exists; the composition method
+     requires verification using selected non-identity links before composed poses are treated
+     as validated world poses (§ 3.3 note, Appendix B V-2.2).
+  Probe re-run evidence under this revision: `dataset/stage1/probe/V1_report_REV12.json`,
+  `V2_report_REV12.json`. **REV1.2 does not re-freeze itself** — it is pending re-audit, and no
+  acceptance criterion is claimed satisfied by this revision.
+
+**This document authorizes preparation and collector implementation (Levels 1–2, § 0.0) only.
+Bulk acquisition of the 96 episodes (Level 3) is NOT authorized by this document alone — it
+requires V-1/V-2 pass + pinned probe results + remote publication of the Stage 0 closure commit
+and this contract. No analysis, LIPM fitting, residual learning, training, or optimization is
+authorized (§ 7).**
