@@ -3,7 +3,7 @@
 | 项 | 值 |
 |---|---|
 | Document | STAGE1_COLLECTOR_CONTRACT |
-| Status | **Level 1 preparation artifact — collector implementation contract, evidence-pinned（v1.3，随 REV1.4/R11 升版）** |
+| Status | **Level 1 preparation artifact — collector implementation contract, evidence-pinned（v1.4，随 R12 fail-closed enforcement 升版）** |
 | Governing RFC | [STAGE1_DYNAMICS_DATASET_RFC.md](file:///home/liu/workspace/Nao_Program/nao_gazebo_ws/docs/STAGE1_DYNAMICS_DATASET_RFC.md)（**REV1.4-HARDENING，ACQUISITION-CONTRACT-READY，pending final independent audit acceptance**；App. B V-1/V-2 probe 判据） |
 | Evidence base | REV1.3 证据（probe run 8，walk + FROZEN_GAIT 环境，in-gait 窗口）：[V1_report_REV13.json](file:///home/liu/workspace/Nao_Program/nao_gazebo_ws/dataset/stage1/probe/V1_report_REV13.json)、[V2_report_REV13.json](file:///home/liu/workspace/Nao_Program/nao_gazebo_ws/dataset/stage1/probe/V2_report_REV13.json)，schema `stage1-probe/1.3`，**V-1 与 V-2 双 PASS**；REV1.2 历史（run 6）：`V1/V2_report_REV12.json`（schema 1.2）；REV1.1 历史（run 3）：`V1/V2_report.json`（schema 1.1） |
 | Authorization | Level 2（collector implementation）合同依据。**Level 3（bulk acquisition）未授权**：probe 双 PASS 仅为判据证据，Level 3 仍需 RFC REV1.3 final independent audit 接受 + 报告 pinning + remote publication（owner 动作，见 §12） |
@@ -288,7 +288,7 @@ flight 检测、1.0 N 阈值等 REV1.0 条款在两态合同下**只能**作用�
 
 ## 8. Provenance 与完整性（绑定，R11-B：RFC §3.10 为唯一 source of truth）
 
-**[RULE] Source of truth（REV1.4/R11-B）：** [RFC §3.10](file:///home/liu/workspace/Nao_Program/nao_gazebo_ws/docs/STAGE1_DYNAMICS_DATASET_RFC.md) 的 mandatory provenance 表是 collector provenance 完整性的**唯一权威定义**。**collector MUST 发射 §3.10 的每一个 field**；本节 checklist 与 §10 smoke validation 均**derived from / must equal** RFC §3.10——任何"简化版 provenance list"（RFC says A+B+C+D…、collector 只实现 A+B+C）都是 contract drift，判定为验证失败。机器可执行 enforcement：`tools/stage1_contract_check.py` 的 `MANDATORY_PROVENANCE_FIELDS`（该 list 通过**解析 RFC §3.10 表**绑定，见 R11 report / Test C/D）。
+**[RULE] Source of truth（REV1.4/R11-B；R12-C 机器双绑定）：** [RFC §3.10](file:///home/liu/workspace/Nao_Program/nao_gazebo_ws/docs/STAGE1_DYNAMICS_DATASET_RFC.md) 的 mandatory provenance 表是 collector provenance 完整性的**唯一权威定义**。**collector MUST 发射 §3.10 的每一个 field**；本节 checklist 与 §10 smoke validation 均**derived from / must equal** RFC §3.10——任何"简化版 provenance list"（RFC says A+B+C+D…、collector 只实现 A+B+C）都是 contract drift，判定为验证失败。机器可执行 enforcement（R12-C）：`tools/stage1_contract_check.py` 的 `MANDATORY_PROVENANCE_FIELDS` 通过**同时解析 RFC §3.10 表与本 §8 checklist 表**绑定，并要求三者优先级相等（RFC == Contract §8 == checker list）——**任一文档增删 field 均为 FAIL**（mutation 测试见 `tools/test_stage1_r12.py`），不再仅是两份独立声明的一致性口头声明。
 
 **[RULE] RFC §3.10 完整 checklist（derived，必须与 §3.10 相等；以 RFC 为准）：**
 
@@ -342,6 +342,18 @@ collector 实现完成后、任何 pilot episode 前必须通过（GPT-5.6 minim
 
 对应最小测试：`tools/test_stage1_r11.py`（Test A pending 传播、Test B raw 不受影响、Test C 缺失 provenance → FAIL、Test D 完整 provenance → PASS）。
 
+**R12-A smoke 入口（fail-closed，单一链路）：**
+
+```
+python3 tools/stage1_contract_check.py --smoke \
+    --manifest <status_manifest.json> \
+    --provenance <episode_provenance.json> \
+    --frame <sample_frame.json> \
+    --raw <raw_records.json>
+```
+
+链路：RFC §3.10 == Contract §8 == checker（R12-C 双向解析绑定）→ raw 类别绑定（Contract §6 tokens）→ provenance 完整性 + 格式 → status manifest allowlists（R12-B）→ frame Option-B（存在且为 null）→ raw 结构契约（R12-D）→ 总 PASS/FAIL。**任一项失败 → `ok=false` 且进程 exit != 0**；缺失 artifact 文件/缺失 manifest 是 FAIL，不是"没有东西可检查"。对抗性负测 + RFC/Contract mutation 测试 + CLI exit-code 测试：`tools/test_stage1_r12.py`（R12-D）。
+
 ---
 
 ## 11. RFC 修订前置清单（Level 3 unblock 条件）
@@ -388,3 +400,4 @@ collector 实现完成后、任何 pilot episode 前必须通过（GPT-5.6 minim
 | 1.1 | REV1.2 升版：Governing RFC → REV1.2-CORRECTED（pending re-audit）；证据基新增 run 6 REV12 报告（`stage1-probe/1.2`）与 run 4 end-hold 归档；R1 语义命名（`UNKNOWN_NO_MESSAGE`）与 R3（timestamp 判据）、R4（frame semantics 入合同）落合同；R5 措辞更正（composition = identity-link 一致性检查，非端到端验证，需 non-identity-link 验证）；§6.1 声明 native gz raw capture 强制且 RFC source path 一致；§11 标注各修订项 REV1.2 状态；§12 终态换为 run 6 REV12 判定 |
 | 1.2 | REV1.3 升版：Governing RFC → REV1.3-MINIMAL-HARDENING（ACQUISITION-CONTRACT-READY，pending final independent audit）；证据基新增 run 8 REV13 报告（`stage1-probe/1.3`，**V-1/V-2 双 PASS，PROBE_EXIT=0**）与 run 7 discovery-skew 归档；R6 事件语义 cadence、R7 两态 validity（§3.1/3.2/7，原 [BLOCKED] 解除）、R8 composition_evidence 显式 `composition_status = UNVERIFIED`（foot/CoM = `derived_pending_validation`，§4.3）、R10 association-compatibility 措辞 + common-window 裁剪（§3.7/5.3）落合同；§11 修订项 REV1.3 状态；§12 终态换为 run 8 REV13 判定 |
 | 1.3 | REV1.4/R11 升版（GPT-5.6 audit of REV1.3，Decision B 的两个 blocker）：Governing RFC → REV1.4-HARDENING；**R11-A** pending-validation 传播规则 + null-vs-pending 实现选择 + 传播链 + 非传播规则（§4.7，机器可执行 via `tools/stage1_contract_check.py`）；**R11-B** RFC §3.10 为 provenance 唯一 source of truth，§8 重写为完整 18-field checklist（derived/must-equal），§10-6 升级为逐 field 检查 + §10-8 新增传播检查（Tests A–D：`tools/test_stage1_r11.py`）。无新 V-gate、无字段增删、R6–R10 不重开 |
+| 1.4 | R12 fail-closed enforcement 升版（R11 Closure Audit Decision C 的执行层 blocker）：§8 声明 R12-C 双向机器绑定（同时解析 RFC §3.10 与本 §8 表，任一增删 field → FAIL）；§10 增补 R12-A 单一 fail-closed smoke CLI（`--smoke`，任一项失败 → exit != 0，缺失 artifact = FAIL）；R12-B status allowlist 化（unknown/unrecognized status、缺失 status/manifest/root declaration 均 FAIL）；R12-D raw 结构契约（已知类别 + 必需键 + required streams 绑定 Contract §6 tokens）。测试：`tools/test_stage1_r12.py`（40 cases：负测矩阵、mutation 测试、anti-circular fixtures、CLI exit codes、R6–R10 回归）+ `tools/test_stage1_r11.py`（fixture 按 R12 契约加强，15 cases 全过）。无 RFC 规则变化、无新 V-gate、probe 未动 |
