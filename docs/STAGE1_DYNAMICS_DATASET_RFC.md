@@ -6,10 +6,10 @@ residual-learning preparation.
 
 | Field | Value |
 |---|---|
-| Revision | REV1.3-MINIMAL-HARDENING |
-| Status | **ACQUISITION-CONTRACT-READY** — minimal hardening per the GPT-5.6 independent re-audit of REV1.2; **pending final independent audit** (not self-accepted); three-tier authorization, see § 0.0 |
-| Author | Implementation Agent (DeepSeek / Qoder role); REV1.2 corrections: Implementation Agent (GLM-5.3); REV1.3 hardening: Implementation Agent (GLM-5.3) |
-| Date | 2026-10-08 (REV1.1: 2026-10-07; REV1.2/1.3: 2026-10-08) |
+| Revision | REV1.4-HARDENING |
+| Status | **ACQUISITION-CONTRACT-READY** — R11 minimal hardening (pending-validation propagation, provenance completeness binding) per the GPT-5.6 independent adversarial audit of REV1.3 (Decision B — READY AFTER MINOR FIXES); **pending final independent audit acceptance**; three-tier authorization, see § 0.0 |
+| Author | Implementation Agent (DeepSeek / Qoder role); REV1.2 corrections: Implementation Agent (GLM-5.3); REV1.3 hardening: Implementation Agent (GLM-5.3); REV1.4 (R11) hardening: Implementation Agent (GLM-5.3) |
+| Date | 2026-10-08 (REV1.1: 2026-10-07; REV1.2/1.3/1.4: 2026-10-08) |
 | Roadmap position | Baseline Dataset (Stage 0, frozen) → **Dynamics Dataset (this RFC)** → LIPM Prior → Residual Network → Optimization → Sim2Real |
 
 ## 0. Scope declaration (read first)
@@ -24,16 +24,23 @@ by the GPT-5.6 independent audit of the REV1.1 preparation artifacts** (2026-10-
 source (R1), V-1 timestamp validation method (R2), contact validity semantics naming (R3),
 V-2 pose frame semantics (R4), and composition validation wording (R5).
 
-**REV1.3 (this revision) applies the five minimal-hardening corrections (R6–R10) identified by
-the GPT-5.6 independent re-audit of REV1.2** (2026-10-08): event-aware contact publication
-validation replacing the absolute effective-frequency band (R6), Stage 1 two-state contact
-validity (R7), V-2 composition evidence with an explicit status (R8), measured/derived label
-correction (R9), and timestamp association-compatibility wording (R10). These are hardening
-corrections only — no new V-gate, no schema change, no population/seeds/rings change, no
-controller/gait/Stage 0 change, no optimization. **REV1.3 is pending final independent
-audit:** a V-1/V-2 probe PASS under REV1.3 criteria does not by itself authorize Level 3 —
-audit acceptance of this revision and the owner publication actions of § 0.0 remain
-prerequisites. No acceptance criterion is claimed satisfied by this revision.
+**REV1.3 (superseded by this revision) applied the five minimal-hardening corrections (R6–R10)
+identified by the GPT-5.6 independent re-audit of REV1.2** (2026-10-08): event-aware contact
+publication validation replacing the absolute effective-frequency band (R6), Stage 1 two-state
+contact validity (R7), V-2 composition evidence with an explicit status (R8), measured/derived
+label correction (R9), and timestamp association-compatibility wording (R10).
+
+**REV1.4 (this revision) applies the R11 minimal hardening for the two blockers identified by
+the GPT-5.6 independent adversarial audit of REV1.3 (Decision B — READY AFTER MINOR FIXES):**
+**R11-A — pending-validation propagation** (§ 3.0 validation-status propagation rule; schema
+class annotations extended to every derived field that transitively depends on the unverified
+composition or on the unknown wrench frame/reference) and **R11-B — provenance completeness
+binding** (§ 3.10 declared the single source of truth for collector provenance; collector
+checklists and smoke validation must equal it). Hardening only — no new V-gate, no field
+added or removed, no population/seeds/rings change, no controller/gait/Stage 0 change, no
+optimization, and no reopening of any R6–R10 decision. **REV1.4 is pending final independent
+audit acceptance** — no acceptance criterion is claimed satisfied by this revision, and no
+acquisition authorization is claimed.
 
 ### 0.0 Authorization levels (three-tier, explicit — REV1.1)
 
@@ -41,7 +48,7 @@ prerequisites. No acceptance criterion is claimed satisfied by this revision.
 |---|---|---|
 | 1 — Preparation | Completion of this RFC revision; read-only V-1/V-2 probes (`tools/stage1_probe.py`, new file); collector contract specification (`docs/STAGE1_COLLECTOR_CONTRACT.md`, new file) | **authorized** |
 | 2 — Collector implementation | Implementing the collector per `docs/STAGE1_COLLECTOR_CONTRACT.md` as a **read-only instrumentation process**: new subscribers, a new writer process, storage under `dataset/stage1/` only — no modification to any frozen component (runner, controller/gait generator, converters, model, world, physics, launch files) | **authorized within the § 7 boundary** |
-| 3 — Bulk raw acquisition | The 96 pre-registered episodes (§ 4.1) | **NOT authorized by this document alone.** Requires: acceptance of this revision by the **final independent audit** (REV1.3 is pending), V-1 pass **and** V-2 pass, probe results pinned (Appendix B), and remote publication of the Stage 0 closure commit and this contract (owner action, GPT-5.6 correction 8). |
+| 3 — Bulk raw acquisition | The 96 pre-registered episodes (§ 4.1) | **NOT authorized by this document alone.** Requires: acceptance of this revision by the **final independent audit** (REV1.4 is pending), V-1 pass **and** V-2 pass, probe results pinned (Appendix B), and remote publication of the Stage 0 closure commit and this contract (owner action, GPT-5.6 correction 8). |
 
 Analysis, LIPM fitting, residual learning, training, and optimization are **never** authorized by
 this document and require separate authorization (§ 7).
@@ -175,6 +182,41 @@ provenance, integrity), never gait performance.
   (finite differences), and transforms (composition). Composed foot/CoM fields additionally
   carry **`derived_pending_validation`** status until V-2 composition evidence exists (§ 3.3
   note, Appendix B V-2, REV1.3/R8).
+- **Validation-status propagation (REV1.4/R11-A — binding rule).** Status vocabulary is
+  exactly: `measured`, `derived`, `derived_pending_validation` (no new enums). Rule: **any
+  derived field whose computation depends — directly or indirectly — on an input whose
+  validation status is `UNVERIFIED` (composition) or pending/blocked (wrench
+  frame/reference) MUST carry `derived_pending_validation` (or remain `null` + blocked where
+  § 3.6.4/§ 3.7 already block derivation) and MUST NOT be represented as validated derived
+  data.** Pending-validation status propagates along every dependency chain; it is lifted
+  only when the root input's status changes (a future independent world-pose reference for
+  the composition; the V-1 common-frame/common-origin determination for wrenches).
+  - **Null-vs-pending implementation (as adopted by this schema):** composition-dependent
+    fields use **Option A** — the numeric value is retained, the field is marked
+    `derived_pending_validation`. Wrench-frame-dependent fields (`left/right_contact_force`,
+    `left/right_contact_moment`, `cop_position`) use **Option B** — `null` while the
+    frame/reference is undetermined (§ 3.6.2, § 3.6.4, § 3.7; derivation blocked). In both
+    cases a downstream consumer cannot mistake the value for validated physical ground
+    truth.
+  - **Propagation chains (this schema's actual fields):**
+    1. raw model pose + raw relative link pose → `left/right_foot_pose`
+       (`derived_pending_validation`) → `left/right_foot_velocity`
+       (`derived_pending_validation`);
+    2. raw model/link poses → `com_position` (`derived_pending_validation`) →
+       `com_velocity` (`derived_pending_validation`) → `com_acceleration`
+       (`derived_pending_validation`); `zmp_position` depends on the CoM chain →
+       `derived_pending_validation`;
+    3. pose + wrench → `cop_position` / world-frame moment: **blocked + `null`** while the
+       wrench frame/reference is undetermined (§ 3.6.4) — never treated as validated.
+  - **Non-propagation rule:** raw measured data — raw `Pose_V` entries, the model pose, raw
+    `Contacts` messages, joint states, IMU, command — are **not** invalidated by the pending
+    composition status; they are stored verbatim as `measured`. Only derived quantities that
+    *consume* the unverified composition (or the unknown wrench interpretation) carry the
+    pending/blocked status.
+  - Ordinary derived fields that consume **no** unverified input (e.g. `joint_acceleration`,
+    `base_velocity`, `base_angular_velocity` — the base pose anchor is the `/body_pose`
+    cross-checked model entry, § 3.3; `gait_phase`, `desired_velocity`) remain plain
+    `derived` and are unaffected by R11-A.
 
 ## 3.1 Time
 
@@ -264,8 +306,8 @@ note), association causal last-not-after, tolerance `0.02 s`, and
 | Field | Type | Unit | Source / rule | Class |
 |---|---|---|---|---|
 | `com_position` | float[3] | m | formula above (REV1.3/R9: **derived** — inputs are composed world poses, `derived_pending_validation` while V-2 composition_status is UNVERIFIED, plus pinned constants) | derived |
-| `com_velocity` | float[3] | m/s | central finite difference of `com_position` | derived |
-| `com_acceleration` | float[3] | m/s² | second finite difference of `com_position` (pinned stencil) | derived |
+| `com_velocity` | float[3] | m/s | central finite difference of `com_position`; **`derived_pending_validation` — inherits from `com_position` while composition_status is UNVERIFIED (R11-A)** | derived |
+| `com_acceleration` | float[3] | m/s² | second finite difference of `com_position` (pinned stencil); **`derived_pending_validation` — inherits from the CoM chain while composition_status is UNVERIFIED (R11-A)** | derived |
 
 ## 3.5 Foot
 
@@ -278,8 +320,8 @@ hash would change).
 |---|---|---|---|---|
 | `left_foot_pose` | {`position`: float[3], `orientation`: float[4]} | m, – | composed world pose of `l_ankle` (REV1.2, R4: model entry · `l_ankle` entry, same `Pose_V` message, § 3.3 pose frame semantics; the raw `l_ankle` entry is model-relative, never a world pose), causal last-not-after ≤ `0.02 s` | derived (composition of measured pose/info entries; **derived_pending_validation** while V-2 composition_status is UNVERIFIED — R8/R9) |
 | `right_foot_pose` | {`position`: float[3], `orientation`: float[4]} | m, – | composed world pose of `r_ankle` (REV1.3/R9 correction: model entry · `r_ankle` entry, same `Pose_V` message, same rule as `left_foot_pose`; the raw `r_ankle` entry is model-relative, never a world pose), causal last-not-after ≤ `0.02 s` | derived (composition of measured pose/info entries; **derived_pending_validation** while V-2 composition_status is UNVERIFIED — R8/R9) |
-| `left_foot_velocity` | float[3] | m/s | central finite difference of `left_foot_pose.position` | derived |
-| `right_foot_velocity` | float[3] | m/s | central finite difference of `right_foot_pose.position` | derived |
+| `left_foot_velocity` | float[3] | m/s | central finite difference of `left_foot_pose.position`; **`derived_pending_validation` — inherits from `left_foot_pose` while composition_status is UNVERIFIED (R11-A)** | derived |
+| `right_foot_velocity` | float[3] | m/s | central finite difference of `right_foot_pose.position`; **`derived_pending_validation` — inherits from `right_foot_pose` while composition_status is UNVERIFIED (R11-A)** | derived |
 
 ## 3.6 Contact (raw-first, lossless; wrench, not boolean)
 
@@ -424,8 +466,8 @@ affects derived-ZMP consistency only, never raw observation. The derivation stag
 
 | Field | Type | Unit | Source / rule | Class |
 |---|---|---|---|---|
-| `cop_position` | float[2] ∪ null | m | measured-wrench formula above; `null` when total vertical force < `1.0 N` (flight — pre-registered threshold) | derived (from measured wrenches) |
-| `zmp_position` | float[2] ∪ null | m | LIPM kinematics formula above; `null` only when required inputs are invalid | derived (from derived CoM) |
+| `cop_position` | float[2] ∪ null | m | measured-wrench formula above; `null` when total vertical force < `1.0 N` (flight — pre-registered threshold); **R11-A: Option B — `null` + derivation blocked while the wrench frame/reference is undetermined (§ 3.6.4, § 3.7); never validated until the V-1 common-frame/common-origin determination** | derived (from measured wrenches) |
+| `zmp_position` | float[2] ∪ null | m | LIPM kinematics formula above; `null` only when required inputs are invalid; **`derived_pending_validation` — inherits from the CoM chain while composition_status is UNVERIFIED (R11-A)** | derived (from derived CoM) |
 
 The discrepancy `zmp − cop` is **the** LIPM-consistency signal: for a perfectly LIPM-consistent
 rigid flat-contact system the two coincide. Recording both independently is what makes § 6
@@ -450,6 +492,13 @@ validation possible without circularity (neither quantity is used to compute the
 ## 3.10 Provenance (episode-level, mandatory, no exceptions)
 
 Every episode record must carry:
+
+> **R11-B (REV1.4): this table is the single source of truth for collector provenance
+> completeness.** The collector MUST emit every field below. Collector-contract checklists
+> and smoke validations are *derived from* and *must equal* this list — a simplified or
+> paraphrased provenance subset is contract drift and is a validation failure. The
+> machine-readable enforcement lives in `tools/stage1_contract_check.py`
+> (`MANDATORY_PROVENANCE_FIELDS`, bound to this table by parsing it — see the R11 report).
 
 | Field | Source / rule |
 |---|---|
@@ -842,7 +891,7 @@ dataset/stage1/
 
 ## Document status
 
-**REV1.3-MINIMAL-HARDENING — ACQUISITION-CONTRACT-READY (pending final independent audit).**
+**REV1.4-HARDENING — ACQUISITION-CONTRACT-READY (pending final independent audit).**
 
 Revision history:
 
@@ -931,6 +980,29 @@ Revision history:
   `V2_report_REV13.json`. **REV1.3 is pending final independent audit** — status
   ACQUISITION-CONTRACT-READY is a readiness claim only, not acceptance; no acquisition
   authorization is claimed.
+- **REV1.4-HARDENING** (2026-10-08): R11 minimal hardening for the two blockers of the
+  GPT-5.6 independent adversarial audit of REV1.3 (Decision B — READY AFTER MINOR FIXES;
+  correction task `STAGE1_REV11_MINIMAL_HARDENING_TASK`). No field added/removed, no new
+  V-gate, no reopening of R6–R10:
+  1. **R11-A — pending-validation propagation:** § 3.0 gains the binding
+     validation-status propagation rule (any derived field depending directly or
+     indirectly on an input whose validation status is `UNVERIFIED`/pending/blocked must
+     carry `derived_pending_validation` or remain `null`+blocked, never validated derived
+     data); the adopted null-vs-pending implementation is codified (Option A — value
+     retained — for composition-dependent fields; Option B — `null`+blocked — for
+     wrench-frame-dependent fields); the three propagation chains are declared (foot
+     pose→foot velocity; CoM→CoM velocity→CoM acceleration, ZMP; pose+wrench→CoP/world
+     moment blocked); the non-propagation rule protects raw measured data; the schema
+     tables annotate `com_velocity`, `com_acceleration`, `left/right_foot_velocity`,
+     `zmp_position` as `derived_pending_validation`, and `cop_position` as Option-B blocked;
+  2. **R11-B — provenance completeness binding:** § 3.10 is declared the single source of
+     truth for collector provenance completeness; the collector must emit every field and
+     checklists/smoke validation must equal it; machine-readable enforcement in
+     `tools/stage1_contract_check.py` (Tests A–D in `tools/test_stage1_r11.py`).
+  `composition_status` remains `UNVERIFIED` and the wrench frame/reference remains
+  undetermined — this revision makes those facts machine-actionable, it does not resolve
+  them. **REV1.4 is pending final independent audit acceptance; no acquisition
+  authorization is claimed.**
 
 **This document authorizes preparation and collector implementation (Levels 1–2, § 0.0) only.
 Bulk acquisition of the 96 episodes (Level 3) is NOT authorized by this document alone — it

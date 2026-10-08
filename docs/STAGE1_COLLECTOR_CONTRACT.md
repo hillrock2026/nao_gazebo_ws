@@ -3,8 +3,8 @@
 | 项 | 值 |
 |---|---|
 | Document | STAGE1_COLLECTOR_CONTRACT |
-| Status | **Level 1 preparation artifact — collector implementation contract, evidence-pinned（v1.2，随 REV1.3 升版）** |
-| Governing RFC | [STAGE1_DYNAMICS_DATASET_RFC.md](file:///home/liu/workspace/Nao_Program/nao_gazebo_ws/docs/STAGE1_DYNAMICS_DATASET_RFC.md)（**REV1.3-MINIMAL-HARDENING，ACQUISITION-CONTRACT-READY，pending final independent audit**；App. B V-1/V-2 probe 判据） |
+| Status | **Level 1 preparation artifact — collector implementation contract, evidence-pinned（v1.3，随 REV1.4/R11 升版）** |
+| Governing RFC | [STAGE1_DYNAMICS_DATASET_RFC.md](file:///home/liu/workspace/Nao_Program/nao_gazebo_ws/docs/STAGE1_DYNAMICS_DATASET_RFC.md)（**REV1.4-HARDENING，ACQUISITION-CONTRACT-READY，pending final independent audit acceptance**；App. B V-1/V-2 probe 判据） |
 | Evidence base | REV1.3 证据（probe run 8，walk + FROZEN_GAIT 环境，in-gait 窗口）：[V1_report_REV13.json](file:///home/liu/workspace/Nao_Program/nao_gazebo_ws/dataset/stage1/probe/V1_report_REV13.json)、[V2_report_REV13.json](file:///home/liu/workspace/Nao_Program/nao_gazebo_ws/dataset/stage1/probe/V2_report_REV13.json)，schema `stage1-probe/1.3`，**V-1 与 V-2 双 PASS**；REV1.2 历史（run 6）：`V1/V2_report_REV12.json`（schema 1.2）；REV1.1 历史（run 3）：`V1/V2_report.json`（schema 1.1） |
 | Authorization | Level 2（collector implementation）合同依据。**Level 3（bulk acquisition）未授权**：probe 双 PASS 仅为判据证据，Level 3 仍需 RFC REV1.3 final independent audit 接受 + 报告 pinning + remote publication（owner 动作，见 §12） |
 
@@ -187,6 +187,42 @@ q_world = q_model ⊗ q_rel          # Hamilton 积；四元数分量序 [x, y, 
 
 行走窗口内 `standing_geometry` 机械伪影：base z 0.186（带内）、l_ankle 0.0（带内）、r_ankle 1.0（超带——右足处于摆动相抬起）。该 criterion 终态本就因 (a) 帧语义 contradicted；此注记仅说明 (e) 项数值在行走环境下不适用，常量不改（RFC criterion 措辞含 "fixed standing geometry"，fail-closed 保留判定）。
 
+### 4.7 [RULE] pending-validation 传播（REV1.4/R11-A）
+
+**依赖规则（binding，与 RFC §3.0 R11-A 逐字一致）：** 任何 derived field，其计算**直接或间接**依赖于 validation status 为 `UNVERIFIED`（composition）或 pending/blocked（wrench frame/reference）的输入，**必须**标记 `derived_pending_validation`（或按 §3.6.4/§3.7 保持 `null`+blocked），**禁止**表示为已验证的 ordinary derived data。pending 状态沿依赖链传播，仅当根输入状态改变时解除（未来独立 world-pose reference / V-1 公共坐标系+矩心 determination）。
+
+**Null-vs-Pending 实现选择（与当前 schema 一致，R11-A codified）：**
+
+- **Option A（取值保留）**：composition 依赖字段——`left/right_foot_pose`、`left/right_foot_velocity`、`com_position`、`com_velocity`、`com_acceleration`、`zmp_position`——数值照常计算落盘，字段标 `derived_pending_validation`
+- **Option B（取值 null + blocked）**：wrench frame/reference 依赖字段——`left/right_contact_force`、`left/right_contact_moment`、`cop_position`——`null` 直至 V-1 determination（§3.6.4）
+
+**传播链（collector 必须按此落盘状态）：**
+
+```
+raw model pose + raw relative link pose
+        ↓  (composition, status = UNVERIFIED)
+left/right_foot_pose        derived_pending_validation
+        ↓
+left/right_foot_velocity    derived_pending_validation
+
+raw model/link poses
+        ↓  (composition, status = UNVERIFIED)
+com_position                derived_pending_validation
+        ↓
+com_velocity                derived_pending_validation
+        ↓
+com_acceleration            derived_pending_validation
+zmp_position                derived_pending_validation   (CoM chain)
+
+pose + wrench
+        ↓  (wrench frame/reference = UNKNOWN)
+cop_position / world-frame moment   null + blocked (Option B)
+```
+
+**非传播规则：** raw measured data（raw `Pose_V` 条目、model pose、raw `Contacts`、joint states、IMU、command）**不因** composition 未验证而失效——照常 verbatim 存储为 `measured`。禁止的只是：把依赖未验证 composition（或未知 wrench 解释）的 derived quantity 当成 validated quantity。
+
+**[RULE] 机器可执行 enforcement：** collector schema manifest 与 smoke validation 必须通过 `tools/stage1_contract_check.py` 检查（字段→状态映射、传播规则、raw 不受影响）；collector 自行重算 `T_world_link = T_world_model × T_model_link` 只验证**实现一致性**，**不得**据此把 `composition_status` 从 `UNVERIFIED` 升级为 `VALIDATED`（物理正确性未被证明）。
+
 ---
 
 ## 5. Timestamp 与关联合同
@@ -250,16 +286,36 @@ flight 检测、1.0 N 阈值等 REV1.0 条款在两态合同下**只能**作用�
 
 ---
 
-## 8. Provenance 与完整性（绑定，RFC §3.10 / §4.3）
+## 8. Provenance 与完整性（绑定，R11-B：RFC §3.10 为唯一 source of truth）
 
-**[RULE]** 每 episode 记录：
+**[RULE] Source of truth（REV1.4/R11-B）：** [RFC §3.10](file:///home/liu/workspace/Nao_Program/nao_gazebo_ws/docs/STAGE1_DYNAMICS_DATASET_RFC.md) 的 mandatory provenance 表是 collector provenance 完整性的**唯一权威定义**。**collector MUST 发射 §3.10 的每一个 field**；本节 checklist 与 §10 smoke validation 均**derived from / must equal** RFC §3.10——任何"简化版 provenance list"（RFC says A+B+C+D…、collector 只实现 A+B+C）都是 contract drift，判定为验证失败。机器可执行 enforcement：`tools/stage1_contract_check.py` 的 `MANDATORY_PROVENANCE_FIELDS`（该 list 通过**解析 RFC §3.10 表**绑定，见 R11 report / Test C/D）。
 
-- `git_commit`（含冻结工件 hash 锚）
-- `config_hash`：collector 配置 + **对齐常数**（contact 0.05 s / pose 0.02 s 窗口、composition 公式标识）——**与 CoP 公式解耦**（RFC P0-R5 / C4）
-- probe 证据 pin：V1/V2 报告文件路径 + 内容 hash（RFC App. B pinning 条款：Level 3 授权要求两份报告 **committed**）
-- 环境：ROS_DISTRO、gz 版本、RMW、ROS_DOMAIN_ID、GZ_PARTITION、实测 RTF 区间
-- 数据完整性：输出文件 hash（BF-3 模式，写后校验）
-- `sim_time_sec` 帧时钟 + `acquisition_wallclock_utc`（P0-R2 两处改名落地）
+**[RULE] RFC §3.10 完整 checklist（derived，必须与 §3.10 相等；以 RFC 为准）：**
+
+| # | Field | 约束 |
+|---|---|---|
+| 1 | `theta` | 完整参数 dict（冻结 θ list 条目 verbatim） |
+| 2 | `theta_id` | per-θ id |
+| 3 | `theta_hash` | per-θ canonical JSON hash（Stage 0 method） |
+| 4 | `theta_list_hash` | `844646f5…`（每 episode 前 fail-closed 复验） |
+| 5 | `git_commit` | 采集时 collector HEAD（含冻结工件 hash 锚） |
+| 6 | `config_hash` | collector 配置 + 对齐常数（contact 0.05 s / pose 0.02 s、composition 公式标识）——**与 CoP 公式解耦**（RFC P0-R5/C4） |
+| 7 | `cop_derivation_hash` | `null` 直至 first derivation 前固定（允许 null；field 必须存在） |
+| 8 | `gazebo_seed` | 该 (θ, seed) 的 seed（继承 Stage 0 run_config） |
+| 9 | `robot_model_version` | `nao_simple.sdf` sha256 `44ed8285…` |
+| 10 | `world_model_version` | `nao_world.sdf` sha256 `383341d1…` |
+| 11 | `gz_sim_version` | `8.15.0`（记录，不 pin） |
+| 12 | `stage1_rfc_hash` | 采集时 RFC revision 的 sha256 |
+| 13 | `acquisition_wallclock_utc` | wall-clock UTC（与 `sim_time_sec` 时域分离） |
+| 14 | `ring` | sampling ring label（§4） |
+| 15 | `frame_count` | episode 帧数 |
+| 16 | `t_start` | episode 起点 sim time |
+| 17 | `t_end` | episode 终点 sim time |
+| 18 | `episode_integrity_hash` | episode canonical sample file 的 sha256（**hash scope 与算法维持 RFC 原定义，R11 不改**） |
+
+**[RULE] 实施附加项（非 RFC §3.10 替代、不与之冲突）：** probe 证据 pin（V1/V2 报告路径 + 内容 hash，RFC App. B pinning 条款：Level 3 要求两份报告 committed）；环境记录（ROS_DISTRO、gz 版本、RMW、ROS_DOMAIN_ID、GZ_PARTITION、实测 RTF 区间）；输出文件 hash 校验（BF-3 模式，写后校验）。
+
+**[RULE] 完整性（§11 原则，R11 不重设计）：** `episode_integrity_hash` 的 hash scope/算法按 RFC §3.10 原定义执行（sha256 over episode canonical sample file）；R11 只要求 provenance 字段全量存在并通过 smoke 检查，**不改变** hash 定义。
 
 ---
 
@@ -271,17 +327,20 @@ flight 检测、1.0 N 阈值等 REV1.0 条款在两态合同下**只能**作用�
 
 ---
 
-## 10. Collector smoke validation（实现验收检查，绑定）
+## 10. Collector smoke validation（实现验收检查，绑定；R11 升级）
 
 collector 实现完成后、任何 pilot episode 前必须通过（GPT-5.6 minimum gate set 第 3 条）：
 
 1. **无损往返**：序列化的 raw Contacts/JointWrench 反序列化后与订阅回调内存中的消息逐字段一致（含 header、world、force_offset、双侧 wrench）
 2. **stamp 保真**：落盘 stamp 与源 stamp 精确相等（对照 probe 实测 bridge 保真率 1.0 的基线）
-3. **三态行为**：构造沉默窗口（无 contact 消息）→ 落盘必须为 `UNKNOWN_NO_MESSAGE`，不得出现 `valid=true` 零 wrench
-4. **合成验证**：落盘世界位姿与同消息 composition 计算值偏差 ≤ 1e-6 m；link 原始值（parent-relative）独立列存
+3. **两态行为（REV1.3/R7）**：构造沉默窗口（无 contact 消息）→ 落盘必须为 `UNKNOWN_NO_MESSAGE`，不得出现 `valid=true` 零 wrench、不得伪造 flight/no-contact 标签
+4. **合成实现一致性**：落盘世界位姿与同消息 composition 计算值偏差 ≤ 1e-6 m；link 原始值（parent-relative）独立列存。**R11-A 限定：此项只验证实现一致性，不得据此把 `composition_status` 从 `UNVERIFIED` 升级**
 5. **命名匹配**：关联过滤对 verbatim pair（§3.4）命中 fraction = 1.0
-6. **provenance 完整**：§8 字段全量存在 + 输出 hash 校验通过
+6. **provenance 完整（R11-B 升级）**：**RFC §3.10 的每一个 mandatory field** 逐项存在并通过 `tools/stage1_contract_check.py` 的 provenance check（缺失任一 field → FAIL）+ 输出 hash 校验通过——不再以 §8 的简化摘录为准
 7. **逐帧 flag**：pose 窗口 miss flag 与 contact `UNKNOWN_NO_MESSAGE` flag 按帧落盘
+8. **pending-validation 传播（R11-A）**：schema manifest 与样本帧通过 `tools/stage1_contract_check.py` 的 propagation check——依赖 `composition_status = UNVERIFIED` 的每个 derived field（`left/right_foot_pose/velocity`、`com_position/velocity/acceleration`、`zmp_position`）必须标 `derived_pending_validation`（不得为 plain `derived` 或 validated）；wrench 依赖字段（`left/right_contact_force/moment`、`cop_position`）必须 `null`+blocked；raw measured 字段不受影响照常存储
+
+对应最小测试：`tools/test_stage1_r11.py`（Test A pending 传播、Test B raw 不受影响、Test C 缺失 provenance → FAIL、Test D 完整 provenance → PASS）。
 
 ---
 
@@ -328,3 +387,4 @@ collector 实现完成后、任何 pilot episode 前必须通过（GPT-5.6 minim
 | 1.0 | Level 1 preparation artifact，基于 probe run 3（schema `stage1-probe/1.1`）实测证据签发。随 RFC 修订（§11）升版 |
 | 1.1 | REV1.2 升版：Governing RFC → REV1.2-CORRECTED（pending re-audit）；证据基新增 run 6 REV12 报告（`stage1-probe/1.2`）与 run 4 end-hold 归档；R1 语义命名（`UNKNOWN_NO_MESSAGE`）与 R3（timestamp 判据）、R4（frame semantics 入合同）落合同；R5 措辞更正（composition = identity-link 一致性检查，非端到端验证，需 non-identity-link 验证）；§6.1 声明 native gz raw capture 强制且 RFC source path 一致；§11 标注各修订项 REV1.2 状态；§12 终态换为 run 6 REV12 判定 |
 | 1.2 | REV1.3 升版：Governing RFC → REV1.3-MINIMAL-HARDENING（ACQUISITION-CONTRACT-READY，pending final independent audit）；证据基新增 run 8 REV13 报告（`stage1-probe/1.3`，**V-1/V-2 双 PASS，PROBE_EXIT=0**）与 run 7 discovery-skew 归档；R6 事件语义 cadence、R7 两态 validity（§3.1/3.2/7，原 [BLOCKED] 解除）、R8 composition_evidence 显式 `composition_status = UNVERIFIED`（foot/CoM = `derived_pending_validation`，§4.3）、R10 association-compatibility 措辞 + common-window 裁剪（§3.7/5.3）落合同；§11 修订项 REV1.3 状态；§12 终态换为 run 8 REV13 判定 |
+| 1.3 | REV1.4/R11 升版（GPT-5.6 audit of REV1.3，Decision B 的两个 blocker）：Governing RFC → REV1.4-HARDENING；**R11-A** pending-validation 传播规则 + null-vs-pending 实现选择 + 传播链 + 非传播规则（§4.7，机器可执行 via `tools/stage1_contract_check.py`）；**R11-B** RFC §3.10 为 provenance 唯一 source of truth，§8 重写为完整 18-field checklist（derived/must-equal），§10-6 升级为逐 field 检查 + §10-8 新增传播检查（Tests A–D：`tools/test_stage1_r11.py`）。无新 V-gate、无字段增删、R6–R10 不重开 |
