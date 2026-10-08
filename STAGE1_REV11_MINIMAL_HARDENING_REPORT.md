@@ -122,7 +122,7 @@ Also run: `python3 tools/stage1_contract_check.py --check-rfc-binding` → `ok: 
 
 ## 9. Git state
 
-- HEAD commit: `git log -1 --format=%H` at the time of this report — the R11 hardening commit (created immediately after this file; see the session log). Not pushed; remote publication is an owner/process action.
+- HEAD commit: `54e07da4d271f8e714745f78c5f849381ddee50c` ("stage1: apply R11 minimal hardening (REV1.4) for pending validation and provenance"; this § 9 hash reference was finalized in the immediately following report-finalization commit). Not pushed; remote publication is an owner/process action.
 - Working tree after the commit: clean except the pre-existing untracked `docs/task4_phase4b_evidence/` (out of Stage 1 scope, untouched).
 - Changed files (this task): `docs/STAGE1_DYNAMICS_DATASET_RFC.md`, `docs/STAGE1_COLLECTOR_CONTRACT.md`, `tools/stage1_contract_check.py` (new), `tools/test_stage1_r11.py` (new), `STAGE1_REV11_MINIMAL_HARDENING_REPORT.md` (new).
 - Artifact SHA-256 (at commit time; this report's own hash is not self-embeddable):
