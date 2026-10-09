@@ -1,0 +1,282 @@
+{
+  "evidence": "Stage 1 native collector REAL GAZEBO smoke (runtime-arg launch, headless)",
+  "date_utc": "2026-10-09T04:53:35.448756+00:00",
+  "episode_dir": "dataset/stage1/episodes/stage1_smoke0",
+  "launch": "see report \u00a712; gui:=false, ROS_DOMAIN_ID=98, GZ_PARTITION=stage1collector3, PATH sanitized (anaconda/condabin removed)",
+  "collect_command": "/usr/bin/python3 tools/stage1_native_collector.py collect --episode-id stage1_smoke0 --out-root dataset/stage1/episodes/stage1_smoke0 --duration 12 --warmup-sec 30 --theta <anchor theta.json> --seed 0 --ring ring0 --domain-id 98 --gz-partition stage1collector3",
+  "collect_exit_code": 0,
+  "verify_command": "/usr/bin/python3 tools/stage1_native_collector.py verify --episode-dir dataset/stage1/episodes/stage1_smoke0",
+  "verify_exit_code": 0,
+  "checker_exit_code": 0,
+  "checker_ok": true,
+  "status": "complete_validated",
+  "message_counts": {
+    "contacts_left": {
+      "transport": "gz",
+      "topic": "/nao/left_foot_contact_raw",
+      "subscribe_ok": true,
+      "n_messages": 910,
+      "empty_after_warmup": false
+    },
+    "contacts_right": {
+      "transport": "gz",
+      "topic": "/nao/right_foot_contact_raw",
+      "subscribe_ok": true,
+      "n_messages": 959,
+      "empty_after_warmup": false
+    },
+    "pose_info": {
+      "transport": "gz",
+      "topic": "/world/nao_world/pose/info",
+      "subscribe_ok": true,
+      "n_messages": 791,
+      "empty_after_warmup": false
+    },
+    "joint_states": {
+      "transport": "ros",
+      "topic": "/joint_states",
+      "subscribe_ok": true,
+      "n_messages": 1233,
+      "empty_after_warmup": false
+    },
+    "joint_command": {
+      "transport": "ros",
+      "topic": "/joint_command",
+      "subscribe_ok": true,
+      "n_messages": 1204,
+      "empty_after_warmup": false
+    },
+    "body_pose": {
+      "transport": "ros",
+      "topic": "/body_pose",
+      "subscribe_ok": true,
+      "n_messages": 727,
+      "empty_after_warmup": false
+    },
+    "imu": {
+      "transport": "ros",
+      "topic": "/imu/data",
+      "subscribe_ok": true,
+      "n_messages": 1204,
+      "empty_after_warmup": false
+    },
+    "left_contact_bool": {
+      "transport": "ros",
+      "topic": "/left_foot/contact",
+      "subscribe_ok": true,
+      "n_messages": 1150,
+      "empty_after_warmup": false
+    },
+    "right_contact_bool": {
+      "transport": "ros",
+      "topic": "/right_foot/contact",
+      "subscribe_ok": true,
+      "n_messages": 1150,
+      "empty_after_warmup": false
+    }
+  },
+  "raw_record_counts": {
+    "contacts_left": 910,
+    "contacts_right": 959,
+    "pose_info": 791,
+    "joint_command": 1204,
+    "joint_states": 1233,
+    "body_pose": 727
+  },
+  "frame_count": 1233,
+  "t_start": 7.072,
+  "t_end": 19.392,
+  "episode_integrity_hash": "7117a49b0b0de8d340699029cf29bac29daaed3797b8d46d888923ceb6e5f26a",
+  "provenance": {
+    "theta": {
+      "actuator_hold_on_start": true,
+      "actuator_max_velocity": 4.0,
+      "actuator_p_gain": 15.0,
+      "arm_neutral_pitch_rad": 1.5,
+      "arm_neutral_roll_rad": 0.0,
+      "arm_phase_offset_rad": 0.0,
+      "arm_swing_rad": 0.12,
+      "arm_swing_sign": 1,
+      "command_rate_hz": 100.0,
+      "double_support_ratio": 0.3,
+      "duration_sec": 16.0,
+      "elbow_bend_rad": 0.3,
+      "foot_pitch_swing_rad": 0.1,
+      "gait_blend_sec": 1.5,
+      "gait_method": "walk",
+      "gait_phase_mode": "legacy",
+      "hold_final_sec": 1.0,
+      "leg_extension_m": 0.24401,
+      "stand_sec": 24.0,
+      "start_delay_sec": 0.5,
+      "step_frequency_hz": 0.8,
+      "step_length_m": 0.02,
+      "stop_ramp_sec": 1.5,
+      "sway_amplitude_rad": 0.06,
+      "sway_sign": -1,
+      "swing_height_m": 0.008,
+      "walking_direction": "forward"
+    },
+    "theta_id": "stage1_smoke0",
+    "theta_hash": "28e795b29921a9061c910b53aaccddbf88ecd5f300ad24ea93079cb5c4e94998",
+    "theta_list_hash": "844646f55076f67647c9159a6c1f53018af89276154ff3a4ad3bdce28df95dbf",
+    "git_commit": "bcbdcdcda13fbb42f08da051c37380d515fa7bd6",
+    "config_hash": "272a39896ff725a887696b53c852be44788a963a99ab9070e5e03e1b9caf8057",
+    "cop_derivation_hash": null,
+    "gazebo_seed": 0,
+    "robot_model_version": "44ed828509db9e869bfa701b491233862dcd1448183bb2ec0a1c3b497aa46400",
+    "world_model_version": "383341d11d831d0376cae074b1205e5ad7784841a6670bcf0db33813065709cc",
+    "gz_sim_version": "Gazebo Sim, version 8.15.0",
+    "stage1_rfc_hash": "f8662d1673f1a30e9cfb2d8156214d7124eb45c08301087d85c4fae1ca894efe",
+    "acquisition_wallclock_utc": "2026-10-09T04:53:35.448756+00:00",
+    "ring": "ring0",
+    "frame_count": 1233,
+    "t_start": 7.072,
+    "t_end": 19.392,
+    "episode_integrity_hash": "7117a49b0b0de8d340699029cf29bac29daaed3797b8d46d888923ceb6e5f26a"
+  },
+  "sdf_sha256": "44ed828509db9e869bfa701b491233862dcd1448183bb2ec0a1c3b497aa46400",
+  "artifact_sha256": {
+    "raw_records.json": "4fb294fe02a1fefe369e3278079749e2d2b0c701e0b6fdedb91fa6face233bc1",
+    "frames.json": "744f6eff411344d94bc439e562e32fb3a5897a03e65f70dd2e453d166612ff6f",
+    "frames.jsonl": "7117a49b0b0de8d340699029cf29bac29daaed3797b8d46d888923ceb6e5f26a",
+    "status_manifest.json": "cbda74db68c7a816d8fa0ebcd17cd21369708990bacbf00b501829882e49eab7",
+    "episode_provenance.json": "9aef80bdd8d5aae475aba7fb2be388adcff67aff5e5bb5691ca3fa05c9a2961b",
+    "smoke_report.json": "b4758b435c69f7c431cb79d06a33bafb454271cda692c35c1f42759ed0cd8787"
+  },
+  "artifact_bytes": {
+    "raw_records.json": 20104796,
+    "frames.json": 6633574,
+    "frames.jsonl": 5038726
+  },
+  "sample_native_contact_left": {
+    "stamp_s": 6.651,
+    "n_contacts": 1,
+    "collision1": "nao::l_ankle::l_ankle_collision",
+    "collision2": "ground_plane::link::collision",
+    "collision1_id": 38,
+    "world": {
+      "id": 0,
+      "name": "",
+      "type": "0"
+    },
+    "position": [
+      [
+        0.13625192316709164,
+        0.09985745162541544,
+        -3.962072014473961e-06
+      ]
+    ],
+    "normal": [
+      [
+        0.0,
+        0.0,
+        1.0
+      ]
+    ],
+    "depth": [
+      3.962072014473961e-06
+    ],
+    "wrench_count": 1,
+    "wrench0": {
+      "body_1_name": "",
+      "body_1_id": 0,
+      "body_2_name": "",
+      "body_2_id": 0,
+      "body_1_wrench": {
+        "force": [
+          -31.14241985028693,
+          -31.142419850286924,
+          48.62417748144526
+        ],
+        "torque": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "force_offset": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "body_2_wrench": {
+        "force": [
+          31.14241985028693,
+          31.142419850286924,
+          -48.62417748144526
+        ],
+        "torque": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "force_offset": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    }
+  },
+  "sample_frame0": {
+    "frame_id": 0,
+    "sim_time_sec": 7.072,
+    "pose_source_stamp": 7.061,
+    "left_foot_pose": {
+      "position": [
+        0.04371859785479903,
+        0.04902659032268267,
+        0.04785353007034726
+      ],
+      "orientation": [
+        -0.0006366164604855064,
+        0.001323592208003969,
+        0.05669082561010666,
+        0.9983907016367859
+      ]
+    },
+    "right_foot_pose": {
+      "position": [
+        0.039951521090039126,
+        -0.05173693324252389,
+        0.04762577418645253
+      ],
+      "orientation": [
+        0.00019931786570744655,
+        -1.7981619434453884e-05,
+        0.05664501676097402,
+        0.9983943619758671
+      ]
+    },
+    "com_position": [
+      0.04718336141856849,
+      -0.005032874389712292,
+      0.27605624316681937
+    ],
+    "com_velocity": [
+      0.011620844551183783,
+      0.07264040185668327,
+      -0.001222491190933121
+    ],
+    "com_acceleration": [
+      -0.5810422275592015,
+      -3.632020092834241,
+      0.061124559546657346
+    ],
+    "zmp_position": [
+      0.06353405810167484,
+      0.09717322366678342
+    ],
+    "left_contact_force": null,
+    "cop_position": null,
+    "left_contact_wrench_state": "UNKNOWN_NO_MESSAGE",
+    "gait_phase": null,
+    "desired_velocity": [
+      0.016,
+      0.0
+    ]
+  },
+  "smoke_failed_checks": [],
+  "note": "Full episode artifacts (~27 MB) are kept on disk, NOT committed; this file is the compact pinned evidence."
+}
