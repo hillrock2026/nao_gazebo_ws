@@ -566,16 +566,19 @@ class TestR14NormativeBinding(unittest.TestCase):
         rep = c.check_frame_emission(frame)
         self.assertFalse(rep['ok'])
         # with a MUTATED schema (com_position length 4), the same [3]
-        # value fails — proving the shape comes from the schema
-        with tempfile.TemporaryDirectory() as tmp:
-            p = os.path.join(tmp, 'rfc.md')
-            write_text(p, mutate_schema_com_position_len(c.RFC_PATH, 4))
-            schema, errs = c.load_normative_schema(p)
-            self.assertFalse(errs)
-            frame = literal_frame()
-            rep = c.check_frame_emission(frame, schema=schema)
-            self.assertFalse(rep['ok'])
-            self.assertTrue(any('com_position' in e for e in rep['errors']))
+        # value fails — proving the shape comes from the schema object.
+        # R15-A: a mutated DOCUMENT can no longer be loaded (integrity
+        # pin), so the mutation is applied to an in-memory copy of the
+        # authorized schema; the schema-driven evidence is unchanged.
+        schema, _ = c.load_normative_schema(c.RFC_PATH)
+        schema = copy.deepcopy(schema)
+        for f in schema['frame_fields']['option_a']['fields']:
+            if f['name'] == 'com_position':
+                f['length'] = 4
+        frame = literal_frame()
+        rep = c.check_frame_emission(frame, schema=schema)
+        self.assertFalse(rep['ok'])
+        self.assertTrue(any('com_position' in e for e in rep['errors']))
 
     def test_prose_semantics_never_parsed(self):
         # B2: "non-null" prose must not affect the machine semantics —
@@ -594,13 +597,19 @@ class TestR14NormativeBinding(unittest.TestCase):
             self.assertTrue(spec['nullable'])  # prose change ignored
 
     def test_m6_world_required_enforced_by_mutated_schema(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            p = os.path.join(tmp, 'rfc.md')
-            write_text(p, mutate_schema_world_required(c.RFC_PATH))
-            schema, _ = c.load_normative_schema(p)
-            rep = c.check_raw_storage(literal_raw(), schema=schema)
-            self.assertFalse(rep['ok'])
-            self.assertTrue(any('world' in e for e in rep['errors']))
+        # R15-A: a mutated DOCUMENT can no longer be loaded (integrity
+        # pin), so the world-required mutation is applied to an in-memory
+        # copy of the authorized schema; the schema-driven requiredness
+        # evidence is unchanged (raw structure requiredness comes from the
+        # schema, not checker hardcoding).
+        schema, _ = c.load_normative_schema(c.RFC_PATH)
+        schema = copy.deepcopy(schema)
+        schema['raw_structures']['contacts']['contact_required_keys'] = list(
+            schema['raw_structures']['contacts']['contact_required_keys']) \
+            + ['world']
+        rep = c.check_raw_storage(literal_raw(), schema=schema)
+        self.assertFalse(rep['ok'])
+        self.assertTrue(any('world' in e for e in rep['errors']))
 
 
 # ---------------------------------------------------------------------------

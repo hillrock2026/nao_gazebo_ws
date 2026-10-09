@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Stage 1 fail-closed contract enforcement checker (R11-R14, REV1.5).
+"""Stage 1 fail-closed contract enforcement checker (R11-R15, REV1.5).
 
 Read-only contract instrumentation (Level 1/2 tooling): publishes nothing,
 subscribes to nothing, launches nothing, modifies no frozen component. It
@@ -32,6 +32,29 @@ R14 closures (audit B1-B4):
      empty episode (frame_count=0, frames=[]) is valid; frame_count
      stays int_nonneg, never forced > 0.
 
+R15 closures (audit B5-B6):
+  B5 (R15-A integrity pin): the authorized schema is pinned by version
+     AND by the SHA-256 of the normative block's exact fenced byte span.
+     BOTH the RFC Appendix D block and the Contract § 8.4 block must
+     match the pin — so a SYNCHRONIZED unauthorized change to both
+     documents fails even though the two copies still agree. Unknown
+     schema versions are rejected, never auto-accepted. Changing the
+     schema is a governed version upgrade: update the block in both
+     documents, bump schema_version, recompute the pin, and update
+     _AUTHORIZED_SCHEMA_* here plus the tests.
+  B6 (R15-B uniqueness + strict JSON): exactly ONE normative ```json
+     fenced block per document (a duplicate, a missing block, or
+     malformed/duplicated fence markers fail — never a silent first/last
+     match), and the block is parsed STRICTLY: duplicate JSON object
+     keys at ANY depth and non-standard constants (NaN/Infinity) are
+     rejections, not last-wins ambiguity. Artifacts load under the same
+     strict rules.
+  B5 (R15-C runtime invariant): frame_count == len(frames) is enforced
+     UNCONDITIONALLY by check_frame_artifact — a checker runtime
+     invariant, not a check conditional on the schema-declared rule
+     (the authorized schema must still declare it; see
+     _validate_schema_shape).
+
 CLI modes (R13 § 19 / R14):
   --smoke  THE artifact enforcement entry point (actual RFC + actual
            Collector Contract + actual artifacts -> single fail-closed
@@ -45,6 +68,7 @@ Exit codes: 0 = PASS; 1 = FAIL; 2 = CLI usage error (argparse).
 """
 
 import argparse
+import hashlib
 import json
 import math
 import os
@@ -62,23 +86,151 @@ _SCHEMA_VERSION_PREFIX = 'stage1-normative'
 
 
 # ---------------------------------------------------------------------------
-# R14: normative schema loading (the checker's ONLY schema source)
+# R14/R15: normative schema loading (the checker's ONLY schema source)
 # ---------------------------------------------------------------------------
 
-def _find_normative_block(text):
-    """Return (schema_dict, None) or (None, error) for the fenced ```json
-    block carrying the stage1-normative schema_version."""
-    for m in re.finditer(r'```json\n(.*?)```', text, re.DOTALL):
-        try:
-            obj = json.loads(m.group(1))
-        except Exception:
+# R15-A: the authorized normative schema. The pin is the SHA-256 of the
+# normative block's exact fenced byte span (the lines strictly between
+# the opening ```json fence line and the closing ``` fence line, read
+# with universal-newline normalization and joined with '\n'). It covers
+# the schema authorized at RFC REV1.5 (Appendix D) / Collector Contract
+# v1.6 (§ 8.4) — both documents embed the byte-identical block.
+# A schema change is a GOVERNED version upgrade, never auto-accepted:
+# update the block in BOTH documents byte-identically, bump
+# schema_version, recompute this SHA-256, and update these constants and
+# the test expectations in the same review. Unknown versions or pin
+# mismatches fail closed (R15-A/B5), even when the two copies agree.
+_AUTHORIZED_SCHEMA_VERSION = 'stage1-normative-schema/1.0'
+_AUTHORIZED_SCHEMA_SHA256 = (
+    'eb620b233b3a4499cceaf23a1c1054a7c2693415e018874501b773d713b25241')
+
+
+class _AmbiguousJsonError(ValueError):
+    """Duplicate object key or non-standard constant in JSON text."""
+
+
+def _reject_duplicate_keys(pairs):
+    obj = {}
+    for key, value in pairs:
+        if key in obj:
+            raise _AmbiguousJsonError(
+                'duplicate JSON object key %r — last-wins (or first-wins) '
+                'resolution is not an acceptable norm (R15-B)' % key)
+        obj[key] = value
+    return obj
+
+
+def _reject_nonstandard_constant(name):
+    raise _AmbiguousJsonError(
+        'non-standard JSON constant %r (NaN/Infinity are not JSON, '
+        'R15-B)' % name)
+
+
+def _strict_json_loads(text):
+    """Strict JSON (R15-B): duplicate object keys at ANY nesting depth and
+    non-standard constants (NaN/Infinity/-Infinity) are parse failures
+    instead of silently resolved values."""
+    return json.loads(text, object_pairs_hook=_reject_duplicate_keys,
+                      parse_constant=_reject_nonstandard_constant)
+
+
+def _scan_fenced_regions(text):
+    """CommonMark-style ```-fence pairing, line-based and deterministic.
+
+    A fence line is a line whose stripped form starts with '```'. While a
+    fence is open, only a BARE '```' line (no info string) closes it; a
+    fence line carrying an info string (e.g. '```json') is CONTENT and
+    cannot close. Returns (regions, errors); regions =
+    [(info, content, open_line, close_line)] where content is the exact
+    newline-normalized byte span between the two fence lines. A fence
+    left open at EOF is a structural error (missing end marker,
+    R15-B) — it is never silently ignored."""
+    lines = text.split('\n')
+    regions = []
+    errors = []
+    in_fence = False
+    info = None
+    content_start = None
+    for index, raw in enumerate(lines):
+        stripped = raw.strip()
+        if not stripped.startswith('```'):
             continue
-        if isinstance(obj, dict) \
-                and str(obj.get('schema_version', '')).startswith(
-                    _SCHEMA_VERSION_PREFIX):
-            return obj, None
-    return None, ('normative schema block (%s…) not found or unparseable'
-                  % _SCHEMA_VERSION_PREFIX)
+        if in_fence:
+            if stripped == '```':
+                regions.append((info, '\n'.join(lines[content_start:index]),
+                                content_start + 1, index + 1))
+                in_fence = False
+                info = None
+            # a fence line with an info string inside an open fence is
+            # content — it cannot close (duplicate opening marker case)
+        else:
+            in_fence = True
+            info = stripped[3:].strip()
+            content_start = index + 1
+    if in_fence:
+        errors.append('unterminated code fence (missing closing "```") '
+                      'opened at line %d (R15-B: marker integrity)'
+                      % content_start)
+    return regions, errors
+
+
+def _find_normative_block(text):
+    """Locate the UNIQUE normative schema block (R15-B: exactly one).
+
+    Normative-relevant region = a fenced ```json region whose content
+    text carries the stage1-normative version prefix. Ordinary example
+    JSON blocks never carry the prefix and are never mistaken for the
+    schema; a prefix found inside a non-json fence is a marker-order /
+    fence-type error. Exactly one normative region must exist — a
+    duplicate is a hard failure, never a silent first/last-match pick.
+    The block text is STRICT-parsed: duplicate keys and non-standard
+    constants are rejections (R15-B), and it must be a JSON object
+    declaring a stage1-normative schema_version.
+
+    Returns (schema, block_text, None) or (None, None, error)."""
+    regions, fence_errors = _scan_fenced_regions(text)
+    problems = list(fence_errors)
+    candidates = []
+    for info, content, open_line, close_line in regions:
+        if _SCHEMA_VERSION_PREFIX not in content:
+            continue
+        if info == 'json':
+            candidates.append(content)
+        else:
+            problems.append(
+                'normative version prefix found inside a %s-fenced region '
+                '(lines %d-%d) — the normative block must be a ```json '
+                'fence; marker order or fence-type error (R15-B)'
+                % ('```' + info if info else 'bare', open_line, close_line))
+    if problems:
+        return None, None, '; '.join(problems)
+    if not candidates:
+        return None, None, (
+            'normative schema block (%s…) not found — exactly one fenced '
+            '```json block carrying the version prefix is required '
+            '(R15-B)' % _SCHEMA_VERSION_PREFIX)
+    if len(candidates) > 1:
+        return None, None, (
+            '%d duplicate normative schema blocks found — exactly one is '
+            'allowed; no silent first/last-match selection (R15-B)'
+            % len(candidates))
+    block_text = candidates[0]
+    try:
+        schema = _strict_json_loads(block_text)
+    except _AmbiguousJsonError as exc:
+        return None, None, ('normative schema block is ambiguous JSON: %s '
+                            '(R15-B: duplicate keys / non-standard '
+                            'constants are rejected, not resolved)'
+                            % (exc,))
+    except ValueError as exc:
+        return None, None, ('normative schema block is not parseable '
+                            'JSON: %s' % (exc,))
+    if not isinstance(schema, dict) \
+            or not str(schema.get('schema_version', '')).startswith(
+                _SCHEMA_VERSION_PREFIX):
+        return None, None, ('normative block does not declare a %s… '
+                            'schema_version (R15-B)' % _SCHEMA_VERSION_PREFIX)
+    return schema, block_text, None
 
 
 def _validate_schema_shape(schema):
@@ -114,6 +266,27 @@ def _validate_schema_shape(schema):
         if not isinstance(g, dict) or 'status' not in g \
                 or not isinstance(g.get('fields'), list):
             errors.append('frame_fields.%s malformed' % group)
+            continue
+        gnames = []
+        for spec in g['fields']:
+            if not isinstance(spec, dict) or 'name' not in spec:
+                errors.append('frame_fields.%s: field entry without a '
+                              'name: %r' % (group, spec))
+                continue
+            gnames.append(spec['name'])
+        if len(gnames) != len(set(gnames)):
+            errors.append('frame_fields.%s: duplicate field names '
+                          '(R15-B — a duplicate field spec is ambiguous, '
+                          'not a silently-deduplicated list)' % group)
+    frame_artifact = schema['frame_artifact']
+    if not isinstance(frame_artifact, dict) \
+            or frame_artifact.get('count_must_equal') != 'frame_count':
+        errors.append('frame_artifact.count_must_equal must declare '
+                      '"frame_count" — the checker enforces frame_count == '
+                      'len(frames) as an unconditional runtime invariant '
+                      '(R15-C), and the authorized schema must declare the '
+                      'same rule (consistency of code invariant and '
+                      'pinned declaration)')
     for cat, struct in schema['raw_categories'].items():
         if struct not in schema['raw_structures']:
             errors.append('raw category %r references unknown structure %r'
@@ -122,17 +295,40 @@ def _validate_schema_shape(schema):
 
 
 def load_normative_schema(path):
-    """Load the normative machine-readable schema block from a document.
+    """Load + AUTHORIZE the normative machine-readable schema block from a
+    document (R14 load + R15-A integrity pin).
 
     Returns (schema, errors); schema is None when the block is missing,
-    unparseable, or structurally invalid (fail-closed)."""
+    non-unique, ambiguous/unparseable JSON, structurally invalid, of an
+    unauthorized version, or its fenced byte span does not match the
+    authorized integrity pin (fail-closed — a synchronized RFC+Contract
+    change cannot bypass it, R15-A/B5)."""
     if not path or not os.path.isfile(path):
         return None, ['%s: document not found — fail-closed (R14)' % (path,)]
     with open(path, 'r', encoding='utf-8') as fh:
         text = fh.read()
-    schema, err = _find_normative_block(text)
+    schema, block_text, err = _find_normative_block(text)
     if err is not None:
         return None, ['%s: %s' % (path, err)]
+    errors = []
+    version = schema.get('schema_version')
+    if version != _AUTHORIZED_SCHEMA_VERSION:
+        errors.append(
+            '%s: schema_version %r is not the authorized %r (RFC REV1.5 '
+            'Appendix D / Contract v1.6 § 8.4) — unknown/unauthorized '
+            'schema versions are rejected, never auto-accepted (R15-A '
+            'version policy)' % (path, version, _AUTHORIZED_SCHEMA_VERSION))
+    block_sha = hashlib.sha256(block_text.encode('utf-8')).hexdigest()
+    if block_sha != _AUTHORIZED_SCHEMA_SHA256:
+        errors.append(
+            '%s: normative block integrity pin mismatch — sha256(block '
+            'bytes)=%s != authorized %s. An unauthorized schema change '
+            'fails EVEN when the RFC and Contract copies agree (R15-A, '
+            'audit B5); a schema change is a governed version upgrade '
+            '(bump schema_version, update the pin and tests together)'
+            % (path, block_sha, _AUTHORIZED_SCHEMA_SHA256))
+    if errors:
+        return None, errors
     errors = _validate_schema_shape(schema)
     if errors:
         return None, errors
@@ -1093,8 +1289,11 @@ def check_raw_storage(raw_records, composition_status=None,
 # ---------------------------------------------------------------------------
 
 def load_json_artifact(path, label):
-    """Load a JSON artifact; a missing/unreadable/invalid artifact is a
-    FAILURE (never "nothing to check")."""
+    """Load a JSON artifact STRICTLY (R15-B): duplicate object keys at any
+    nesting depth and non-standard constants (NaN/Infinity) are load
+    failures, so an artifact can never rely on last-wins key resolution
+    to smuggle a second value past a check. A missing/unreadable/invalid
+    artifact is a FAILURE (never "nothing to check")."""
     if not path:
         return None, ['%s: artifact path not provided — fail-closed (R12-A)'
                       % label]
@@ -1103,27 +1302,31 @@ def load_json_artifact(path, label):
                       % (label, path)]
     try:
         with open(path, 'r', encoding='utf-8') as fh:
-            return json.load(fh), []
+            return _strict_json_loads(fh.read()), []
     except Exception as exc:  # noqa: BLE001 — reported, never fatal
-        return None, ['%s: cannot load %r (%s: %s)'
+        return None, ['%s: cannot load %r strictly (%s: %s)'
                       % (label, path, type(exc).__name__, exc)]
 
 
 def check_frame_artifact(frames, provenance, manifest=None, schema=None,
                           composition_status=None,
                           wrench_frame_status=None):
-    """R14/B4: the frame artifact is an ARRAY of frame records. Every
-    record passes the R13-A/R14 emission check, and the provenance
-    `frame_count` must equal the ACTUAL record count (an empty episode
+    """R14/B4 + R15-C: the frame artifact is an ARRAY of frame records.
+    Every record passes the R13-A/R14 emission check, and the provenance
+    `frame_count` must equal the ACTUAL record count as an UNCONDITIONAL
+    RUNTIME INVARIANT of this checker — the check is NOT conditional on
+    any schema-declared rule, so a synchronized RFC+Contract schema
+    mutation cannot remove it (audit B5; R15-C). An empty episode
     `frame_count=0` + `frames=[]` is valid — frame_count is never forced
-    > 0). The count rule is read from the normative block."""
+    > 0; it must MATCH. frame_count must be an int (booleans/floats
+    rejected) and non-negative."""
     schema = _schema_or_default(schema)
     errors = []
     if not isinstance(frames, list):
         return {
             'ok': False,
-            'check': 'R14/B4 frame artifact (array of frames + count '
-                     'consistency)',
+            'check': 'R14/B4 + R15-C frame artifact (array of frames + '
+                     'count consistency)',
             'errors': ['frame artifact must be a JSON ARRAY of frame '
                        'records (R14/B4), got %s'
                        % type(frames).__name__],
@@ -1136,22 +1339,30 @@ def check_frame_artifact(frames, provenance, manifest=None, schema=None,
             wrench_frame_status=wrench_frame_status)
         for err in rep['errors']:
             errors.append('frame[%d]: %s' % (i, err))
-    count_rule = schema.get('frame_artifact', {}).get('count_must_equal')
-    if count_rule == 'frame_count':
-        fc = provenance.get('frame_count') \
-            if isinstance(provenance, dict) else None
-        if not _is_int_not_bool(fc):
-            errors.append('frame_count not available/valid in the '
-                          'provenance artifact for the R14/B4 consistency '
-                          'check (the provenance check reports details)')
-        elif len(frames) != fc:
-            errors.append('frame_count %d != actual frame record count %d '
-                          '(R14/B4 artifact consistency)' % (fc, len(frames)))
+    # R15-C (audit B5): frame_count == len(frames) is enforced by the
+    # checker itself, unconditionally — never gated on the schema's
+    # frame_artifact.count_must_equal declaration (the authorized schema
+    # must declare the same rule; _validate_schema_shape cross-checks it).
+    fc = provenance.get('frame_count') \
+        if isinstance(provenance, dict) else None
+    if not _is_int_not_bool(fc):
+        errors.append('frame_count not available/valid in the provenance '
+                      'artifact for the R15-C runtime count invariant (the '
+                      'provenance check reports details)')
+    elif fc < 0:
+        errors.append('frame_count %d is negative — int_nonneg '
+                      '(R13-D/R15-C)' % fc)
+    elif len(frames) != fc:
+        errors.append('frame_count %d != actual frame record count %d '
+                      '(R14/B4 artifact consistency, enforced '
+                      'unconditionally by the checker per R15-C)'
+                      % (fc, len(frames)))
     return {
         'ok': not errors,
-        'check': 'R14/B4 frame artifact (array of frames; each frame per '
-                 'R13-A/R14 emission rules; frame_count == record count '
-                 'per Appendix D; empty episode allowed)',
+        'check': 'R14/B4 + R15-C frame artifact (array of frames; each '
+                 'frame per R13-A/R14 emission rules; frame_count == '
+                 'record count as an unconditional checker invariant; '
+                 'empty episode allowed)',
         'n_frames': len(frames),
         'errors': errors,
     }
@@ -1160,15 +1371,18 @@ def check_frame_artifact(frames, provenance, manifest=None, schema=None,
 def run_smoke(rfc_path=RFC_PATH, contract_path=CONTRACT_PATH,
               manifest_path=None, provenance_path=None, frame_path=None,
               raw_path=None):
-    """R12-A/R13/R14: the single fail-closed smoke validation path.
+    """R12-A/R13/R14/R15: the single fail-closed smoke validation path.
 
-    Chain: normative schema load (from the given RFC) -> bindings (prose
-    names + block equality) -> raw-category binding -> provenance ->
-    status manifest -> frame artifact (array + count consistency) -> raw
-    storage. Any failure (or any missing artifact/schema) => ok=False;
-    the caller exits non-zero. If the normative schema cannot be loaded
-    from the given RFC, every schema-driven check FAILS (fail-closed —
-    never a silent fallback to the default schema)."""
+    Chain: normative schema load + R15-A authorization (version + pin,
+    from the given RFC) -> bindings (prose names + block equality) ->
+    raw-category binding -> provenance -> status manifest -> frame
+    artifact (array + UNCONDITIONAL count consistency, R15-C) -> raw
+    storage. Any failure (or any missing artifact/schema, any unauthorized
+    schema version, any pin mismatch) => ok=False; the caller exits
+    non-zero. If the normative schema cannot be authorized from the given
+    RFC, every schema-driven check FAILS (fail-closed — never a silent
+    fallback to the default schema). Integrity errors are never caught
+    and converted into a PASS."""
     checks = {}
     schema, schema_errs = load_normative_schema(rfc_path)
     if schema is None:
@@ -1203,8 +1417,11 @@ def run_smoke(rfc_path=RFC_PATH, contract_path=CONTRACT_PATH,
         }
     checks['normative_schema'] = {
         'ok': True,
-        'check': 'R14 normative schema load (RFC Appendix D)',
+        'check': 'R14 normative schema load + R15-A authorization '
+                 '(version + integrity pin) (RFC Appendix D)',
         'schema_version': schema.get('schema_version'),
+        'authorized_version': _AUTHORIZED_SCHEMA_VERSION,
+        'authorized_block_sha256': _AUTHORIZED_SCHEMA_SHA256,
     }
     load_errors = []
 
@@ -1265,14 +1482,16 @@ def run_smoke(rfc_path=RFC_PATH, contract_path=CONTRACT_PATH,
                 'manifest': manifest_path, 'provenance': provenance_path,
                 'frame': frame_path, 'raw': raw_path,
             },
-            'chain': ['normative_schema (RFC Appendix D load)',
+            'chain': ['normative_schema (RFC Appendix D load + R15-A '
+                      'version/pin authorization)',
                       'provenance_binding (prose names + RFC block == '
-                      'Contract block, R14)',
+                      'Contract block + both blocks pin-authorized, R14/R15)',
                       'raw_category_binding (Contract § 6 tokens)',
                       'provenance completeness + type/range (schema-driven)',
                       'status manifest (schema-driven allowlists)',
                       'frame artifact (array; per-frame Option-A schema; '
-                      'frame_count == record count, R14/B4)',
+                      'frame_count == record count UNCONDITIONALLY, '
+                      'R14/B4 + R15-C)',
                       'raw storage nested structure (requiredness from '
                       'Appendix D, R14/B3)'],
             'checks': checks,
@@ -1284,7 +1503,7 @@ def run_smoke(rfc_path=RFC_PATH, contract_path=CONTRACT_PATH,
 def main(argv=None):
     parser = argparse.ArgumentParser(
         description='Stage 1 fail-closed contract enforcement checker '
-                    '(R11-R14). Modes: --smoke is THE artifact enforcement '
+                    '(R11-R15). Modes: --smoke is THE artifact enforcement '
                     'entry point (actual RFC + actual Collector Contract + '
                     'actual artifacts -> single fail-closed chain -> exit 0 '
                     'only on PASS; the acquisition workflow MUST use '
@@ -1295,8 +1514,12 @@ def main(argv=None):
         epilog='Acquisition workflow note: only a --smoke PASS (exit 0) '
                'constitutes contract enforcement; the informational mode '
                'never validates artifacts. The frame artifact is a JSON '
-               'array of frame records; frame_count must equal the record '
-               'count (R14/B4).')
+               'array of frame records; frame_count == len(frames) is an '
+               'UNCONDITIONAL checker runtime invariant (R14/B4 + R15-C). '
+               'The normative schema is only usable when it is the '
+               'authorized version AND matches the integrity pin '
+               '(R15-A) — a synchronized RFC/Contract schema change is '
+               'not a bypass.')
     parser.add_argument('--smoke', action='store_true',
                         help='R12-A/R13/R14: run the full fail-closed '
                              'smoke chain over actual artifacts; exit 0 '
@@ -1372,6 +1595,8 @@ def main(argv=None):
     out['normative_schema'] = {
         'source': RFC_PATH + ' Appendix D',
         'schema_version': _SCHEMA.get('schema_version'),
+        'authorized_version': _AUTHORIZED_SCHEMA_VERSION,
+        'authorized_block_sha256': _AUTHORIZED_SCHEMA_SHA256,
         'load_errors': _SCHEMA_ERRORS,
     }
     out['status_maps'] = {
