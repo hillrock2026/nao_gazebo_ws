@@ -6,10 +6,10 @@ residual-learning preparation.
 
 | Field | Value |
 |---|---|
-| Revision | REV1.5-NORMATIVE-SCHEMA |
+| Revision | REV1.6-PROVENANCE-CLARIFICATION |
 | Status | **ACQUISITION-CONTRACT-READY** — R14 normative machine-readable schema binding + artifact consistency per the GPT-5.6 independent closure audit of R13 (Decision C — BLOCKED); **pending final independent audit acceptance**; three-tier authorization, see § 0.0 |
-| Author | Implementation Agent (DeepSeek / Qoder role); REV1.2 corrections: Implementation Agent (GLM-5.3); REV1.3 hardening: Implementation Agent (GLM-5.3); REV1.4 (R11) hardening: Implementation Agent (GLM-5.3); REV1.5 (R14) normative schema: Implementation Agent (GLM-5.3) |
-| Date | 2026-10-08 (REV1.1: 2026-10-07; REV1.2–1.5: 2026-10-08) |
+| Author | Implementation Agent (DeepSeek / Qoder role); REV1.2 corrections: Implementation Agent (GLM-5.3); REV1.3 hardening: Implementation Agent (GLM-5.3); REV1.4 (R11) hardening: Implementation Agent (GLM-5.3); REV1.5 (R14) normative schema: Implementation Agent (GLM-5.3); REV1.6 (provenance evidential-boundary clarification): Implementation Agent (DeepSeek) |
+| Date | 2026-10-08 (REV1.1: 2026-10-07; REV1.2–1.5: 2026-10-08; REV1.6: 2026-10-13) |
 | Roadmap position | Baseline Dataset (Stage 0, frozen) → **Dynamics Dataset (this RFC)** → LIPM Prior → Residual Network → Optimization → Sim2Real |
 
 ## 0. Scope declaration (read first)
@@ -38,7 +38,7 @@ wrench frame/reference) and R11-B provenance completeness binding (§ 3.10 decla
 source of truth for collector provenance). No new V-gate, no field added/removed, no
 population/seeds/rings change, no reopening of any R6–R10 decision.
 
-**REV1.5 (this revision) applies the R14 normative-schema binding for the four bypasses of the
+**REV1.5 (superseded by this revision) applies the R14 normative-schema binding for the four bypasses of the
 GPT-5.6 independent closure audit of R13 (Decision C — BLOCKED):** B1 (Option-A shapes were
 hardcoded in the checker), B2 (prose-keyword semantic parsing was fragile — "non-null" counted
 as nullable), B3 (raw-retention requiredness not fully bound), B4 (frame_count vs actual frame
@@ -53,13 +53,23 @@ acquisition-requirement, or raw/derived scientific-meaning change. **REV1.5 is p
 independent audit acceptance** — no acceptance criterion is claimed satisfied by this revision,
 and no acquisition authorization is claimed.
 
+**REV1.6 (this revision) adds a § 3.10 provenance evidential-boundary clarification** (Owner-approved
+D4-EPC decision; Option B — RFC-only prose). `theta`/`theta_id`/`theta_hash` describe the requested
+(pre-registered) configuration; `config_hash` identifies the Collector configuration;
+`cop_derivation_hash` identifies the CoP/derived-wrench derivation configuration; none of these
+fields — by existence, equality, or recomputability — constitutes evidence that the producer
+applied the corresponding gait parameters at runtime. No population, seeds, rings, formula, or
+Appendix D schema-block change; no field added or removed; no runtime behavior or automatic
+verification; **REV1.6 is pending final independent audit acceptance, and no acquisition
+authorization is claimed.**
+
 ### 0.0 Authorization levels (three-tier, explicit — REV1.1)
 
 | Level | Scope | Status under this revision |
 |---|---|---|
 | 1 — Preparation | Completion of this RFC revision; read-only V-1/V-2 probes (`tools/stage1_probe.py`, new file); collector contract specification (`docs/STAGE1_COLLECTOR_CONTRACT.md`, new file) | **authorized** |
 | 2 — Collector implementation | Implementing the collector per `docs/STAGE1_COLLECTOR_CONTRACT.md` as a **read-only instrumentation process**: new subscribers, a new writer process, storage under `dataset/stage1/` only — no modification to any frozen component (runner, controller/gait generator, converters, model, world, physics, launch files) | **authorized within the § 7 boundary** |
-| 3 — Bulk raw acquisition | The 96 pre-registered episodes (§ 4.1) | **NOT authorized by this document alone.** Requires: acceptance of this revision by the **final independent audit** (REV1.5 is pending), V-1 pass **and** V-2 pass, probe results pinned (Appendix B), and remote publication of the Stage 0 closure commit and this contract (owner action, GPT-5.6 correction 8). |
+| 3 — Bulk raw acquisition | The 96 pre-registered episodes (§ 4.1) | **NOT authorized by this document alone.** Requires: acceptance of this revision by the **final independent audit** (REV1.6 is pending), V-1 pass **and** V-2 pass, probe results pinned (Appendix B), and remote publication of the Stage 0 closure commit and this contract (owner action, GPT-5.6 correction 8). |
 
 Analysis, LIPM fitting, residual learning, training, and optimization are **never** authorized by
 this document and require separate authorization (§ 7).
@@ -515,7 +525,8 @@ Every episode record must carry:
 | Field | Source / rule |
 |---|---|
 | `theta` | full parameter dict (verbatim from the frozen θ list entry) |
-| `theta_id`, `theta_hash` | per-θ canonical JSON hash (Stage 0 method) |
+| `theta_id` | the frozen θ-list entry's identity label (e.g. `r0_anchor`) — an identity, not a hash |
+| `theta_hash` | per-θ canonical JSON hash (Stage 0 method) |
 | `theta_list_hash` | `844646f5…` — cross-checked fail-closed before every episode (inherited Stage 0 tamper check) |
 | `git_commit` | HEAD of the collector at acquisition time |
 | `config_hash` | SHA-256 of the collector configuration (subscriptions, alignment constants, association window, serialization rules) — **excludes** any CoP derivation formula (REV1.1 decoupling, per GPT-5.6 P0-R5) |
@@ -529,6 +540,8 @@ Every episode record must carry:
 | `ring` | sampling ring label (§ 4) |
 | `frame_count`, `t_start`, `t_end` | episode extents |
 | `episode_integrity_hash` | sha256 over the episode's canonical sample file (self-verification) |
+
+`theta`, `theta_id`, and `theta_hash` describe the requested (pre-registered) configuration. `config_hash` identifies the Collector configuration, and `cop_derivation_hash` identifies the CoP/derived-wrench derivation configuration. None of these fields—by existence, equality, or recomputability—constitutes evidence that the producer applied the corresponding gait parameters at runtime; verifying actual application requires trustworthy, readable producer-side applied-configuration evidence uniquely linked to the episode. (`cop_derivation_hash` is not an episode-data integrity hash.)
 
 ---
 
@@ -1042,7 +1055,7 @@ Notes (binding semantics):
 
 ## Document status
 
-**REV1.5-NORMATIVE-SCHEMA — ACQUISITION-CONTRACT-READY (pending final independent audit).**
+**REV1.6-PROVENANCE-CLARIFICATION — ACQUISITION-CONTRACT-READY (pending final independent audit).**
 
 Revision history:
 
@@ -1175,6 +1188,22 @@ Revision history:
   No research-objective / R6–R10 / acquisition-requirement / raw-vs-derived scientific-meaning
   change. **REV1.5 is pending final independent audit acceptance; no acquisition
   authorization is claimed.**
+- **REV1.6-PROVENANCE-CLARIFICATION** (2026-10-13): § 3.10 provenance **evidential-boundary
+  clarification** per the Owner-approved D4-EPC decision (Owner Decision Freeze O-05; Option B
+  — RFC-only prose; Collector Contract unchanged). Adds one prose paragraph to § 3.10 stating
+  that `theta`/`theta_id`/`theta_hash` describe the requested (pre-registered) configuration,
+  `config_hash` identifies the Collector configuration, `cop_derivation_hash` identifies the
+  CoP/derived-wrench derivation configuration, and none of these fields — by existence,
+  equality, or recomputability — constitutes evidence that the producer applied the
+  corresponding gait parameters at runtime (verifying actual application requires trustworthy,
+  readable producer-side applied-configuration evidence uniquely linked to the episode;
+  `cop_derivation_hash` is not an episode-data integrity hash). No field added/removed, no
+  Appendix D schema-block / `schema_version` change, no population/seeds/rings/formula change,
+  no runtime behavior or automatic verification. **D-C (2026-10-13, Owner-authorized): the § 3.10
+  table lists `theta_id` and `theta_hash` as separate rows — `theta_id` is the frozen θ-list
+  entry's identity label, not a hash (prose-only clarification, no field added/removed).**
+  Existing records are unaffected. **REV1.6 is
+  pending final independent audit acceptance; no acquisition authorization is claimed.**
 
 **This document authorizes preparation and collector implementation (Levels 1–2, § 0.0) only.
 Bulk acquisition of the 96 episodes (Level 3) is NOT authorized by this document alone — it

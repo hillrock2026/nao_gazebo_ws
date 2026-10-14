@@ -86,6 +86,7 @@ BODY_POSE_TOPIC = '/body_pose'
 IMU_TOPIC = '/imu/data'
 LEFT_BOOL_TOPIC = '/left_foot/contact'
 RIGHT_BOOL_TOPIC = '/right_foot/contact'
+CLOCK_TOPIC = '/clock'
 
 STREAMS = (  # kind, transport, topic
     ('contacts_left', 'gz', LEFT_CONTACT_TOPIC),
@@ -99,6 +100,7 @@ FRAME_AUX_STREAMS = (  # not raw categories; feed measured frame fields only
     ('imu', 'ros', IMU_TOPIC),
     ('left_contact_bool', 'ros', LEFT_BOOL_TOPIC),
     ('right_contact_bool', 'ros', RIGHT_BOOL_TOPIC),
+    ('clock', 'ros', CLOCK_TOPIC),
 )
 
 # Association windows (RFC § 3.6.3 / contract § 5.2); causal last-not-after.
@@ -109,10 +111,75 @@ BOOL_WINDOW_SEC = 0.05
 COMMAND_WINDOW_SEC = 0.05
 IMU_WINDOW_SEC = 0.01
 
+# The configured windows are inclusive at their nominal boundary, but the binary
+# representation of a decimal time difference can exceed the window by ~1e-16 at
+# exactly that boundary (e.g. 1.05 - 1.0 > 0.05). Absorb only that representation
+# error, and only in the two window comparisons below — never a general tolerance.
+_WINDOW_BOUNDARY_EPS = 1e-9
+
 G_PINNED = 9.81          # RFC § 3.7 kinematics formula constant (pinned)
 FLOOR_Z = 0.0            # nao_world.sdf ground plane z (pinned constant)
 
 EXPECTED_LINKS = list(probe.EXPECTED_LINKS)  # 25 links (RFC § 0.1)
+
+# ---------------------------------------------------------------------------
+# F-04 (OD-4=A / OD-5=A): the frozen Episode artifact set. `freeze_episode()`
+# writes exactly these 12 files; the integrity verifier checks this FIXED set
+# (not merely the hash-map entries that happen to exist). The hash map lives in
+# the summary file `collector_meta.json` (OD-5=A — no separate manifest).
+# ---------------------------------------------------------------------------
+EPISODE_ARTIFACT_FILES = (
+    'frames.jsonl',
+    'frames.json',
+    'raw_records.json',
+    'status_manifest.json',
+    'episode_provenance.json',
+    'collector_meta.json',
+    'raw/contacts_left.json',
+    'raw/contacts_right.json',
+    'raw/pose_info.json',
+    'raw/joint_command.json',
+    'raw/joint_states.json',
+    'raw/body_pose.json',
+)
+SUMMARY_ARTIFACT = 'collector_meta.json'   # the summary; holds artifact_hashes
+ARTIFACT_HASH_METHOD = (
+    'sha256 over file bytes for every artifact; the summary itself '
+    '(collector_meta.json) is hashed over the canonical json (sort_keys, '
+    'compact separators) of its content with its own artifact_hashes entry and '
+    'the summary_self_hash field removed (non-circular, F-04-2)')
+REQUIRED_ARTIFACT_LIST = EPISODE_ARTIFACT_FILES   # OD-4=A fixes the R-04 gate
+
+# Pre-implementation input gates (task v0.1 §4). Unset inputs MUST NOT be
+# guessed: while unset the dependent success paths stay disabled / fail closed
+# (no fabricated success, no guessed identity). THETA_ID_FIELD is now fixed to
+# the frozen θ-list entry's `theta_id` (Owner decision O-04 + explicit binding
+# authorization in STAGE1_THETA_ID_BINDING_READONLY_PREFLIGHT); SOURCE_MODULE_LIST
+# and DATASET_ELIGIBILITY_POLICY remain unset.
+THETA_ID_FIELD = 'theta_id'        # R-07 gate (θ-id field name, Owner-bound)
+SOURCE_MODULE_LIST = None          # R-08 gate (source-hash module coverage)
+DATASET_ELIGIBILITY_POLICY = None  # §4.9 gate (explicit eligibility policy)
+
+# Independent pinned θ-list hash (F-03a). Source: the FROZEN Stage 0 evidence
+# — `docs/STAGE0_CONTRACT_MANIFEST.md` and RFC §0.1 pin
+# `dataset/stage0/stage0_theta_list.json` to this value; RFC §3.10 requires a
+# fail-closed recompute before every episode. This is an INDEPENDENT anchor and
+# is never taken from the θ-list file's own self-declared `theta_list_hash`.
+THETA_LIST_FIXED_HASH = (
+    '844646f55076f67647c9159a6c1f53018af89276154ff3a4ad3bdce28df95dbf')
+# Stage 0 canonical method (RFC §0.1): SHA-256 over
+# json.dumps(theta_list, indent=2, sort_keys=True, allow_nan=False), UTF-8,
+# no trailing newline, over the `theta_list` entries array.
+THETA_LIST_HASH_METHOD = ('sha256(json.dumps(theta_list, indent=2, '
+                          'sort_keys=True, allow_nan=False), utf-8)')
+
+# R-14 protected historical roots. These paths are NEVER opened/enumerated;
+# they are only ever compared against resolved candidate paths.
+PROTECTED_ROOTS = (
+    os.path.join(WS, 'dataset', 'stage1', 'episodes', 'stage1_smoke0'),
+    os.path.join(WS, 'dataset', 'stage1', 'episodes',
+                 'stage1_smoke0.staging.4362'),
+)
 
 
 def _joint_order():
@@ -188,15 +255,47 @@ def _stamp_seconds(header, default=None):
     return float(sec) + float(nsec or 0) * 1e-9
 
 
+def _kv_lossless(v):
+    """Lossless JSON-safe representation of a KeyValue scalar (R-13)."""
+    if v is None or isinstance(v, (str, bool, int)):
+        return v
+    if isinstance(v, float):
+        return v if math.isfinite(v) else None
+    return str(v)
+
+
 def _header_verbatim(header):
-    """gz Header -> {stamp:{sec,nsec}} verbatim (timestamp retained)."""
+    """gz Header -> verbatim field-level object (R-13).
+
+    Retains BOTH the `stamp` (sec/nsec) and the `data` repeated KeyValue list
+    (order preserved) so no header field is silently dropped. Returns a JSON
+    object (possibly empty) — never a non-object — so the frozen checker's
+    "header must be an object" rule holds. This is field-level semantic
+    equivalence, NOT raw protobuf byte preservation.
+    """
     if header is None:
         return None
+    out = {}
     stamp = getattr(header, 'stamp', None)
-    if stamp is None:
-        return {}
-    return {'stamp': {'sec': int(getattr(stamp, 'sec', 0)),
-                      'nsec': int(getattr(stamp, 'nsec', 0))}}
+    if stamp is not None:
+        sec = getattr(stamp, 'sec', None)
+        if sec is None:
+            sec = getattr(stamp, 'secs', None)
+        nsec = getattr(stamp, 'nsec', None)
+        if nsec is None:
+            nsec = getattr(stamp, 'nanosec', None)
+        if sec is not None:
+            out['stamp'] = {'sec': int(sec), 'nsec': int(nsec or 0)}
+    data = getattr(header, 'data', None)
+    if data is not None:
+        try:
+            items = list(data)
+        except TypeError:
+            items = []
+        out['data'] = [{'key': _kv_lossless(getattr(kv, 'key', None)),
+                        'value': _kv_lossless(getattr(kv, 'value', None))}
+                       for kv in items]
+    return out
 
 
 def _entity_name(ent):
@@ -351,8 +450,25 @@ def build_imu_record(msg):
 
 
 def build_bool_record(msg):
+    """std_msgs/Bool carries NO header/source stamp (RFC § 3.6.2); the only
+    time available is the simulation `receipt` time, attached by the callback
+    as `_recv_sim_s` (never a source stamp)."""
     v = _field(msg, 'data')
     return {'stamp_s': None, 'value': bool(v) if v is not None else None}
+
+
+def build_clock_record(msg):
+    """rosgraph_msgs/Clock -> {'stamp_s': sim seconds} (the sim clock)."""
+    c = _field(msg, 'clock')
+    sec = getattr(c, 'sec', None) if c is not None else None
+    if sec is None and c is not None:
+        sec = getattr(c, 'secs', None)
+    nsec = getattr(c, 'nanosec', None) if c is not None else None
+    if nsec is None and c is not None:
+        nsec = getattr(c, 'nsec', None)
+    if sec is None:
+        return {'stamp_s': None}
+    return {'stamp_s': float(sec) + float(nsec or 0) * 1e-9}
 
 
 BUILDERS = {
@@ -365,6 +481,7 @@ BUILDERS = {
     'imu': build_imu_record,
     'left_contact_bool': build_bool_record,
     'right_contact_bool': build_bool_record,
+    'clock': build_clock_record,
 }
 
 
@@ -423,6 +540,190 @@ def causal_index(stamps, t, window):
     if i < 0:
         return None
     return i if (t - stamps[i]) <= window else None
+
+
+def symmetric_nearest_index(stamps, t, window):
+    """Index of the symmetric-nearest sample: min |stamp - t| with
+    |stamp - t| <= window (inclusive), tie -> the EARLIER stamp (R-06).
+
+    `stamps` must be sorted ascending with no None. Returns None if no
+    candidate is inside the window."""
+    best = None
+    best_d = None
+    for idx, s in enumerate(stamps):
+        d = abs(s - t)
+        if d > window + _WINDOW_BOUNDARY_EPS:
+            continue
+        if best_d is None or d < best_d:
+            best, best_d = idx, d
+        # equal distance: keep the earlier (already stored, ascending order)
+    return best
+
+
+def _monotonic_epochs(stamps):
+    """Assign a clock epoch to a time-ordered sequence: the epoch increments
+    whenever sim time decreases (a clock rewind). None -> None (R-05/R-06)."""
+    epoch = 0
+    prev = None
+    out = []
+    for s in stamps:
+        if s is None:
+            out.append(None)
+            continue
+        if prev is not None and s < prev:
+            epoch += 1
+        out.append(epoch)
+        prev = s
+    return out
+
+
+# ---------------------------------------------------------------------------
+# R-14: historical-path write protection (path semantics, not string compare).
+# The protected roots are NEVER accessed — only resolved candidate paths are
+# compared against them. Any resolution failure/ambiguity fails closed.
+# ---------------------------------------------------------------------------
+
+def _resolve_for_protection(path):
+    """Resolve `path` to a canonical absolute form for comparison, without
+    touching protected directories. The longest existing ancestor is realpath'd
+    and the remaining (not-yet-existing) components appended lexically."""
+    p = os.path.abspath(path)
+    head = p
+    suffix = []
+    while head and not os.path.exists(head):
+        parent, tail = os.path.split(head)
+        if tail == '' or parent == head:
+            break
+        suffix.insert(0, tail)
+        head = parent
+    real = os.path.realpath(head) if head and os.path.exists(head) \
+        else os.path.realpath(p)
+    for comp in suffix:
+        real = os.path.join(real, comp)
+    return os.path.normpath(real)
+
+
+def is_protected_path(path):
+    """True if `path` equals, is inside, or is an ancestor of a protected
+    root (canonical/resolved comparison; symlinks resolved). (R-14)
+
+    The protected roots are compared in their lexical absolute form so that
+    no filesystem access (stat/enumerate) is performed on them."""
+    try:
+        rp = _resolve_for_protection(path)
+    except Exception:  # noqa: BLE001 — unresolvable ⇒ fail closed
+        return True
+    for root in PROTECTED_ROOTS:
+        rr = os.path.normpath(os.path.abspath(root))
+        if rp == rr or rp.startswith(rr + os.sep):
+            return True            # candidate is (inside) the protected root
+        if rr.startswith(rp + os.sep):
+            return True            # candidate is an ancestor of a protected root
+    return False
+
+
+def guard_path(path):
+    """Fail closed (raise) if operating on `path` could affect a protected
+    historical root (R-14)."""
+    if is_protected_path(path):
+        raise PermissionError(
+            'refusing to operate on a protected historical path (R-14): %s'
+            % path)
+    return path
+
+
+# ---------------------------------------------------------------------------
+# R-05 / R-06 / R-10: association with explicit UNKNOWN reason codes.
+# ---------------------------------------------------------------------------
+
+def _bool_value(r):
+    v = r.get('value')
+    return None if v is None else bool(v)
+
+
+def assoc_contact_bool(recs, t, frame_epoch):
+    """Associate a headerless Bool to a frame at sim time `t` (R-05).
+
+    Returns (value, recv_sim_s, state, reason). `state` is 'matched' or
+    'unknown'; `reason` is a single UNKNOWN token (or None). Never coerces to
+    false: unknown stays unknown with a reason."""
+    if not recs:
+        return None, None, 'unknown', 'no_message'
+    recv_recs = [r for r in recs if r.get('_recv_sim_s') is not None]
+    no_recv = [r for r in recs if r.get('_recv_sim_s') is None]
+    if not recv_recs:
+        # no usable receipt time: distinguish a clock that became invalid from
+        # one never seen (F-01a) — never borrow a stale cached value
+        if any(r.get('_recv_clock_state') == 'invalid' for r in no_recv):
+            return None, None, 'unknown', 'clock_invalid'
+        return None, None, 'unknown', 'clock_missing'
+    if no_recv:
+        # some Bool records carry a receipt clock while others do not; if the
+        # remainder are invalid-clock receipts the reason is the clock (F-01a),
+        # otherwise the receipt order cannot be reconciled (R-05 ambiguity)
+        if any(r.get('_recv_clock_state') == 'invalid' for r in no_recv):
+            return None, None, 'unknown', 'clock_invalid'
+        return None, None, 'unknown', 'order_ambiguous'
+    same = [r for r in recv_recs if r.get('_recv_epoch', 0) == frame_epoch]
+    if not same:
+        return None, None, 'unknown', 'clock_rewind'
+    past = [r for r in same if r['_recv_sim_s'] <= t]
+    if not past:
+        if any(r['_recv_sim_s'] > t for r in same):
+            return None, None, 'unknown', 'future'
+        return None, None, 'unknown', 'no_message'
+    t_sel = max(r['_recv_sim_s'] for r in past)
+    sel = [r for r in past if r['_recv_sim_s'] == t_sel]
+    values = {_bool_value(r) for r in sel}
+    if len(values) > 1:
+        return None, t_sel, 'unknown', 'duplicate_conflict'
+    value = _bool_value(sel[-1])
+    if (t - t_sel) > BOOL_WINDOW_SEC + _WINDOW_BOUNDARY_EPS:
+        return None, t_sel, 'unknown', 'stale'
+    if value is None:
+        return None, t_sel, 'unknown', 'no_message'
+    return value, t_sel, 'matched', None
+
+
+def _imu_content(rec):
+    """Hashable content signature of an IMU sample (measured fields only)."""
+    return (tuple(rec.get('orientation') or ()),
+            tuple(rec.get('linear_acceleration') or ()),
+            tuple(rec.get('angular_velocity') or ()))
+
+
+def assoc_imu(imu_all, imu, stamps, imu_epochs, t, frame_epoch, t_observed_max):
+    """Symmetric-nearest IMU association with maturity + epoch rules (R-06).
+
+    Returns (index_into_imu, match_state, reason, delta_s). `match_state` is
+    'matched', 'pending' (immature/end) or 'unknown'."""
+    if not imu_all:
+        return None, 'unknown', 'no_candidate', None
+    if not stamps:
+        return None, 'unknown', 'source_stamp_missing', None
+    valid = [j for j in range(len(stamps))
+             if imu_epochs[j] == frame_epoch and math.isfinite(stamps[j])]
+    if not valid:
+        if any(not math.isfinite(s) for s in stamps):
+            return None, 'unknown', 'source_stamp_invalid', None
+        return None, 'unknown', 'clock_rewind', None
+    if t_observed_max is not None and (t + IMU_WINDOW_SEC) > t_observed_max:
+        # the future half of the symmetric window has not materialised yet —
+        # do not finalise early (R-06 immature window / end of collection)
+        return None, 'pending', 'immature_window', None
+    window = [stamps[j] for j in valid]
+    k = symmetric_nearest_index(window, t, IMU_WINDOW_SEC)
+    if k is None:
+        return None, 'unknown', 'no_candidate', None
+    j = valid[k]
+    # F-02: an identical source timestamp whose samples CONFLICT in content
+    # must not be resolved by an arbitrary pick — report ambiguity, never
+    # 'matched'. Identical content may use the deterministic pick.
+    sel_stamp = stamps[j]
+    same = [x for x in valid if stamps[x] == sel_stamp]
+    if len({_imu_content(imu[x]) for x in same}) > 1:
+        return None, 'unknown', 'duplicate_ambiguous', None
+    return j, 'matched', None, (stamps[j] - t)
 
 
 # ---------------------------------------------------------------------------
@@ -558,7 +859,7 @@ class EpisodeAssembler:
                  config_hash_source, wallclock_utc, git_commit,
                  rfc_hash, model_hash, world_hash, gz_version,
                  theta_list_hash, inertials, total_mass, sdf_sha,
-                 joint_order=None):
+                 joint_order=None, requested_config=None):
         self.episode_id = episode_id
         self.theta = theta
         self.theta_id = theta_id
@@ -576,6 +877,7 @@ class EpisodeAssembler:
         self.total_mass = total_mass
         self.sdf_sha = sdf_sha
         self.joint_order = list(joint_order) if joint_order else _joint_order()
+        self.requested_config = requested_config
         self.notes = []
 
     # -- raw ------------------------------------------------------------
@@ -608,6 +910,12 @@ class EpisodeAssembler:
         lcl_stamps = [r['stamp_s'] for r in lcl]
         rcl_stamps = [r['stamp_s'] for r in rcl]
 
+        imu_all = records.get('imu', [])
+        frame_epochs = _monotonic_epochs([r['stamp_s'] for r in js])
+        _js_times = [x for x in (r['stamp_s'] for r in js) if x is not None]
+        t_observed_max = max(_js_times) if _js_times else None
+        imu_epochs = _monotonic_epochs(imu_stamps)
+
         frames = []
         for i, st in enumerate(js):
             t = st['stamp_s']
@@ -617,9 +925,15 @@ class EpisodeAssembler:
             p_idx = causal_index(pose_stamps, t, POSE_WINDOW_SEC)
             b_idx = causal_index(body_stamps, t, BODY_POSE_WINDOW_SEC)
             c_idx = causal_index(cmd_stamps, t, COMMAND_WINDOW_SEC)
-            i_idx = causal_index(imu_stamps, t, IMU_WINDOW_SEC)
             l_idx = causal_index(lcl_stamps, t, CONTACT_WINDOW_SEC)
             r_idx = causal_index(rcl_stamps, t, CONTACT_WINDOW_SEC)
+            i_idx, i_state, i_reason, i_delta = assoc_imu(
+                imu_all, imu, imu_stamps, imu_epochs, t, frame_epochs[i],
+                t_observed_max)
+            l_val, l_recv, l_state, l_reason = assoc_contact_bool(
+                bools['left_contact_bool'], t, frame_epochs[i])
+            r_val, r_recv, r_state, r_reason = assoc_contact_bool(
+                bools['right_contact_bool'], t, frame_epochs[i])
             frame = {
                 'episode_id': self.episode_id,
                 'frame_id': i,
@@ -633,13 +947,11 @@ class EpisodeAssembler:
                 'pose_source_stamp': pose[p_idx]['stamp_s']
                 if p_idx is not None else None,
                 # contact booleans: /left_foot/contact is std_msgs/Bool (no
-                # header stamp) -> associated by RECEIPT ORDER only, never a
-                # time-based freshness claim (RFC § 3.6.2 keeps this Stage-0
-                # comparability signal; it is not independent evidence)
-                'left_contact': self._latest_bool(bools['left_contact_bool'],
-                                                  st.get('_seq')),
-                'right_contact': self._latest_bool(
-                    bools['right_contact_bool'], st.get('_seq')),
+                # header stamp) -> associated by SIM RECEIPT TIME with an
+                # inclusive freshness bound; unknown/stale/future/rewind stay
+                # UNKNOWN with a reason (R-05, never coerced to false)
+                'left_contact': l_val,
+                'right_contact': r_val,
                 'imu_orientation': imu[i_idx].get('orientation')
                 if i_idx is not None else None,
                 'imu_linear_acceleration': imu[i_idx].get(
@@ -657,6 +969,19 @@ class EpisodeAssembler:
                 if l_idx is not None else None,
                 'right_contact_assoc_stamp': rcl[r_idx]['stamp_s']
                 if r_idx is not None else None,
+                # non-normative association evidence (R-05/R-06/R-10): which
+                # sample was used (or explicit unknown) and why
+                'imu_source_stamp': imu[i_idx]['stamp_s']
+                if i_idx is not None else None,
+                'imu_delta_s': i_delta,
+                'imu_match_state': i_state,
+                'imu_unknown_reason': i_reason,
+                'left_contact_recv_sim_s': l_recv,
+                'left_contact_assoc_state': l_state,
+                'left_contact_unknown_reason': l_reason,
+                'right_contact_recv_sim_s': r_recv,
+                'right_contact_assoc_state': r_state,
+                'right_contact_unknown_reason': r_reason,
                 '_pose_index': p_idx,
             }
             frames.append(frame)
@@ -828,6 +1153,15 @@ class EpisodeAssembler:
             'gait_phase_epoch_rule':
                 't_epoch = first frame sim_time; elapsed = t - t_epoch - '
                 'theta.start_delay_sec; phase = (elapsed*freq) % 1',
+            # R-07: requested vs effective configuration kept strictly separate
+            'requested_config': self.requested_config,
+            'effective_config': {
+                'state': 'unverified', 'value': None,
+                'reason': 'no episode-linked producer/runtime evidence '
+                          '(R-07 gate)'},
+            # R-08: bounded source binding (coverage is a pre-implementation
+            # input; never claimed as complete while the module list is unset)
+            'source_integrity': source_integrity_provenance(),
             'notes': list(self.notes),
         }
 
@@ -893,28 +1227,144 @@ def sha256_file(path):
     return hashlib.sha256(open(path, 'rb').read()).hexdigest()
 
 
+_HEX = '0123456789abcdef'
+
+
+def _valid_sha256(v):
+    return (isinstance(v, str) and len(v) == 64
+            and all(c in _HEX for c in v))
+
+
+def _canonical_json_bytes(obj):
+    """Deterministic canonical serialization used for the summary self-hash:
+    sorted keys, compact separators, no NaN/Inf. Produced and consumed by the
+    same rule (F-04-2)."""
+    return json.dumps(obj, sort_keys=True, separators=(',', ':'),
+                      allow_nan=False).encode('utf-8')
+
+
+def compute_summary_self_hash(meta):
+    """F-04-2: deterministic, non-circular hash of the summary file.
+
+    Rule: sha256 over the canonical json of the summary object with its own
+    `summary_self_hash` field removed AND its own entry in `artifact_hashes`
+    removed. Mutating any other field (or any other file's declared hash)
+    changes this value; mutating only the hash field is caught by comparing
+    the stored `summary_self_hash` against the recomputation."""
+    clone = {k: v for k, v in (meta or {}).items() if k != 'summary_self_hash'}
+    ah = dict(clone.get('artifact_hashes') or {})
+    ah.pop(SUMMARY_ARTIFACT, None)
+    clone['artifact_hashes'] = ah
+    return hashlib.sha256(_canonical_json_bytes(clone)).hexdigest()
+
+
+def _safe_artifact_path(root, rel):
+    """Resolve `rel` under `root`; return the joined path or None if unsafe
+    (absolute, escaping, or symlink-escaping). Never reads the target file."""
+    if not isinstance(rel, str) or not rel or os.path.isabs(rel):
+        return None
+    norm = os.path.normpath(rel)
+    if norm in ('.', '') or norm.startswith('..' + os.sep) or norm == '..':
+        return None
+    full = os.path.join(root, norm)
+    real_root = os.path.realpath(root)
+    real_full = os.path.realpath(full)   # resolves symlinks (incl. non-existent tail)
+    if real_full != real_root and not real_full.startswith(real_root + os.sep):
+        return None
+    return full
+
+
+def source_integrity_provenance():
+    """R-08: bounded, non-normative source-hash provenance.
+
+    Always binds the executing collector file itself. Module coverage comes
+    ONLY from an explicitly fixed, finite module list; while that list is unset
+    (pre-implementation input) the coverage is reported 'unverified' and full
+    coverage is never claimed. This is not source authenticity."""
+    cf = os.path.abspath(__file__)
+    files = {os.path.relpath(cf, WS): sha256_file(cf)}
+    coverage = 'unverified'
+    if SOURCE_MODULE_LIST is not None:
+        for rel in SOURCE_MODULE_LIST:
+            p = os.path.join(WS, rel)
+            if os.path.isfile(p):
+                files[rel] = sha256_file(p)
+        coverage = 'listed-only'
+    return {'algorithm': 'sha256', 'coverage': coverage,
+            'files': dict(sorted(files.items())),
+            'note': 'covers only the enumerated specified files; not all '
+                    'executed code / dependencies / runtime; not source '
+                    'authenticity'}
+
+
+def _backup_path(out_root):
+    """Deterministic backup name (no undefined/random overwrite) (R-02 S6)."""
+    return out_root + '.replaced.%d' % os.getpid()
+
+
+_os_replace = os.replace   # test seam for the publish rename (R-02)
+
+
 def _publish(staging, out_root):
-    """Atomic publish: move any existing target aside, then os.replace the
-    staging dir into place (frozen-runner `_publish` pattern). An existing
-    episode is never silently overwritten in place."""
+    """Publish `staging` into `out_root` (R-02 state machine).
+
+    Never deletes/overwrites the last copy of existing data. Returns a result
+    dict: {'ok': bool, 'status': str, 'backup': path|None, 'restored': bool|None,
+    'detail': str|None}. 'ok' is True only when the staging dir was moved into
+    a target and no old data was lost. Failures are explicit, never success.
+    """
+    result = {'ok': False, 'status': 'publish_failed', 'backup': None,
+              'restored': None, 'detail': None}
+    guard_path(out_root)
+    guard_path(staging)
     if os.path.isdir(out_root):
-        backup = out_root + '.replaced.%d' % os.getpid()
+        backup = _backup_path(out_root)
+        guard_path(backup)
+        if os.path.exists(backup):
+            # S6: backup name conflict — fail closed, do not touch the target
+            result['detail'] = 'backup_name_conflict: %s' % backup
+            return result
         try:
-            os.replace(out_root, backup)
-        except OSError:
-            shutil.rmtree(out_root, ignore_errors=True)
-            backup = None
+            _os_replace(out_root, backup)          # S3: target -> backup
+        except OSError as exc:
+            result['detail'] = 'backup_move_failed: %s' % exc
+            return result                          # target left untouched
+        result['backup'] = backup
         try:
-            os.replace(staging, out_root)
-        finally:
-            if backup:
-                shutil.rmtree(backup, ignore_errors=True)
-    else:
-        os.replace(staging, out_root)
+            _os_replace(staging, out_root)          # S1: staging -> target
+        except OSError as exc:
+            # S4/S5: attempt restore; never delete the only old copy
+            try:
+                _os_replace(backup, out_root)
+                result['restored'] = True
+                result['detail'] = 'publish_move_failed_restored: %s' % exc
+            except OSError as exc2:
+                result['restored'] = False
+                result['detail'] = ('publish_move_failed_restore_failed: '
+                                    '%s / %s' % (exc, exc2))
+                # backup is retained, recognizable and recoverable (R-02 S5)
+            return result
+        # success: the old data is retained as a recoverable backup (a cleanup
+        # step is separate and must never delete the only copy — R-02 S9)
+        result['ok'] = True
+        result['status'] = 'published'
+        return result
+    try:
+        _os_replace(staging, out_root)              # S1 (no old target)
+    except OSError as exc:
+        result['detail'] = 'publish_move_failed_no_old: %s' % exc
+        return result                              # S2: staging retained
+    result['ok'] = True
+    result['status'] = 'published'
+    return result
 
 
 def freeze_episode(assembler, records, staging):
-    """Write all artifacts into `staging` (an existing empty dir)."""
+    """Write all artifacts into `staging` (an existing empty dir).
+
+    F-04-1: record the SHA-256 of all 12 frozen episode files in the summary's
+    `artifact_hashes` (OD-4=A / OD-5=A). The summary file itself
+    (`collector_meta.json`) is hashed with the non-circular rule in F-04-2."""
     os.makedirs(os.path.join(staging, 'raw'), exist_ok=True)
     raw = assembler.raw_records(records)
     frames = assembler.build_frames(records)
@@ -922,24 +1372,45 @@ def freeze_episode(assembler, records, staging):
     t_start = frames[0]['sim_time_sec'] if frames else None
     t_end = frames[-1]['sim_time_sec'] if frames else None
 
+    # 11 non-summary files first (write order must not drop any required file)
     write_jsonl(os.path.join(staging, 'frames.jsonl'), frames)
     integrity = sha256_file(os.path.join(staging, 'frames.jsonl'))
-    frames_path = os.path.join(staging, 'frames.json')
-    write_json(frames_path, frames)
+    write_json(os.path.join(staging, 'frames.json'), frames)
     write_json(os.path.join(staging, 'raw_records.json'), raw)
     write_json(os.path.join(staging, 'status_manifest.json'),
                build_status_manifest())
     write_json(os.path.join(staging, 'episode_provenance.json'),
                assembler.provenance(frame_count, t_start, t_end, integrity))
-    write_json(os.path.join(staging, 'collector_meta.json'),
-               assembler.meta(records))
     for kind in ('contacts_left', 'contacts_right', 'pose_info',
                  'joint_command', 'joint_states', 'body_pose'):
         write_json(os.path.join(staging, 'raw', '%s.json' % kind),
                    records.get(kind, []))
+
+    # F-04-1: hash every required file except the summary; fail-closed if any
+    # required file could not be written.
+    hashes = {}
+    for rel in EPISODE_ARTIFACT_FILES:
+        if rel == SUMMARY_ARTIFACT:
+            continue
+        p = os.path.join(staging, rel)
+        if not os.path.isfile(p):
+            raise RuntimeError(
+                'required artifact not written at freeze: %s (F-04)' % rel)
+        hashes[rel] = sha256_file(p)
+
+    # F-04-2: build the summary, then add its own non-circular self-hash.
+    meta = assembler.meta(records)
+    meta['artifact_hash_method'] = ARTIFACT_HASH_METHOD
+    meta['artifact_hashes'] = dict(hashes)
+    self_hash = compute_summary_self_hash(meta)   # over content without the self entry
+    meta['summary_self_hash'] = self_hash
+    meta['artifact_hashes'][SUMMARY_ARTIFACT] = self_hash
+    write_json(os.path.join(staging, SUMMARY_ARTIFACT), meta)
+
     return {'frame_count': frame_count, 'n_raw': len(raw),
             't_start': t_start, 't_end': t_end,
-            'episode_integrity_hash': integrity}
+            'episode_integrity_hash': integrity,
+            'artifact_hashes': dict(meta['artifact_hashes'])}
 
 
 def run_frozen_checker(episode_dir, rfc=RFC_PATH, contract=CONTRACT_PATH):
@@ -965,12 +1436,60 @@ def run_frozen_checker(episode_dir, rfc=RFC_PATH, contract=CONTRACT_PATH):
 # Live collection (needs rclpy + gz transport; a simulation must be running).
 # ---------------------------------------------------------------------------
 
-def _make_callback(kind, store, errors, seq):
+class ClockState:
+    """Latest simulation clock value + validity + epoch.
+
+    The clock is the ONLY sim-time source for headerless Bools (RFC § 3.6.2).
+    A rewind starts a new epoch; a clock message that carries no valid sim time
+    marks the CURRENT clock invalid so a new receipt never borrows a stale
+    cached value (F-01a)."""
+
+    def __init__(self):
+        self.sim_s = None       # last known value (cache; NOT usable when invalid)
+        self.epoch = 0
+        self.valid = False
+
+    def update(self, sim_s):
+        if sim_s is None:
+            # current clock invalid/missing — retain the cache for reference,
+            # but never treat it as a usable receipt time
+            self.valid = False
+            return
+        if self.sim_s is not None and sim_s < self.sim_s:
+            self.epoch += 1
+        self.sim_s = sim_s
+        self.valid = True
+
+    def receipt_sim_s(self):
+        """Sim time usable for a NEW receipt event, or None when the current
+        clock is invalid/missing (never borrows a stale cached value)."""
+        return self.sim_s if self.valid else None
+
+    def state(self):
+        """'valid' | 'invalid' (had a clock, now unusable) | 'missing'."""
+        if self.valid:
+            return 'valid'
+        return 'missing' if self.sim_s is None else 'invalid'
+
+
+def _make_callback(kind, store, errors, seq, clock=None):
     builder = BUILDERS[kind]
 
     def cb(msg):
         try:
             rec = builder(msg)
+            if kind == 'clock':
+                if clock is not None:
+                    clock.update(rec.get('stamp_s'))
+            elif kind in ('left_contact_bool', 'right_contact_bool'):
+                # receipt simulation time (NOT a source stamp) + clock epoch;
+                # an invalid/missing current clock yields NO receipt time
+                # (never a stale cached value) — F-01a
+                rec['_recv_sim_s'] = (clock.receipt_sim_s()
+                                      if clock is not None else None)
+                rec['_recv_epoch'] = clock.epoch if clock is not None else 0
+                rec['_recv_clock_state'] = (clock.state()
+                                            if clock is not None else 'missing')
             rec['_seq'] = next(seq)  # receipt order (NOT a time claim)
             store.append(rec)
         except Exception as exc:  # noqa: BLE001
@@ -987,11 +1506,12 @@ def collect_live(spec, duration, warmup_sec, transport, msg_types):
     stores, subscribe_ok, errors = {}, {}, []
     ds = {}
     seq = itertools.count()
+    clock = ClockState()
     missing = []
     try:
         for kind, tr, topic in spec:
             store = probe.LockedRecords()
-            cb = _make_callback(kind, store, errors, seq)
+            cb = _make_callback(kind, store, errors, seq, clock=clock)
             if tr == 'ros':
                 ok = session.ros_subscribe(topic, msg_types[kind], cb)
             else:
@@ -1018,6 +1538,7 @@ def _message_types():
     from sensor_msgs.msg import JointState, Imu
     from geometry_msgs.msg import PoseStamped
     from std_msgs.msg import Bool
+    from rosgraph_msgs.msg import Clock
     return {
         'contacts_left': contacts_pb2.Contacts,
         'contacts_right': contacts_pb2.Contacts,
@@ -1028,6 +1549,7 @@ def _message_types():
         'imu': Imu,
         'left_contact_bool': Bool,
         'right_contact_bool': Bool,
+        'clock': Clock,
     }
 
 
@@ -1058,9 +1580,47 @@ def load_theta_list():
         return json.load(fh)
 
 
-def resolve_theta(theta_json_path=None, theta_id_hint=None):
-    """Load a θ dict; fail-closed cross-check membership in the frozen list."""
-    data = load_theta_list()
+def compute_theta_list_hash(data):
+    """Recompute the frozen θ-list hash over its `theta_list` entries array
+    using the Stage 0 canonical method (RFC §0.1/§3.10), independent of any
+    value declared inside the file."""
+    entries = (data or {}).get('theta_list')
+    if not isinstance(entries, list):
+        raise RuntimeError('θ list has no `theta_list` array — fail closed')
+    canonical = json.dumps(entries, indent=2, sort_keys=True, allow_nan=False)
+    return hashlib.sha256(canonical.encode('utf-8')).hexdigest()
+
+
+def verify_theta_list(data):
+    """F-03a: independently verify the θ list BEFORE any acquisition side
+    effect. Recompute the hash from the actual file content and compare it to
+    the FROZEN anchor `THETA_LIST_FIXED_HASH` — never to the file's own
+    self-declared `theta_list_hash`. Fail-closed on mismatch/missing/invalid.
+
+    Returns a small evidence dict; raises RuntimeError on any failure."""
+    if THETA_LIST_FIXED_HASH is None:
+        raise RuntimeError('θ-list fixed hash not configured — fail closed')
+    computed = compute_theta_list_hash(data)
+    if computed != THETA_LIST_FIXED_HASH:
+        raise RuntimeError(
+            'θ-list tamper check FAILED: recomputed %s != pinned %s '
+            '(fail-closed)' % (computed[:16], THETA_LIST_FIXED_HASH[:16]))
+    declared = (data or {}).get('theta_list_hash')
+    return {'method': THETA_LIST_HASH_METHOD, 'computed': computed,
+            'pinned': THETA_LIST_FIXED_HASH, 'declared': declared,
+            'declared_matches': declared == computed}
+
+
+def resolve_theta(theta_json_path=None, theta_id_hint=None, data=None):
+    """Load a θ dict; fail-closed cross-check membership in the frozen list.
+
+    `data` may be a pre-loaded θ list (avoids a duplicate read); when None the
+    list is loaded here. Returns (theta, list_hash, matched_entry, info). The
+    matched entry is returned so the caller can derive the θ identity — but the
+    identity FIELD NAME is a pre-implementation input (R-07) and is not guessed.
+    """
+    if data is None:
+        data = load_theta_list()
     list_hash = data.get('theta_list_hash')
     entries = data.get('theta_list', [])
     if theta_json_path:
@@ -1077,7 +1637,41 @@ def resolve_theta(theta_json_path=None, theta_id_hint=None):
         raise RuntimeError('theta_hash %s is not in the frozen Stage 0 list '
                            '(theta_list_hash=%s) — fail-closed'
                            % (h[:16], (list_hash or '?')[:16]))
-    return theta, list_hash, {'computed': h}
+    if len(match) > 1:
+        raise RuntimeError('theta_hash %s matches %d frozen entries — '
+                           'fail-closed (R-07)' % (h[:16], len(match)))
+    return theta, list_hash, match[0], {'computed': h}
+
+
+def theta_id_from_entry(entry):
+    """θ identity from the matched frozen entry (R-07).
+
+    GATED: the unique `theta_id` field name is a pre-implementation input and
+    is NOT guessed. While unset, this fails closed so no run can produce an
+    unverified θ binding."""
+    if THETA_ID_FIELD is None:
+        raise RuntimeError('theta_id field name not confirmed (R-07 gate) — '
+                           'fail closed')
+    tid = (entry or {}).get(THETA_ID_FIELD)
+    if not isinstance(tid, str) or not tid:
+        raise RuntimeError('matched theta entry has no usable %r (R-07)'
+                           % THETA_ID_FIELD)
+    return tid
+
+
+def prepare_collection_context(theta_json_path, data=None):
+    """F-03a ordering: independently verify the θ list and resolve the θ
+    identity BEFORE any acquisition side effect. Returns
+    (theta, theta_id, theta_list_hash, theta_info); raises (fail-closed) on any
+    hash / membership / identity failure so the caller must invoke this before
+    starting collection."""
+    if data is None:
+        data = load_theta_list()
+    check = verify_theta_list(data)                 # F-03a independent anchor
+    theta, _declared, entry, theta_info = resolve_theta(theta_json_path,
+                                                        data=data)
+    theta_id = theta_id_from_entry(entry)           # R-07 gate (fail closed)
+    return theta, theta_id, check['computed'], theta_info
 
 
 def config_hash_source():
@@ -1100,6 +1694,23 @@ def config_hash_source():
 # ---------------------------------------------------------------------------
 
 def cmd_collect(args):
+    # F-03a / R-07: independently verify the θ list and resolve the θ identity
+    # BEFORE any acquisition side-effect (no episode dir, no subscription, no
+    # rclpy). Fail-closed on any hash / membership / identity failure.
+    try:
+        theta, theta_id, theta_list_hash, theta_info = \
+            prepare_collection_context(args.theta)
+    except RuntimeError as exc:
+        status = {'artifact': 'Stage 1 collector status (NON-NORMATIVE)',
+                  'episode_id': args.episode_id, 'phase': 'aborted',
+                  'terminal_status': 'aborted',
+                  'terminal_reason': 'theta_binding_failed',
+                  'process_exit_result': 'failure',
+                  'dataset_eligibility': 'ineligible', 'status': 'aborted',
+                  'detail': str(exc)}
+        print(json.dumps(status, indent=2))
+        return 1
+
     from_ros = args.domain_id
     if from_ros is not None:
         os.environ['ROS_DOMAIN_ID'] = str(from_ros)
@@ -1107,76 +1718,373 @@ def cmd_collect(args):
         os.environ['GZ_PARTITION'] = args.gz_partition
     import rclpy
     rclpy.init()
+    aborted = False
     try:
         transport = probe.gz_packages()[2]
         msg_types = _message_types()
         records, info = collect_live(
             list(STREAMS) + list(FRAME_AUX_STREAMS), args.duration,
             args.warmup_sec, transport, msg_types)
+    except KeyboardInterrupt:
+        aborted = True
+        records, info = {}, {}
     finally:
         rclpy.shutdown()
+    info['aborted'] = aborted
+    if aborted:
+        sys.stderr.write('collector interrupted — aborting without publish\n')
 
-    theta, theta_list_hash, _ = resolve_theta(args.theta)
     inertials, sdf_sha = load_sdf_inertials()
     total_mass = sum(v['mass'] for v in inertials.values())
+    requested_config = {
+        'theta': theta, 'theta_id': theta_id, 'seed': args.seed,
+        'ring': args.ring, 'duration_sec': args.duration,
+        'warmup_sec': args.warmup_sec,
+        'association_windows_sec': {
+            'contact': CONTACT_WINDOW_SEC, 'pose': POSE_WINDOW_SEC,
+            'body_pose': BODY_POSE_WINDOW_SEC, 'bool': BOOL_WINDOW_SEC,
+            'command': COMMAND_WINDOW_SEC, 'imu': IMU_WINDOW_SEC},
+        'theta_hash': theta_info.get('computed'),
+    }
     assembler = EpisodeAssembler(
-        episode_id=args.episode_id, theta=theta, theta_id=args.episode_id,
+        episode_id=args.episode_id, theta=theta, theta_id=theta_id,
         seed=args.seed, ring=args.ring,
         config_hash_source=config_hash_source(),
         wallclock_utc=datetime.now(timezone.utc).isoformat(),
         git_commit=_git_commit(), rfc_hash=sha256_file(RFC_PATH),
         model_hash=sdf_sha, world_hash=sha256_file(WORLD_PATH),
         gz_version=_gz_version(), theta_list_hash=theta_list_hash,
-        inertials=inertials, total_mass=total_mass, sdf_sha=sdf_sha)
-    rc, status = _finalize(args, assembler, records, info)
+        inertials=inertials, total_mass=total_mass, sdf_sha=sdf_sha,
+        requested_config=requested_config)
+    try:
+        rc, status = _finalize(args, assembler, records, info)
+    except PermissionError as exc:      # R-14 protected path — fail closed
+        status = {'artifact': 'Stage 1 collector status (NON-NORMATIVE)',
+                  'episode_id': args.episode_id, 'phase': 'aborted',
+                  'terminal_status': 'aborted', 'terminal_reason': 'aborted',
+                  'process_exit_result': 'failure',
+                  'dataset_eligibility': 'ineligible', 'status': 'aborted',
+                  'detail': str(exc)}
+        rc = 1
     print(json.dumps(status, indent=2))
     return rc
 
 
+# ---------------------------------------------------------------------------
+# R-01 / R-09: six-dimension terminal status model (task v0.3 §4).
+# ---------------------------------------------------------------------------
+
+TERMINAL_PRECEDENCE = ('aborted', 'write_failed', 'status_write_failed',
+                       'publish_failed', 'collection_failed',
+                       'integrity_failed', 'contract_rejected', 'partial',
+                       'complete_validated')
+
+REASON_FOR_TERMINAL = {
+    'aborted': 'aborted',
+    'write_failed': 'write_failed',
+    'status_write_failed': 'status_write_failed',
+    'publish_failed': 'publish_failed',
+    'collection_failed': 'collection_failed',
+    'integrity_failed': 'integrity_failed',
+    'contract_rejected': 'checker_failed',
+    'partial': 'partial',
+    'complete_validated': 'complete_validated',
+}
+
+REQUIRED_RAW_CATEGORIES = ('contacts_left', 'contacts_right', 'pose_info',
+                           'joint_command')
+FRAME_CLOCK_CATEGORY = 'joint_states'
+
+
+def classify_contract(rc, report):
+    """(state, reason) for contract_validation (§4.7). A bare exit code 0 is
+    NEVER sufficient — the report must exist, parse, and report smoke ok."""
+    if report is None:
+        return 'error', 'checker_error'
+    if not isinstance(report, dict):
+        return 'error', 'checker_error'
+    ok = bool(report.get('smoke', {}).get('ok'))
+    if rc == 0 and ok:
+        return 'passed', None
+    if rc == 0 and not ok:
+        return 'error', 'checker_error'   # zero exit but not passing
+    return 'failed', 'checker_failed'
+
+
+def verify_integrity(root, summary=None):
+    """(state, reason, detail) for integrity_validation (R-04 / F-04).
+
+    F-04-3: check the FIXED required set `EPISODE_ARTIFACT_FILES`, not merely
+    the entries that happen to be declared. The hash map (`artifact_hashes`) is
+    read from the persisted summary file (OD-5=A). Fail-closed on: missing
+    summary, missing/empty/ill-typed hash map, undeclared or extra entries,
+    missing files, invalid hash values, unreadable files, hash mismatch,
+    unsafe/escaping paths, and summary self-hash inconsistency."""
+    if REQUIRED_ARTIFACT_LIST is None:
+        return ('not_run', 'integrity_not_run',
+                'required artifact list not fixed (R-04 gate)')
+    if not isinstance(root, str) or not root:
+        return ('failed', 'integrity_failed', 'invalid episode root')
+    root = os.path.abspath(root)
+
+    # The hash map lives in the summary file itself (OD-5=A).
+    summary_path = os.path.join(root, SUMMARY_ARTIFACT)
+    if not os.path.isfile(summary_path):
+        return ('failed', 'integrity_failed',
+                'summary %s missing (F-04)' % SUMMARY_ARTIFACT)
+    try:
+        with open(summary_path, 'r', encoding='utf-8') as fh:
+            meta = json.load(fh)
+    except Exception as exc:  # noqa: BLE001
+        return ('failed', 'integrity_failed',
+                'summary unreadable: %s: %s' % (type(exc).__name__, exc))
+    if not isinstance(meta, dict):
+        return ('failed', 'integrity_failed', 'summary is not a JSON object')
+    ah = meta.get('artifact_hashes')
+    if ah is None:
+        return ('failed', 'integrity_failed', 'artifact_hashes missing')
+    if not isinstance(ah, dict):
+        return ('failed', 'integrity_failed', 'artifact_hashes not an object')
+    if not ah:
+        return ('failed', 'integrity_failed', 'artifact_hashes empty')
+
+    required = tuple(EPISODE_ARTIFACT_FILES)
+    allowed = set(required)
+    extra = sorted(k for k in ah if k not in allowed)
+    if extra:
+        return ('failed', 'integrity_failed',
+                'unauthorized artifact_hashes entries: %s' % extra)
+    undeclared = sorted(allowed - set(ah))
+    if undeclared:
+        return ('failed', 'integrity_failed',
+                'required files without a hash declaration: %s' % undeclared)
+
+    for rel in required:
+        if not _valid_sha256(ah.get(rel)):
+            return ('failed', 'integrity_failed',
+                    'invalid hash declaration for %s' % rel)
+        full = _safe_artifact_path(root, rel)
+        if full is None:
+            return ('failed', 'integrity_failed',
+                    'unsafe artifact path (escapes episode root): %s' % rel)
+        if not os.path.isfile(full):
+            return ('failed', 'integrity_failed',
+                    'required artifact missing: %s' % rel)
+        if rel == SUMMARY_ARTIFACT:
+            # F-04-2: the summary is verified by the canonical self-hash rule.
+            try:
+                recomputed = compute_summary_self_hash(meta)
+            except Exception as exc:  # noqa: BLE001 — non-finite/ill-typed
+                # content makes the canonical (allow_nan=False) serialization
+                # un-computable; fail closed like the ordinary hash path above
+                # instead of letting the exception escape the verifier.
+                return ('failed', 'integrity_failed',
+                        'summary self-hash computation failed: %s: %s'
+                        % (type(exc).__name__, exc))
+            if meta.get('summary_self_hash') != recomputed \
+                    or ah.get(SUMMARY_ARTIFACT) != recomputed:
+                return ('failed', 'integrity_failed',
+                        'summary self-hash mismatch: %s' % SUMMARY_ARTIFACT)
+            continue
+        try:
+            got = sha256_file(full)
+        except Exception as exc:  # noqa: BLE001
+            return ('failed', 'integrity_failed',
+                    'unreadable artifact %s: %s' % (rel, exc))
+        if got != ah.get(rel):
+            return ('failed', 'integrity_failed', 'hash mismatch: %s' % rel)
+    return ('passed', None, None)
+
+
+def _stream_ok(kind, records, streams):
+    """A required stream counts as acquired only if it has records AND (when
+    subscribe info is known) subscribe_ok is True (R-09; F1)."""
+    if not records.get(kind):
+        return False
+    info = streams.get(kind)
+    if info is not None and info.get('subscribe_ok') is not True:
+        return False
+    return True
+
+
+def acquisition_completeness(records, streams, cb_errors):
+    missing = [k for k in REQUIRED_RAW_CATEGORIES
+               if not _stream_ok(k, records, streams)]
+    if not _stream_ok(FRAME_CLOCK_CATEGORY, records, streams):
+        missing.append(FRAME_CLOCK_CATEGORY)
+    if missing:
+        return 'missing_required', missing
+    if cb_errors:
+        return 'partial', []
+    return 'complete', []
+
+
+def classify_terminal(acq, contract_state, integrity_state, cb_errors,
+                      sess_errors, aborted=False):
+    """Unique primary terminal status by fixed precedence (§4.3/§4.4)."""
+    conditions = {
+        'aborted': bool(aborted),
+        'write_failed': False,            # handled by the freeze path
+        'status_write_failed': False,     # handled post-publish
+        'publish_failed': False,          # handled post-publish
+        'collection_failed': bool(sess_errors) or acq == 'missing_required',
+        'integrity_failed': integrity_state != 'passed',
+        'contract_rejected': contract_state != 'passed',
+        'partial': bool(cb_errors),
+        'complete_validated': True,
+    }
+    for st in TERMINAL_PRECEDENCE:
+        if conditions.get(st):
+            return st
+    return 'complete_validated'
+
+
+def build_status_doc(base, summary, acquisition, contract, integrity,
+                     terminal, reason=None, phase='staging', detail=None,
+                     publish=None):
+    # `contract` is (state, reason); `integrity` is (state, reason[, detail])
+    contract_state, contract_reason = contract[0], contract[1]
+    integrity_state, integrity_reason = integrity[0], integrity[1]
+    if terminal == 'integrity_failed':
+        reason = integrity_reason or 'integrity_failed'
+    elif terminal == 'contract_rejected':
+        reason = contract_reason or 'checker_failed'
+    elif reason is None:
+        reason = REASON_FOR_TERMINAL.get(terminal)
+    exit_result = 'success' if terminal == 'complete_validated' else 'failure'
+    if terminal == 'complete_validated' and integrity_state == 'passed':
+        eligibility = ('eligible' if DATASET_ELIGIBILITY_POLICY is not None
+                       else 'undetermined')
+    else:
+        eligibility = 'ineligible'
+    doc = dict(base)
+    doc.update({
+        'phase': phase,
+        'acquisition_completeness': acquisition,
+        'contract_validation': contract_state,
+        'integrity_validation': integrity_state,
+        'terminal_status': terminal,
+        'terminal_reason': reason,
+        'process_exit_result': exit_result,
+        'dataset_eligibility': eligibility,
+        'status': terminal,   # legacy alias of terminal_status
+    })
+    if summary:
+        for k in ('frame_count', 'n_raw', 't_start', 't_end',
+                  'episode_integrity_hash'):
+            if k in summary:
+                doc[k] = summary[k]
+    if detail is not None:
+        doc['detail'] = detail
+    if publish is not None:
+        doc['publish_status'] = publish
+    return doc
+
+
 def _finalize(args, assembler, records, info):
     out_root = os.path.abspath(args.out_root)
+    guard_path(out_root)                       # R-14 fail-closed protection
     if os.path.exists(out_root) and not args.allow_overwrite:
         raise RuntimeError('out_root exists (use --allow-overwrite): %s'
                            % out_root)
     staging = out_root + '.staging.%d' % os.getpid()
+    guard_path(staging)
     if os.path.exists(staging):
         shutil.rmtree(staging)
     os.makedirs(staging)
-    status = {'artifact': 'Stage 1 collector status (NON-NORMATIVE)',
-              'episode_id': assembler.episode_id,
-              'streams': info.get('streams', {}),
-              'callback_errors': info.get('callback_errors', []),
-              'session_errors': info.get('session_errors', [])}
+
+    streams = info.get('streams', {}) or {}
+    cb_errors = list(info.get('callback_errors', []) or [])
+    sess_errors = list(info.get('session_errors', []) or [])
+    base = {'artifact': 'Stage 1 collector status (NON-NORMATIVE)',
+            'episode_id': assembler.episode_id,
+            'phase': 'staging',
+            'streams': streams,
+            'callback_errors': cb_errors,
+            'session_errors': sess_errors}
+
+    # --- freeze --------------------------------------------------------
     try:
         summary = freeze_episode(assembler, records, staging)
-    except Exception as exc:
-        status['status'] = 'write_failed'
-        status['error'] = '%s: %s' % (type(exc).__name__, exc)
-        try:
-            write_json(os.path.join(staging, 'status.json'), status)
-            _publish(staging, out_root)
-        finally:
-            pass
+    except Exception as exc:  # noqa: BLE001
+        status = build_status_doc(
+            base, None, acquisition='not_started',
+            contract=('not_run', 'checker_not_run'),
+            integrity=('not_run', 'integrity_not_run'),
+            terminal='write_failed', reason='write_failed',
+            detail='%s: %s' % (type(exc).__name__, exc))
+        write_json(os.path.join(staging, 'status.json'), status)
         return 1, status
-    status.update(summary)
-    rc, report, _out, _err = run_frozen_checker(staging)
-    status['checker_exit_code'] = rc
-    status['checker_ok'] = bool(report and report.get('smoke', {}).get('ok'))
-    if report is not None:
+
+    # --- provisional status inside staging (never formally validated) ---
+    acq, _missing = acquisition_completeness(records, streams, cb_errors)
+    write_json(os.path.join(staging, 'status.json'),
+               build_status_doc(
+                   base, summary, acquisition=acq,
+                   contract=('not_run', 'checker_not_run'),
+                   integrity=('not_run', 'integrity_not_run'),
+                   terminal='in_progress', reason=None, phase='staging'))
+
+    # --- integrity verification (R-04, gated) --------------------------
+    integrity = verify_integrity(staging, summary)
+
+    # --- frozen checker -------------------------------------------------
+    try:
+        rc, report, _out, _err = run_frozen_checker(staging)
+        contract = classify_contract(rc, report)
+    except Exception:  # noqa: BLE001 — launch failure / timeout
+        rc, report = None, None
+        contract = ('error', 'checker_error')
+    base['checker_exit_code'] = rc
+    base['checker_ok'] = bool(isinstance(report, dict)
+                              and report.get('smoke', {}).get('ok'))
+    if isinstance(report, dict):
         write_json(os.path.join(staging, 'smoke_report.json'), report)
-    if not records.get('joint_states'):
-        status['status'] = 'collection_failed'
-    elif not all(records.get(k) for k in
-                 ('contacts_left', 'contacts_right', 'pose_info',
-                  'joint_command')):
-        status['status'] = 'partial'
-    elif rc == 0:
-        status['status'] = 'complete_validated'
-    else:
-        status['status'] = 'contract_rejected'
-    write_json(os.path.join(staging, 'status.json'), status)
-    _publish(staging, out_root)
-    return (0 if status['status'] == 'complete_validated' else 1), status
+
+    # --- classify the pre-publish terminal ------------------------------
+    terminal = classify_terminal(acq, contract[0], integrity[0], cb_errors,
+                                 sess_errors, aborted=bool(info.get('aborted')))
+    reason = REASON_FOR_TERMINAL.get(terminal)
+
+    # --- interrupt: abort without publishing -----------------------------
+    if terminal == 'aborted':
+        status = build_status_doc(base, summary, acquisition=acq,
+                                  contract=contract, integrity=integrity,
+                                  terminal='aborted', reason='aborted',
+                                  phase='staging')
+        write_json(os.path.join(staging, 'status.json'), status)
+        return 1, status
+
+    # --- publish (R-02) --------------------------------------------------
+    pub = _publish(staging, out_root)
+    if not pub['ok']:
+        status = build_status_doc(base, summary, acquisition=acq,
+                                  contract=contract, integrity=integrity,
+                                  terminal='publish_failed',
+                                  reason='publish_failed',
+                                  phase='publish_failed',
+                                  detail=pub.get('detail'),
+                                  publish=pub['status'])
+        if os.path.isdir(staging):
+            write_json(os.path.join(staging, 'status.json'), status)
+        return 1, status
+
+    # --- commit the final status atomically into the published target ---
+    phase = ('validated' if terminal == 'complete_validated'
+             else 'published_unvalidated')
+    status = build_status_doc(base, summary, acquisition=acq, contract=contract,
+                              integrity=integrity, terminal=terminal,
+                              reason=reason, phase=phase, publish='published')
+    try:
+        write_json(os.path.join(out_root, 'status.json'), status)  # atomic
+    except Exception as exc:  # noqa: BLE001 — final-status write failure
+        status = build_status_doc(
+            base, summary, acquisition=acq, contract=contract,
+            integrity=integrity, terminal='status_write_failed',
+            reason='status_write_failed', phase='published_unvalidated',
+            detail='%s: %s' % (type(exc).__name__, exc))
+        return 1, status
+    return (0 if terminal == 'complete_validated' else 1), status
 
 
 def cmd_smoke(args):
@@ -1220,11 +2128,40 @@ def cmd_verify(args):
     report['frame_count_consistent'] = (
         isinstance(frames, list) and isinstance(prov, dict)
         and prov.get('frame_count') == len(frames))
+    # R-04 (artifact-list-independent failure paths): recompute the recorded
+    # integrity hash and require frames.json ↔ frames.jsonl content equality.
+    # (The full required-artifact-list pass remains gated — see verify_integrity.)
+    integrity_errors = []
+    try:
+        recomputed = sha256_file(os.path.join(args.episode_dir, 'frames.jsonl'))
+    except Exception as exc:  # noqa: BLE001
+        recomputed = None
+        integrity_errors.append('frames.jsonl unreadable: %s' % exc)
+    recorded = prov.get('episode_integrity_hash') \
+        if isinstance(prov, dict) else None
+    report['recorded_integrity_hash'] = recorded
+    report['recomputed_integrity_hash'] = recomputed
+    if recorded is not None and recomputed is not None \
+            and recorded != recomputed:
+        integrity_errors.append(
+            'episode_integrity_hash mismatch (recorded != recomputed)')
+    try:
+        with open(os.path.join(args.episode_dir, 'frames.jsonl'),
+                  encoding='utf-8') as fh:
+            jsonl = [strict(ln) for ln in fh.read().splitlines() if ln.strip()]
+    except Exception as exc:  # noqa: BLE001
+        jsonl = None
+        integrity_errors.append('frames.jsonl parse failed: %s' % exc)
+    report['frames_json_matches_jsonl'] = (
+        isinstance(frames, list) and jsonl is not None and frames == jsonl)
+    if isinstance(frames, list) and jsonl is not None and frames != jsonl:
+        integrity_errors.append('frames.json != frames.jsonl content')
+    report['integrity_errors'] = integrity_errors
     rc, smoke, out, _err = run_frozen_checker(args.episode_dir)
     report['checker_exit_code'] = rc
     report['checker_ok'] = bool(smoke and smoke.get('smoke', {}).get('ok'))
-    report['status'] = 'PASS' if (rc == 0 and report['frame_count_consistent']) \
-        else 'FAIL'
+    report['status'] = 'PASS' if (rc == 0 and report['frame_count_consistent']
+                                  and not integrity_errors) else 'FAIL'
     print(json.dumps(report, indent=2))
     return 0 if report['status'] == 'PASS' else 1
 

@@ -35,6 +35,7 @@ import tempfile
 import unittest
 
 import stage1_contract_check as c
+import stage1_git_guard as git_guard
 
 TOOLS = os.path.dirname(os.path.abspath(__file__))
 WS = os.path.dirname(TOOLS)
@@ -777,8 +778,8 @@ class TestR6toR10Regression(unittest.TestCase):
         import hashlib
         for path, expected in (
                 (c.RFC_PATH,
-                 'f8662d1673f1a30e9cfb2d8156214d7124eb45c08301087d85c4fae'
-                 '1ca894efe'),
+                 '4f92c9bf2c6496d9cbf092775d795854ec7b98e535fd52124709da7d'
+                 '307458d7'),
                 (c.CONTRACT_PATH,
                  '0384aad2d1f4db92c7fc02729c71fa9daf4d3542a26df8e72d2682ec'
                  'fdab0295')):
@@ -835,16 +836,12 @@ class TestR6toR10Regression(unittest.TestCase):
 
     def test_frozen_files_untouched(self):
         # scope guard: the frozen set and probe are byte-identical to the
-        # R13 baseline commit 88aa3fa (same guard as the R14 suite)
-        for rel in ('tools/run_phase_a_episode.py', 'tools/stage1_probe.py',
-                    'src/nao/nao_description/urdf/nao_simple.sdf',
-                    'src/nao_gz_sim/worlds/nao_world.sdf'):
-            path = os.path.join(WS, rel)
-            proc = subprocess.run(
-                ['git', 'diff', '88aa3fa', '--', rel], cwd=WS,
-                capture_output=True, text=True, timeout=30)
-            self.assertEqual(proc.stdout.strip(), '',
-                             'frozen file modified: %s' % rel)
+        # R13 baseline commit (FULL sha). Shared fail-closed guard, called
+        # once per protected path: a git subprocess failure / missing
+        # baseline / timeout is a FAILURE, not a silent pass.
+        for rel in git_guard.PROTECTED_PATHS:
+            git_guard.assert_path_unchanged(
+                WS, git_guard.FULL_BASELINE_SHA, rel)
 
 
 if __name__ == '__main__':

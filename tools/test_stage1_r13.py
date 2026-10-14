@@ -715,8 +715,8 @@ class TestR6toR10Regression(unittest.TestCase):
         h = hashlib.sha256(
             open(c.RFC_PATH, 'rb').read()).hexdigest()
         self.assertEqual(
-            h, 'f8662d1673f1a30e9cfb2d8156214d7124eb45c08301087d85c4fae'
-               '1ca894efe')
+            h, '4f92c9bf2c6496d9cbf092775d795854ec7b98e535fd52124709da7d'
+               '307458d7')
 
     def test_r6_no_cadence_band_in_probe(self):
         text = read(PROBE)
